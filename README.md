@@ -2,16 +2,11 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**Initial CI Run:** https://github.com/leanprover/lean-eval-submissions/actions/runs/26934972497  
-**Retry Issue:** [#197](https://github.com/leanprover/lean-eval-submissions/issues/197) (awaiting `submission` label)
-
 ---
 
 ## Evaluation Results
 
-**Status:** 3 / 5 problems solved (2 fixed, 1 new, awaiting CI re-evaluation)  
-**CI Run:** [#26934972497](https://github.com/leanprover/lean-eval-submissions/actions/runs/26934972497)  
-**Triggered by:** Issue #196 (submission label applied via web form)
+**Status:** 6 problems solved
 
 ### Per-Problem Results
 
