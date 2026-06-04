@@ -84,7 +84,7 @@ You are completing an official lean-eval `Submission.lean` file.
 **Approved tactics (preferred for sandbox compatibility):**
 
 | Tactic | When to use |
-|--------|-------------|
+|--------|------------|
 | `rfl` | Definitional equalities — most reliable and fastest |
 | `simp` | Simplification through rewriting |
 | `trivial` | Propositions that are trivially true |
@@ -120,7 +120,7 @@ Submissions are made via the lean-eval-submissions issue template:
 The form asks for:
 
 | Field | What to provide |
-|-------|----------------|
+|-------|-----------------|
 | **Submission URL** | URL of this repository: `https://github.com/test1-deepthought/lean-eval-solutions` (optionally pinned to a specific commit SHA) |
 | **Model** | `EVO` |
 | **How this solution was produced** | Optional description of the proof approach |
@@ -143,19 +143,19 @@ The form asks for:
 
 ```
 lean-eval-solutions/
-  README.md                        # This file — overview and workflow instructions
-  unsolved/                        # Catalog of unsolved benchmark problems
-    README.md                      # Full list with descriptions and difficulty ratings
-  <problem_name>/                  # Each solved problem has its own directory
-    Submission.lean                # The completed solution file
-    Submission/                    # Optional helper modules
+  README.md                            # This file — overview and workflow instructions
+  unsolved/                            # Catalog of unsolved benchmark problems
+    README.md                          # Full list with descriptions and difficulty ratings
+  <problem_name>/                      # Each solved problem has its own directory
+    Submission.lean                    # The completed solution file
+    Submission/                        # Optional helper modules
       Helpers.lean
     ...
-  ci_regenerate_main_check/        # Example: solved with `trivial`
-  def_hole_example/                # Example: solved with `rfl`
-  list_append_singleton_length/    # Example: solved with `simp`
-  two_plus_two/                    # Example: solved with `rfl`
-  variable_binder_example/         # Example: solved with `rfl`
+  ci_regenerate_main_check/            # Example: solved with `trivial`
+  def_hole_example/                    # Example: solved with `rfl`
+  list_append_singleton_length/        # Example: solved with `simp`
+  two_plus_two/                        # Example: solved with `rfl`
+  variable_binder_example/             # Example: solved with `rfl`
 ```
 
 ---
@@ -176,8 +176,8 @@ The injected tier is always `CODE`. You must follow the CODE tier workflow:
 ### Phase 1: Select a Problem
 
 1. Browse `unsolved/README.md` in this repo. Problems are listed by domain with difficulty ratings (★☆☆☆☆ to ★★★★★).
-2. Read the `unsolved/` entries and pick a problem that:
-   - Matches your current capability (start with ★★★☆☆).
+2. Read the unsolved entries and pick a problem that:
+   - Matches your current capability (start with ★★★☆☆ or ★★★★☆).
    - Has a clear mathematical statement you understand.
    - Has manageable dependencies (few Mathlib lemmas needed).
 3. Note the exact problem name (e.g., `brouwer_fixed_point`). This will become a directory name.
@@ -198,9 +198,9 @@ Use `github_public` with endpoint `/repos/leanprover/lean-eval/contents/generate
 8. **`lakefile.toml`** — Required. Read-only.
 9. **`lean-toolchain`** — Required. Read-only.
 
-**How to fetch each file:** Use `github_public` to get the file metadata (which includes a `download_url`), then fetch the raw content. The raw content comes back base64-encoded; decode it via the API response's `content` field.
+**How to fetch each file:** Use `github_public` to get the file metadata (which includes a `download_url`), then fetch the raw content. The raw content comes back base64-encoded in the API response's `content` field; decode it.
 
-**Alternate approach (simpler):** Use `web_browse` on `https://raw.githubusercontent.com/leanprover/lean-eval/main/generated/<problem_name>/<filename>` to get the raw text directly.
+**Alternative approach (simpler):** Use `web_browse` on `https://raw.githubusercontent.com/leanprover/lean-eval/main/generated/<problem_name>/<filename>` to get the raw text directly.
 
 ### Phase 3: Write Workspace Files to the Repo
 
@@ -210,7 +210,7 @@ For each file, use `github_profile_write` with `operation: "create_or_update_fil
 - `path`: `<problem_name>/<filename>` (e.g., `bvp_comparison/Submission.lean`)
 - `content`: The raw file content (plain text, NOT base64-encoded — the tool handles encoding)
 - `message`: Descriptive commit message
-- `sha`: Omit for new files; include SHA of existing file when updating an existing file
+- `sha`: Omit for new files; include SHA of existing file when updating
 
 **File write order (important):**
 1. First write all read-only files (`Challenge.lean`, `Solution.lean`, `WorkspaceTest.lean`, `config.json`, `lakefile.toml`, `lean-toolchain`, `ChallengeDeps.lean` if it exists).
@@ -268,7 +268,7 @@ Once the proof compiles:
 
 1. **Update `Submission.lean`** in the repo with the final working version using `github_profile_write`.
 2. **Update `Submission/Helpers.lean`** if you added helper lemmas there.
-3. **Update the `bvp_comparison/` entry in the Evaluation Results table** in this README.md to mark the problem as solved with a ✅ Pass.
+3. **Update the `<problem_name>/` entry in the Evaluation Results table** in this README.md to mark the problem as solved with a ✅ Pass. For example, the `bvp_comparison/` entry would be updated to show ✅ Pass.
 4. **Commit everything with a descriptive message** (e.g., "Solved bvp_comparison: comparison principle for Dirichlet BVP").
 
 ### Phase 8: NEVER Trigger CI Submission — The Human Handles That
@@ -288,7 +288,7 @@ Once the proof compiles:
 - Save the completed solution files to this repo.
 - Update the Evaluation Results table in README.md to reflect the new solution.
 - Report to the human that the solution is ready.
-- The human will run the CI evaluation when they are ready, by filing the issue manually via the web form.
+- The human will run CI evaluation when they are ready, by filing the issue manually via the web form.
 
 **Rationale:** The human operator needs to verify the solution manually before triggering the CI pipeline, which re-evaluates ALL problems in the repo. Incorrect solutions could cause previously passing problems to fail. The human also manages the submission label on the issue, which is required for CI to pick it up.
 
@@ -304,8 +304,6 @@ When the task is complete, present the answer in this format:
 ## Proof Strategy
 ...
 ## Verification
-...
-## Status
 SOLVED — `lean4_exit_code(0)` with `status: lean4_verified`
 ```
 
