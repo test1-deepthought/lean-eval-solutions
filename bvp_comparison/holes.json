@@ -1,0 +1,12 @@
+{
+  "id": "bvp_comparison",
+  "module": "LeanEval.Analysis.ODE.BVPComparison",
+  "holes": [
+    {
+      "name": "LeanEval.Analysis.ODE.bvp_comparison",
+      "basename": "bvp_comparison",
+      "kind": "theorem",
+      "body": "/-- **Comparison principle for the Dirichlet BVP.** If two functions are `C²` on an open\ninterval `J` containing `[0, 1]`, satisfy `-u'' ≤ -v''` on the interior, and are ordered\nat the boundary, then `u ≤ v` throughout `[0, 1]`. -/\ntheorem bvp_comparison\n    (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 : ℝ) 1 ⊆ J)\n    (u v : ℝ → ℝ)\n    (hu : ∀ x ∈ J, HasDerivAt u (deriv u x) x)\n    (hu' : ∀ x ∈ J, HasDerivAt (deriv u) (deriv (deriv u) x) x)\n    (hv : ∀ x ∈ J, HasDerivAt v (deriv v x) x)\n    (hv' : ∀ x ∈ J, HasDerivAt (deriv v) (deriv (deriv v) x) x)\n    (hineq : ∀ x ∈ Set.Ioo (0 : ℝ) 1, -deriv (deriv u) x ≤ -deriv (deriv v) x)\n    (hu0 : u 0 ≤ v 0) (hu1 : u 1 ≤ v 1) :\n    ∀ x ∈ Set.Icc (0 : ℝ) 1, u x ≤ v x := by\n  sorry"
+    }
+  ]
+}
