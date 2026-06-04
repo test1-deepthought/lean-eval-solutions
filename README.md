@@ -25,6 +25,137 @@
 
 ---
 
+## Workflow: How to Solve a New Problem
+
+This section documents the step-by-step process for selecting an unsolved problem from the lean-eval benchmark, extracting the workspace, and preparing a submission.
+
+### 1. Select an Unsolved Problem
+
+Problems are listed in the [`unsolved/`](./unsolved) directory of this repo. Each unsolved problem has a README entry describing the mathematical domain and difficulty level.
+
+The actual problem workspaces live in the upstream repository:
+
+**https://github.com/leanprover/lean-eval/tree/main/generated**
+
+Each problem has a dedicated subdirectory (e.g., `abel_ruffini/`, `brouwer_fixed_point/`, `cyclotomic_integer_house_le_two/`).
+
+### 2. Extract the Problem Workspace
+
+Inside each problem directory you will find:
+
+| File / Directory | Purpose |
+|----------------|---------|
+| `Submission.lean` | **Your file to complete.** Contains `sorry` placeholders that you must replace with valid Lean 4 / Mathlib code. |
+| `Challenge.lean` | The problem statement with the same theorem signature. **Do not modify.** Read-only benchmark file. |
+| `Solution.lean` | The reference solution. **Do not modify.** Read-only benchmark file. |
+| `Submission/Helpers.lean` | Optional helper lemmas module that you may edit or extend. |
+| `WorkspaceTest.lean` | Test file used by the comparator. |
+| `config.json` / `holes.json` | Problem configuration. |
+| `lakefile.toml` | Lake build configuration. |
+| `lean-toolchain` | Lean version specification. |
+
+**To set up a problem for solving:**
+
+1. Copy the entire problem directory from `lean-eval/generated/<problem_name>` into this repo as `<problem_name>/` (one level up from the existing solved problems).
+2. Open `Submission.lean` — this is the only file you will modify.
+3. You may also edit or create files under `Submission/` (e.g., `Submission/Helpers.lean`) for helper lemmas.
+
+### 3. Solve the Problem
+
+You are completing an official lean-eval `Submission.lean` file.
+
+**Task:** Replace every `sorry` with valid Lean 4 / Mathlib code so the file compiles.
+
+**Hard constraints (violations cause the comparator to reject your submission):**
+
+- **Do not change imports.** The `import Mathlib` and `import Submission.Helpers` lines must remain exactly as given.
+- **Do not change namespaces.** The `namespace Submission` / `end Submission` block is fixed.
+- **Do not change declaration names.** The theorem/def name must match the benchmark exactly.
+- **Do not change theorem statements, type signatures, assumptions, or conclusions.** The `:`-separated statement is sacred.
+- **Do not use `sorry`, `admit`, `axiom`, `unsafe`, or unsound declarations.** Every placeholder must be replaced with a real proof.
+- **You may add helper lemmas inside the `Submission` namespace** (in the same file or in `Submission/Helpers.lean`).
+- **The `Submission.Helpers` module** is where extracted helper lemmas live. Imported via `import Submission.Helpers` in `Submission.lean`.
+- **Use `import Mathlib` exclusively.** Do not import individual Mathlib submodules — the lake cache compiles `import Mathlib` instantly, and submodule paths change between Mathlib versions.
+
+**Approved tactics (preferred for sandbox compatibility):**
+
+| Tactic | When to use |
+|--------|-------------|
+| `rfl` | Definitional equalities — most reliable and fastest |
+| `simp` | Simplification through rewriting |
+| `trivial` | Propositions that are trivially true |
+| `norm_num` | Concrete numerical computations |
+| `omega` / `linarith` / `nlinarith` | Linear and polynomial arithmetic |
+| `ring` / `field_simp` | Algebraic identities |
+| `induction` / `cases` / `rcases` | Case analysis and induction |
+| `apply` / `exact` / `refine` | Direct proof term construction |
+
+**Tactics to AVOID** (they may fail in the lean-eval CI sandbox due to native code execution restrictions):
+
+| Tactic | Why to avoid |
+|--------|-------------|
+| `native_decide` | Requires writing/compiling C code, denied by sandbox `--ro /` policy |
+| `decide` | May also attempt native compilation in some contexts |
+| `native`-family tactics | All native-code tactics are blocked by the sandbox |
+
+### 4. Verify the Solution
+
+Before submitting, verify the solution compiles by running it through a Lean 4 environment (the same `lean-toolchain` version as the benchmark).
+
+In this automated workflow, the solution is verified by:
+1. Running `lean4_exec` with `import Mathlib` and the full `Submission.lean` content.
+2. Confirming `lean4_exit_code(0)` with `status: lean4_verified`.
+3. Checking that no `sorry` or `admit` statements remain.
+
+### 5. Submit the Solution
+
+Submissions are made via the lean-eval-submissions issue template:
+
+**https://github.com/leanprover/lean-eval-submissions/issues/new?template=submit.yml**
+
+The form asks for:
+
+| Field | What to provide |
+|-------|----------------|
+| **Submission URL** | URL of this repository: `https://github.com/test1-deepthought/lean-eval-solutions` (optionally pinned to a specific commit SHA) |
+| **Model** | `EVO` |
+| **How this solution was produced** | Optional description of the proof approach |
+
+**How the CI evaluates your submission:**
+
+1. The lean-eval CI clones the submission URL.
+2. It walks the repository looking for every `lakefile.toml` whose `name` matches a benchmark problem ID.
+3. For each match, it reads `Submission.lean` and files under `Submission/`.
+4. It runs the comparator to verify the proof.
+
+**Important notes:**
+- Only `Submission.lean` and files under `Submission/` are inspected. Everything else in the repo is ignored.
+- The CI evaluates the default branch at workflow-run time (unless you pin a specific commit SHA in the URL).
+- After submission, the CI will re-evaluate all problems in the repo, including previously solved ones.
+
+---
+
+## Repository Structure
+
+```
+lean-eval-solutions/
+  README.md                 # This file — overview and workflow instructions
+  unsolved/                 # Catalog of unsolved benchmark problems
+    README.md               # Full list with descriptions and difficulty ratings
+  <problem_name>/           # Each solved problem has its own directory
+    Submission.lean         # The completed solution file
+    Submission/             # Optional helper modules
+      Helpers.lean
+    ...
+  ci_regenerate_main_check/ # Example: solved with `trivial`
+  def_hole_example/         # Example: solved with `rfl`
+  list_append_singleton_length/  # Example: solved with `simp`
+  two_plus_two/             # Example: solved with `rfl`
+  variable_binder_example/  # Example: solved with `rfl`
+```
+
+---
+
 ## New Problem: `variable_binder_example`
 
 **Source:** `lean-eval` benchmark, `LeanEval.Sandbox.VariableBinderExample`  
@@ -117,17 +248,6 @@ Alternative: `norm_num` also works.
 ### Why This Is the Root Cause
 
 1. **Verified correctness:** Both proofs are syntactically and semantically correct Lean 4 — verified independently with `lean4_exec`.
-2. **Workspace structure is correct:** The `lakefile.toml`, `lean-toolchain`, and directory layout exactly match the benchmark's generated workspace.
-3. **Mathlib revision is valid:** The dependency `5450b53e5ddc` is a real commit on `leanprover-community/mathlib4`.
-4. **Selective failure:** Only `native_decide`-using problems fail; non-`native_decide` problems (even with computation in `def_hole_example` using `rfl`) pass.
-5. **Alternative tactics succeed:** Replacing `native_decide` with `simp` or `rfl` produces correct proofs that avoid the native compilation pipeline entirely.
-
----
-
-## Workspace Structure
-
-Each solved problem has its own workspace directory with:
-- `Submission.lean` — the proof inside `namespace Submission`
-- `Submission/Helpers.lean` — trusted helper namespace (empty for simple problems)
-- `lakefile.toml` — Lake configuration matching the benchmark's generated workspace
-- `lean-toolchain` — Lean toolchain version (`leanprover/lean4:v4.30.0-rc2`)
+2. **Workspace structure is clean:** The directories contain only `Submission.lean` and `Submission/Helpers.lean` — no other files differ from the generated originals.
+3. **The sandbox restriction is structural:** The landrun sandbox only grants write access to `dotLakeDir` (`.lake/`). Any tactic that writes executable temp files elsewhere fails.
+4. **Replacement with `rfl`/`simp` is correct:** These tactics perform syntactic reduction only, requiring no file I/O beyond reading the project. They are sandbox-safe.
