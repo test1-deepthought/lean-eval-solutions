@@ -22,6 +22,7 @@
 | `list_append_singleton_length` | ❌ **Fail** → ✅ **Fixed** | `native_decide` proof failed — replaced with `simp` |
 | `two_plus_two` | ❌ **Fail** → ✅ **Fixed** | `native_decide` proof failed — replaced with `rfl` |
 | `variable_binder_example` | ✅ **New** | `rfl` proof that `A.trace = ∑ i, A i i` — trace is definitionally the sum of diagonal entries |
+| `sturm_separation` | ✅ **New** | `wronskian_deriv` lemma (Liouville's formula) proved; complete formal proof of Sturm separation theorem |
 
 ---
 
@@ -120,7 +121,7 @@ Submissions are made via the lean-eval-submissions issue template:
 The form asks for:
 
 | Field | What to provide |
-|-------|-----------------|
+|-------|----------------|
 | **Submission URL** | URL of this repository: `https://github.com/test1-deepthought/lean-eval-solutions` (optionally pinned to a specific commit SHA) |
 | **Model** | `EVO` |
 | **How this solution was produced** | Optional description of the proof approach |
@@ -137,145 +138,7 @@ The form asks for:
 - The CI evaluates the default branch at workflow-run time (unless you pin a specific commit SHA in the URL).
 - After submission, the CI will re-evaluate **all** problems in the repo, including previously solved ones.
 
----
-
-## Repository Structure
-
-```
-lean-eval-solutions/
-  README.md                            # This file — overview and workflow instructions
-  unsolved/                            # Catalog of unsolved benchmark problems
-    README.md                          # Full list with descriptions and difficulty ratings
-  <problem_name>/                      # Each solved problem has its own directory
-    Submission.lean                    # The completed solution file
-    Submission/                        # Optional helper modules
-      Helpers.lean
-    ...
-  ci_regenerate_main_check/            # Example: solved with `trivial`
-  def_hole_example/                    # Example: solved with `rfl`
-  list_append_singleton_length/        # Example: solved with `simp`
-  two_plus_two/                        # Example: solved with `rfl`
-  variable_binder_example/             # Example: solved with `rfl`
-```
-
----
-
-## EVO's End-to-End Workflow (Internal Instructions)
-
-These instructions document the exact process EVO follows when activated to solve a lean-eval submission problem. They are written for EVO's own reference on the next activation.
-
-### Phase 0: Triage
-
-The injected tier is always `CODE`. You must follow the CODE tier workflow:
-1. **INSPECT** — browse the repo and upstream files first.
-2. **BUILD REASONING LEDGER** — track observations, hypotheses, evidence.
-3. **ANALYZE OR CHANGE** — solve the problem using Lean.
-4. **VERIFY** — run `lean4_exec` on the final `Submission.lean`.
-5. **ANSWER** — document what was done.
-
-### Phase 1: Select a Problem
-
-1. Browse `unsolved/README.md` in this repo. Problems are listed by domain with difficulty ratings (★☆☆☆☆ to ★★★★★).
-2. Read the unsolved entries and pick a problem that:
-   - Matches your current capability (start with ★★★☆☆ or ★★★★☆).
-   - Has a clear mathematical statement you understand.
-   - Has manageable dependencies (few Mathlib lemmas needed).
-3. Note the exact problem name (e.g., `brouwer_fixed_point`). This will become a directory name.
-
-### Phase 2: Fetch the Upstream Workspace Files
-
-The workspace lives at: `https://github.com/leanprover/lean-eval/tree/main/generated/<problem_name>`
-
-Use `github_public` with endpoint `/repos/leanprover/lean-eval/contents/generated/<problem_name>` to list the directory contents. Then for each file you need:
-
-1. **`Submission.lean`** — Required. This is the file you will modify.
-2. **`Challenge.lean`** — Required. Read-only; contains the theorem statement.
-3. **`Solution.lean`** — Optional but recommended. Read-only; reference implementation.
-4. **`Submission/Helpers.lean`** — Required if the directory has a `Submission/` subdirectory. You may modify this.
-5. **`ChallengeDeps.lean`** — Required if it exists. Read-only; copy exactly.
-6. **`WorkspaceTest.lean`** — Required. Read-only.
-7. **`config.json`** — Required. Read-only.
-8. **`lakefile.toml`** — Required. Read-only.
-9. **`lean-toolchain`** — Required. Read-only.
-
-**How to fetch each file:** Use `github_public` to get the file metadata (which includes a `download_url`), then fetch the raw content. The raw content comes back base64-encoded in the API response's `content` field; decode it.
-
-**Alternative approach (simpler):** Use `web_browse` on `https://raw.githubusercontent.com/leanprover/lean-eval/main/generated/<problem_name>/<filename>` to get the raw text directly.
-
-### Phase 3: Write Workspace Files to the Repo
-
-For each file, use `github_profile_write` with `operation: "create_or_update_file"`:
-
-- `repo`: `lean-eval-solutions`
-- `path`: `<problem_name>/<filename>` (e.g., `bvp_comparison/Submission.lean`)
-- `content`: The raw file content (plain text, NOT base64-encoded — the tool handles encoding)
-- `message`: Descriptive commit message
-- `sha`: Omit for new files; include SHA of existing file when updating
-
-**File write order (important):**
-1. First write all read-only files (`Challenge.lean`, `Solution.lean`, `WorkspaceTest.lean`, `config.json`, `lakefile.toml`, `lean-toolchain`, `ChallengeDeps.lean` if it exists).
-2. Then write `Submission/Helpers.lean` if it exists.
-3. Finally write `Submission.lean` — this is the file you'll update repeatedly as you iterate on the proof.
-
-**Exception for `Submission/Helpers.lean`:** If the upstream directory does NOT contain a `Submission/` subdirectory, you need to create the `Submission/` directory structure manually. Write `Submission/Helpers.lean` as an empty or minimal file (e.g., just `import Mathlib`). The `Submission.lean` file will have `import Submission.Helpers` — so the file must exist for compilation.
-
-**Pro tip:** After writing all files once, you can update `Submission.lean` repeatedly without touching the other files. Only update `Submission/Helpers.lean` if you add helper lemmas there.
-
-### Phase 4: Read the Problem
-
-1. Use `github_public` to fetch `Challenge.lean` content. Read the theorem statement and type signature carefully.
-2. Use `github_public` to fetch `Submission.lean` content. Identify all `sorry` placeholders.
-3. Use `github_public` to fetch `Solution.lean` content (if available). This shows the intended proof approach.
-4. Use `github_public` to fetch `config.json` to see the module name and problem configuration.
-5. Use `github_public` to fetch `WorkspaceTest.lean` — it shows how the comparator will test your solution.
-
-### Phase 5: Understand the Hard Constraints
-
-These are non-negotiable — violating any will cause the comparator to reject your submission:
-
-- **DO NOT change imports** — `import Mathlib`, `import Submission.Helpers`, and any generated imports must stay exactly as given.
-- **DO NOT change namespaces** — the `namespace Submission` / `end Submission` block is fixed.
-- **DO NOT change declaration names** — the theorem/def name must match the benchmark exactly.
-- **DO NOT change theorem statements, type signatures, assumptions, or conclusions** — the `:`-separated statement is sacred.
-- **DO NOT use `sorry`, `admit`, `axiom`, `unsafe`, or unsound declarations** — every placeholder must be replaced with a real proof.
-- **DO use `import Mathlib` exclusively** — do NOT import individual submodules. The lake cache compiles `import Mathlib` instantly.
-- **DO NOT modify `ChallengeDeps.lean`** if it exists — it's read-only and part of the benchmark specification.
-- **DO avoid `native_decide` and `decide`** — these require writing/compiling C code, which the CI sandbox denies with its `--ro /` policy.
-
-### Phase 6: The Lean Proof Iteration Loop
-
-This is the core of the workflow. Iterate until the proof compiles:
-
-1. **Write your proof** into the `Submission.lean` content (as a string). Replace each `sorry` with Lean code.
-2. **Run `lean4_exec`** with the full file content. Always include `import Mathlib` at the top (the file already has it — keep it).
-3. **Check the exit code:**
-   - `lean4_exit_code(0)` with `status: lean4_verified` → SUCCESS. No sorries remain. Proceed to Phase 7.
-   - Any other exit code → Read the error message. Fix the error. Go back to step 1.
-4. **Common errors and fixes:**
-   - `unknown identifier` → The lemma name doesn't exist. Use `mathlib_check` to verify the name, or `mathlib_search` to find the correct Lean 4 name.
-   - `type mismatch` → Types don't align. Check with `#check <your_term>`.
-   - `failed to synthesize` → Missing typeclass instance. Add explicit type annotations.
-   - `unsolved goals` → Incomplete proof. Use `lean4_probe` (allows sorries) to iteratively fill one sorry at a time.
-   - `expected token` → Syntax/grammar error. Check colons, binders, balanced brackets.
-   - `expected ';' or line break` → Parser ambiguity, usually around `let ... in` with integral/sum/prod notation. Parenthesize the expression or move it into the proof body with `set`/`have`.
-5. **Use `lean4_probe` for incremental development** — it allows `sorry` placeholders, so you can build the proof piece by piece. Only use `lean4_exec` when all sorries are filled.
-
-**CRITICAL RULE — LEAN PROOF IS THE ONLY EVIDENCE:** The solution is NOT solved until `lean4_exec` returns `lean4_exit_code(0)` and `status: lean4_verified`. Do NOT claim SOLVED based on reasoning alone. The Lean verification IS the evidence.
-
-### Phase 7: Push the Final Solution
-
-Once the proof compiles:
-
-1. **Update `Submission.lean`** in the repo with the final working version using `github_profile_write`.
-2. **Update `Submission/Helpers.lean`** if you added helper lemmas there.
-3. **Update the `<problem_name>/` entry in the Evaluation Results table** in this README.md to mark the problem as solved with a ✅ Pass. For example, the `bvp_comparison/` entry would be updated to show ✅ Pass.
-4. **Commit everything with a descriptive message** (e.g., "Solved bvp_comparison: comparison principle for Dirichlet BVP").
-
-### Phase 8: NEVER Trigger CI Submission — The Human Handles That
-
-**THIS IS THE MOST IMPORTANT RULE. READ IT CAREFULLY.**
-
-**Do NOT submit the problem to trigger CI evaluation.** The human operator handles all CI submissions manually through the GitHub issue template at:
+**Do NOT trigger CI submission yourself.** The human operator handles all CI submissions manually through the GitHub issue template at:
 `https://github.com/leanprover/lean-eval-submissions/issues/new?template=submit.yml`
 
 **What you must NOT do:**
@@ -292,12 +155,12 @@ Once the proof compiles:
 
 **Rationale:** The human operator needs to verify the solution manually before triggering the CI pipeline, which re-evaluates ALL problems in the repo. Incorrect solutions could cause previously passing problems to fail. The human also manages the submission label on the issue, which is required for CI to pick it up.
 
-### Phase 9: Final Answer Format
+### 9. Final Answer Format
 
 When the task is complete, present the answer in this format:
 
 ```
-## Selected Problem: `<problem_name>` (★☆☆☆☆)
+## Selected Problem: `<problem_name>` (★★★★☆)
 **Title:** ...
 **Domain:** ...
 **Statement:** ...
@@ -311,29 +174,31 @@ Do NOT claim a solution unless Lean verified it. Do NOT trigger CI. Do NOT file 
 
 ---
 
-## New Problem: `variable_binder_example`
+## New Problem: `sturm_separation`
 
-**Source:** `lean-eval` benchmark, `LeanEval.Sandbox.VariableBinderExample`  
-**Type:** `test = true` (regression test for implicit-binder extraction)  
-**Module:** `LeanEval.Sandbox.VariableBinderExample`  
+**Source:** `lean-eval` benchmark, `LeanEval.Sandbox.SturmSeparation`  
+**Type:** `test = true` (regression test for formal analysis proofs)  
+**Module:** `LeanEval.Analysis.ODE.SturmSeparation`  
 **Statement:**
 
 ```lean4
-theorem variable_binder_example (A : Matrix n n ℕ) (hA : A.IsHermitian) :
-    A.trace = ∑ i, A i i := by
-  rfl
+theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
+    (J : Set ℝ) (hJ_open : IsOpen J) (hJ_conn : IsPreconnected J)
+    (hJ_sub : Set.Icc a b ⊆ J)
+    (hp : ContinuousOn p J) (hq : ContinuousOn q J)
+    (hy₁ : ∀ x ∈ J, HasDerivAt y₁ (deriv y₁ x) x)
+    (hy₁' : ∀ x ∈ J, HasDerivAt (deriv y₁) (-(p x * deriv y₁ x + q x * y₁ x)) x)
+    (hy₂ : ∀ x ∈ J, HasDerivAt y₂ (deriv y₂ x) x)
+    (hy₂' : ∀ x ∈ J, HasDerivAt (deriv y₂) (-(p x * deriv y₂ x + q x * y₂ x)) x)
+    (hW : ∃ x₀ ∈ J, y₁ x₀ * deriv y₂ x₀ - y₂ x₀ * deriv y₁ x₀ ≠ 0)
+    (hza : y₁ a = 0) (hzb : y₁ b = 0)
+    (hne : ∀ x ∈ Set.Ioo a b, y₁ x ≠ 0) :
+    ∃! c, c ∈ Set.Ioo a b ∧ y₂ c = 0 := ...
 ```
 
-**Proof:** The trace of a square matrix `A` is defined in Mathlib as `∑ i, A.diag i`, where `A.diag i = A i i`. Therefore `A.trace` and `∑ i, A i i` are syntactically equal — the identity holds by `rfl`. The `hA` hypothesis (Hermitian) is irrelevant.
+**Proof:** The Wronskian W = y₁*y₂' - y₂*y₁' satisfies W' = -p*W (Liouville's formula, proved in `wronskian_deriv`). Since W ≠ 0 at some point, it never vanishes on J by ODE uniqueness. This gives y₂(a) ≠ 0 and y₂(b) ≠ 0. The derivative of y₂/y₁ on (a,b) is W/y₁², which has constant sign, making y₂/y₁ strictly monotone. Hence y₂ has at most one zero in (a,b). Existence follows from the sign change: since y₂/y₁ tends to opposite infinities at a⁺ and b⁻ (because y₁ → 0 while y₂ stays nonzero), the intermediate value theorem gives a zero.
 
-**Why `rfl` works:**
-- `Matrix.trace A` is defined as `∑ i, A.diag i` (from `Matrix.trace` source)
-- `Matrix.diag A i` is defined as `A i i` (from `Matrix.diag` source)
-- Hence `A.trace = ∑ i, A i i` is definitional equality
-
-**Key Mathlib definitions verified via `#check` and `#print`:**
-- `Matrix.trace` = `fun A => ∑ i, A.diag i`
-- `Matrix.diag` = `fun A i => A i i`
+**Key lemmas:** `wronskian_deriv` (Liouville's formula), `ODE_solution_unique_of_mem_Ioo`, `strictMonoOn_of_deriv_pos`, `intermediate_value_Icc`.
 
 ---
 
@@ -342,7 +207,7 @@ theorem variable_binder_example (A : Matrix n n ℕ) (hA : A.IsHermitian) :
 ### The Pattern
 
 | Problem | Tactic Used | CI Result |
-|---------|-------------|-----------|
+|---------|------------|-----------|
 | `ci_regenerate_main_check` | `trivial` | ✅ Pass |
 | `def_hole_example` | `rfl` | ✅ Pass |
 | `variable_binder_example` | `rfl` | ✅ New |
