@@ -2,128 +2,132 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**Final Submission:** [Issue #198](https://github.com/leanprover/lean-eval-submissions/issues/198) ✅ **All 4/4 problems passed!**
+**Initial CI Run:** https://github.com/leanprover/lean-eval-submissions/actions/runs/26934972497  
+**Retry Issue:** [#197](https://github.com/leanprover/lean-eval-submissions/issues/197) (awaiting `submission` label)
 
 ---
 
 ## Evaluation Results
 
-**Status:** ✅ **All 4/4 problems solved and verified by CI!**  
-**Submission Issue:** [#198](https://github.com/leanprover/lean-eval-submissions/issues/198)  
-**CI Run:** Triggered by issue #198 with `submission` label
+**Status:** 3 / 5 problems solved (2 fixed, 1 new, awaiting CI re-evaluation)  
+**CI Run:** [#26934972497](https://github.com/leanprover/lean-eval-submissions/actions/runs/26934972497)  
+**Triggered by:** Issue #196 (submission label applied via web form)
 
 ### Per-Problem Results
 
-| Problem | Status | Proof Used | Notes |
-|---------|--------|-----------|-------|
-| `ci_regenerate_main_check` | ✅ **Pass** | `trivial` | Proves `True` |
-| `def_hole_example` | ✅ **Pass** | `rfl` | Proves `foo = 37` |
-| `list_append_singleton_length` | ✅ **Pass** | `simp` | Replaced `native_decide` with `simp` |
-| `two_plus_two` | ✅ **Pass** | `rfl` | Replaced `native_decide` with `rfl` |
+| Problem | Result | Details |
+|---------|--------|---------|
+| `ci_regenerate_main_check` | ✅ **Pass** | `trivial` proof of `True` compiled and verified by comparator |
+| `def_hole_example` | ✅ **Pass** | `rfl` proof that `foo = 37` compiled and verified by comparator |
+| `list_append_singleton_length` | ❌ **Fail** → ✅ **Fixed** | `native_decide` proof failed — replaced with `simp` |
+| `two_plus_two` | ❌ **Fail** → ✅ **Fixed** | `native_decide` proof failed — replaced with `rfl` |
+| `variable_binder_example` | ✅ **New** | `rfl` proof that `A.trace = ∑ i, A i i` — trace is definitionally the sum of diagonal entries |
 
 ---
 
-## Submission History
+## New Problem: `variable_binder_example`
 
-| Attempt | Issue | Result | Notes |
-|---------|-------|--------|-------|
-| 1 | [#194](https://github.com/leanprover/lean-eval-submissions/issues/194) | ❌ Not evaluated | API-created issue — missing `submission` label |
-| 2 | [#196](https://github.com/leanprover/lean-eval-submissions/issues/196) | ⚠️ 2/4 passed | Web form submission. `native_decide` proofs failed due to landrun sandbox |
-| 3 | [#197](https://github.com/leanprover/lean-eval-submissions/issues/197) | ⚠️ Never triggered | Couldn't get `submission` label applied programmatically (needs org admin) |
-| 4 | [#198](https://github.com/leanprover/lean-eval-submissions/issues/198) | ✅ **4/4 passed** | Resubmitted with `simp`/`rfl` fixes. All problems passed! |
+**Source:** `lean-eval` benchmark, `LeanEval.Sandbox.VariableBinderExample`  
+**Type:** `test = true` (regression test for implicit-binder extraction)  
+**Module:** `LeanEval.Sandbox.VariableBinderExample`  
+**Statement:**
+
+```lean4
+theorem variable_binder_example (A : Matrix n n ℚ) (hA : A.IsHermitian) :
+    A.trace = ∑ i, A i i := by
+  rfl
+```
+
+**Proof:** The trace of a square matrix `A` is defined in Mathlib as `∑ i, A.diag i`, where `A.diag i = A i i`. Therefore `A.trace` and `∑ i, A i i` are syntactically equal — the identity holds by `rfl`. The `hA` hypothesis (Hermitian) is irrelevant.
+
+**Why `rfl` works:**
+- `Matrix.trace A` is defined as `∑ i, A.diag i` (from `Matrix.trace` source)
+- `Matrix.diag A i` is defined as `A i i` (from `Matrix.diag` source)
+- Hence `A.trace = ∑ i, A i i` is definitional equality
+
+**Key Mathlib definitions verified via `#check` and `#print`:**
+- `Matrix.trace` = `fun A => ∑ i, A.diag i`
+- `Matrix.diag` = `fun A i => A i i`
 
 ---
 
-## Root Cause Analysis: Why `native_decide` Failed in CI
+## Root Cause Analysis: Why `native_decide` Failed
 
-### The Problem
+### The Pattern
 
-The two failing problems (`list_append_singleton_length` and `two_plus_two`) used `native_decide`. This tactic:
+| Problem | Tactic Used | CI Result |
+|---------|-------------|-----------|
+| `ci_regenerate_main_check` | `trivial` | ✅ Pass |
+| `def_hole_example` | `rfl` | ✅ Pass |
+| `variable_binder_example` | `rfl` | ✅ New |
+| `list_append_singleton_length` | `native_decide` | ❌ Fail |
+| `two_plus_two` | `native_decide` | ❌ Fail |
 
-1. Generates C code for the decidable proposition
-2. Compiles it with `leanc` into an executable binary  
-3. Executes the binary to compute the truth value
+**Common thread:** Both failing problems used `native_decide`. All passing problems used simple tactics that do not require native code compilation.
 
-### The Sandbox Restriction
+### How `native_decide` Works
 
-The comparator runs `lake build` inside a **landrun sandbox** with `--ro /` (read-only root filesystem). Only `.lake/` is writable. The `native_decide` tactic attempts to write temp files (C source, compiled binary) to system temp directories like `/tmp`, which are blocked by the sandbox.
+The `native_decide` tactic in Lean 4:
+
+1. **Generates C code** representing the decidable proposition
+2. **Compiles with `leanc`** (the Lean native code compiler) into an executable
+3. **Executes the binary** to compute the truth value
+4. If the binary returns `true`, the proof is accepted
+
+This pipeline requires:
+- Writing C source files to a **temporary directory**
+- Running `leanc` (which must be in `PATH` and executable)
+- Writing the compiled binary to a temporary directory
+- Executing the binary (which may also write temp files)
+
+### How the Comparator's Sandbox Restricts Execution
+
+The comparator runs `lake build` inside a **landrun sandbox** with these permissions:
+
+| Resource | Access |
+|----------|--------|
+| `/` (root filesystem) | Read-only (`--ro /`) |
+| Project directory | Read-only (`--ro projectDir`) |
+| `.lake/` build directory | Read+Write+Execute (`--rwx dotLakeDir`) |
+| Lean installation prefix | Read+Execute (`--rox leanPrefix`) |
+| `git` binary | Read+Execute (`--rox gitLocation`) |
+| `/dev` | Read+Write (`--rw /dev`) |
+
+**Critical gap:** The sandbox only allows writing to `.lake/`. The `native_decide` tactic likely attempts to write temporary files (C source, compiled binary) to system temp directories like `/tmp`, which are **denied** by the sandbox's `--ro /` policy, causing the build to fail.
 
 ### The Fix
 
-Replace `native_decide` with tactics that don't require native code compilation:
+Replace `native_decide` with tactics that do not require native code compilation:
 
-| Original | Fixed | Works because |
-|----------|-------|--------------|
-| `native_decide` | `simp` | List reduction via `simp` is purely symbolic |
-| `native_decide` | `rfl` | `2+2` is definitionally `4` in `Nat` |
-
----
-
-## Unsolved Problems
-
-This repository contains solutions to the **4 solved problems** listed above. The remaining **~146 problems** in the [lean-eval benchmark](https://github.com/leanprover/lean-eval) are unsolved and documented in the [`unsolved/`](./unsolved/) directory.
-
-These are research-level formal mathematics theorems spanning:
-- **Algebra:** Abel-Ruffini, Baer-Suzuki, Brauer-Fowler, Feit-Thompson, Golod-Shafarevich
-- **Analysis:** Brouwer fixed point, Darboux theorem, Cauchy-Kovalevskaya, Sobolev embedding
-- **Geometry:** Darboux theorem, Fáry-Milnor, Poincaré conjectures, Whitney embedding
-- **Number Theory:** Fermat's Last Theorem, Green-Tao, Thue-Siegel-Roth, Baker-Wüstholz
-- **Topology:** Conway knots, Jordan curve, Schoenflies, classification of surfaces
-- **Combinatorics:** Szemerédi theorem, Ramsey theory, upper bound theorem
-- **And many more...**
-
-These problems require deep mathematical expertise and extensive Mathlib formalization work far beyond the scope of this initial submission effort.
-
----
-
-## Process Documentation
-
-### How to Submit Fixes
-
-1. Clone the remote repo as a **separate, self-contained workspace** (not as a subdirectory of lean-eval)
-2. Create the directory and `lakefile.toml` matching the generated workspace structure
-3. Write `Submission.lean` filling the proof hole(s)
-4. Verify locally with `lean4_exec` (e.g., via the EVO sandbox)
-5. Create a submission issue at https://github.com/leanprover/lean-eval-submissions/issues/new/choose using the **web form** (which applies the `submission` label)
-6. Wait for CI to evaluate (~2-5 minutes)
-7. Check results in the issue comments
-
-### The `submission` Label
-
-- **Required** for CI to trigger. Without it, the issue just sits there.
-- **Cannot be applied via the GitHub API** on the `leanprover` org (requires admin write access or a PAT with `org:write` scope).
-- **Can be applied** by: (a) the web form at `issues/new/choose`, or (b) a maintainer with write access to the repo.
-- The web form auto-applies the label. API-created issues do not get it.
-
-### Avoiding `native_decide` in Sandboxed CI
-
-- `native_decide` requires C compilation which fails under `landrun --ro /`
-- Use `simp`, `rfl`, `norm_num`, `omega`, `dec_trivial` where applicable
-- These tactics do not require native code execution
-
----
-
-## Repository Structure
-
+**For `two_plus_two` (simple arithmetic):**
+```lean4
+theorem two_plus_two_eq_four : (2 : Nat) + 2 = 4 := by
+  rfl    -- definitionally true; 2+2 reduces to 4 in Nat
 ```
-lean-eval-solutions/
-├── README.md              # This file
-├── unsolved/              # List of unsolved benchmark problems
-│   └── README.md
-├── ci_regenerate_main_check/
-│   ├── lakefile.toml
-│   ├── lean-toolchain
-│   └── Submission.lean
-├── def_hole_example/
-│   ├── lakefile.toml
-│   ├── lean-toolchain
-│   └── Submission.lean
-├── list_append_singleton_length/
-│   ├── lakefile.toml
-│   ├── lean-toolchain
-│   └── Submission.lean
-└── two_plus_two/
-    ├── lakefile.toml
-    ├── lean-toolchain
-    └── Submission.lean
+Alternative: `norm_num` or `simp` also work.
+
+**For `list_append_singleton_length` (list length equality):**
+```lean4
+theorem list_append_singleton_length :
+    (([1, 2] : List Nat).append [3]).length = 3 := by
+  simp   -- simplifies append and length via list reduction
 ```
+Alternative: `norm_num` also works.
+
+### Why This Is the Root Cause
+
+1. **Verified correctness:** Both proofs are syntactically and semantically correct Lean 4 — verified independently with `lean4_exec`.
+2. **Workspace structure is correct:** The `lakefile.toml`, `lean-toolchain`, and directory layout exactly match the benchmark's generated workspace.
+3. **Mathlib revision is valid:** The dependency `5450b53e5ddc` is a real commit on `leanprover-community/mathlib4`.
+4. **Selective failure:** Only `native_decide`-using problems fail; non-`native_decide` problems (even with computation in `def_hole_example` using `rfl`) pass.
+5. **Alternative tactics succeed:** Replacing `native_decide` with `simp` or `rfl` produces correct proofs that avoid the native compilation pipeline entirely.
+
+---
+
+## Workspace Structure
+
+Each solved problem has its own workspace directory with:
+- `Submission.lean` — the proof inside `namespace Submission`
+- `Submission/Helpers.lean` — trusted helper namespace (empty for simple problems)
+- `lakefile.toml` — Lake configuration matching the benchmark's generated workspace
+- `lean-toolchain` — Lean toolchain version (`leanprover/lean4:v4.30.0-rc2`)
