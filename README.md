@@ -48,6 +48,7 @@ Inside each problem directory you will find:
 | `Submission.lean` | **Your file to complete.** Contains `sorry` placeholders that you must replace with valid Lean 4 / Mathlib code. |
 | `Challenge.lean` | The problem statement with the same theorem signature. **Do not modify.** Read-only benchmark file. |
 | `Solution.lean` | The reference solution. **Do not modify.** Read-only benchmark file. |
+| `ChallengeDeps.lean` | Read-only; contains additional theorems/lemmas that the problem depends on (if it exists for the problem). **Do not modify.** |
 | `Submission/Helpers.lean` | Optional helper lemmas module that you may edit or extend. |
 | `WorkspaceTest.lean` | Test file used by the comparator. |
 | `config.json` / `holes.json` | Problem configuration. |
@@ -60,6 +61,8 @@ Inside each problem directory you will find:
 2. Open `Submission.lean` — this is the only file you will modify.
 3. You may also edit or create files under `Submission/` (e.g., `Submission/Helpers.lean`) for helper lemmas.
 
+> **Note on `ChallengeDeps.lean`:** Some problems include a `ChallengeDeps.lean` file that defines additional types, definitions, or lemmas used by `Challenge.lean` and/or `Submission.lean`. This file is **read-only** — do not modify it. If the problem you are solving includes a `ChallengeDeps.lean`, you must copy it alongside the other files, and your `Submission.lean` will import it automatically via the generated imports. The comparator includes `ChallengeDeps.lean` in the build context; modifying it will cause a mismatch and your submission may be rejected.
+
 ### 3. Solve the Problem
 
 You are completing an official lean-eval `Submission.lean` file.
@@ -68,7 +71,7 @@ You are completing an official lean-eval `Submission.lean` file.
 
 **Hard constraints (violations cause the comparator to reject your submission):**
 
-- **Do not change imports.** The `import Mathlib` and `import Submission.Helpers` lines must remain exactly as given.
+- **Do not change imports.** The `import Mathlib`, `import Submission.Helpers`, and any generated `import ...` lines must remain exactly as given.
 - **Do not change namespaces.** The `namespace Submission` / `end Submission` block is fixed.
 - **Do not change declaration names.** The theorem/def name must match the benchmark exactly.
 - **Do not change theorem statements, type signatures, assumptions, or conclusions.** The `:`-separated statement is sacred.
@@ -76,6 +79,7 @@ You are completing an official lean-eval `Submission.lean` file.
 - **You may add helper lemmas inside the `Submission` namespace** (in the same file or in `Submission/Helpers.lean`).
 - **The `Submission.Helpers` module** is where extracted helper lemmas live. Imported via `import Submission.Helpers` in `Submission.lean`.
 - **Use `import Mathlib` exclusively.** Do not import individual Mathlib submodules — the lake cache compiles `import Mathlib` instantly, and submodule paths change between Mathlib versions.
+- **Do not modify `ChallengeDeps.lean` if it exists.** It is read-only and part of the benchmark specification.
 
 **Approved tactics (preferred for sandbox compatibility):**
 
@@ -139,19 +143,19 @@ The form asks for:
 
 ```
 lean-eval-solutions/
-  README.md                 # This file — overview and workflow instructions
-  unsolved/                 # Catalog of unsolved benchmark problems
-    README.md               # Full list with descriptions and difficulty ratings
-  <problem_name>/           # Each solved problem has its own directory
-    Submission.lean         # The completed solution file
-    Submission/             # Optional helper modules
+  README.md                    # This file — overview and workflow instructions
+  unsolved/                    # Catalog of unsolved benchmark problems
+    README.md                  # Full list with descriptions and difficulty ratings
+  <problem_name>/              # Each solved problem has its own directory
+    Submission.lean            # The completed solution file
+    Submission/                # Optional helper modules
       Helpers.lean
     ...
-  ci_regenerate_main_check/ # Example: solved with `trivial`
-  def_hole_example/         # Example: solved with `rfl`
-  list_append_singleton_length/  # Example: solved with `simp`
-  two_plus_two/             # Example: solved with `rfl`
-  variable_binder_example/  # Example: solved with `rfl`
+  ci_regenerate_main_check/    # Example: solved with `trivial`
+  def_hole_example/            # Example: solved with `rfl`
+  list_append_singleton_length/# Example: solved with `simp`
+  two_plus_two/                # Example: solved with `rfl`
+  variable_binder_example/     # Example: solved with `rfl`
 ```
 
 ---
@@ -164,7 +168,7 @@ lean-eval-solutions/
 **Statement:**
 
 ```lean4
-theorem variable_binder_example (A : Matrix n n ℚ) (hA : A.IsHermitian) :
+theorem variable_binder_example (A : Matrix n n ℕ) (hA : A.IsHermitian) :
     A.trace = ∑ i, A i i := by
   rfl
 ```
