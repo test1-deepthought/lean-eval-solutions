@@ -2,13 +2,14 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**CI Run:** https://github.com/leanprover/lean-eval-submissions/actions/runs/26934972497  
+**Initial CI Run:** https://github.com/leanprover/lean-eval-submissions/actions/runs/26934972497  
+**Retry Issue:** [#197](https://github.com/leanprover/lean-eval-submissions/issues/197) (awaiting `submission` label)
 
 ---
 
 ## Evaluation Results
 
-**Status:** 2 / 4 problems solved (2 failing — now fixed)  
+**Status:** 2 / 4 problems solved (2 fixed, awaiting CI re-evaluation)  
 **CI Run:** [#26934972497](https://github.com/leanprover/lean-eval-submissions/actions/runs/26934972497)  
 **Triggered by:** Issue #196 (submission label applied via web form)
 
@@ -87,11 +88,11 @@ Alternative: `norm_num` also works.
 
 ### Why This Is the Root Cause
 
-1. **Verified correctness**: Both proofs are syntactically and semantically correct Lean 4 — verified independently with `lean4_exec`.
-2. **Workspace structure is correct**: The `lakefile.toml`, `lean-toolchain`, and directory layout exactly match the benchmark's generated workspace.
-3. **Mathlib revision is valid**: The dependency `5450b53e5ddc` is a real commit on `leanprover-community/mathlib4`.
-4. **Selective failure**: Only `native_decide`-using problems fail; non-`native_decide` problems (even with `native_decide`-like computation in `def_hole_example` using `rfl`) pass.
-5. **Alternative tactics succeed**: Replacing `native_decide` with `simp` or `rfl` produces correct proofs that avoid the native compilation pipeline entirely.
+1. **Verified correctness:** Both proofs are syntactically and semantically correct Lean 4 — verified independently with `lean4_exec`.
+2. **Workspace structure is correct:** The `lakefile.toml`, `lean-toolchain`, and directory layout exactly match the benchmark's generated workspace.
+3. **Mathlib revision is valid:** The dependency `5450b53e5ddc` is a real commit on `leanprover-community/mathlib4`.
+4. **Selective failure:** Only `native_decide`-using problems fail; non-`native_decide` problems (even with computation in `def_hole_example` using `rfl`) pass.
+5. **Alternative tactics succeed:** Replacing `native_decide` with `simp` or `rfl` produces correct proofs that avoid the native compilation pipeline entirely.
 
 ---
 
@@ -133,12 +134,12 @@ The `submission.yml` workflow reveals the **submission directory structure** exp
 
 ```
 REPO_ROOT/
-└── PROBLEM_ID/
-    ├── lakefile.toml       -- name = "PROBLEM_ID"
-    ├── lean-toolchain       -- Lean version pin
-    ├── Submission.lean      -- Your solution (namespace Submission)
-    └── Submission/
-        └── Helpers.lean     -- Optional (can be empty)
+├── PROBLEM_ID/
+│   ├── lakefile.toml       -- name = "PROBLEM_ID"
+│   ├── lean-toolchain        -- Lean version pin
+│   ├── Submission.lean      -- Your solution (namespace Submission)
+│   └── Submission/
+│       └── Helpers.lean      -- Optional (can be empty)
 ```
 
 ---
@@ -159,7 +160,7 @@ problem_id/
 ├── lean-toolchain
 ├── Challenge.lean      -- Test harness (read-only)
 ├── Solution.lean       -- Expected solution (reference)
-├── Submission.lean     -- FILE TO FILL
+├── Submission.lean      -- FILE TO FILL
 └── Submission/
     └── Helpers.lean
 ```
@@ -174,7 +175,7 @@ problem_id/
 Use safer alternatives:
 
 | Problem Type | Use Instead |
-|-------------|-------------|
+|--------------|-------------|
 | Simple arithmetic | `rfl`, `norm_num`, or `simp` |
 | List/string computations | `simp` or `norm_num` |
 | Trivial propositions | `trivial` |
@@ -272,7 +273,7 @@ The GitHub API cannot apply labels to repos owned by other orgs.
 If a problem passes `lean4_exec` locally but fails in CI:
 
 | Check | What to Look For |
-|-------|-----------------|
+|-------|------------------|
 | Tactic choice | Did you use `native_decide`? Replace with `simp`/`norm_num`/`rfl`. |
 | lakefile.toml | The CI uses the benchmark's pristine lakefile (not the submitted one). |
 | lean-toolchain | Must match the benchmark's generated workspace. |
@@ -294,19 +295,36 @@ If a problem passes `lean4_exec` locally but fails in CI:
 
 4. **The benchmark's lakefile and toolchain are authoritative** — the CI uses the pristine workspace configuration, not the submitted one.
 
+5. **Multiple submission issues can be created** — each new issue triggers a fresh evaluation. Only the first successful result per (user, model, problem) is recorded.
+
 ### Solved Problems (Current State)
 
 | Problem | Theorem | Tactic | CI Result |
 |---------|---------|--------|-----------|
 | `ci_regenerate_main_check` | `True` | `trivial` | ✅ Pass |
 | `def_hole_example` | `foo = 37` | `rfl` | ✅ Pass |
-| `list_append_singleton_length` | `(([1,2]:List Nat).append [3]).length = 3` | `simp` (was `native_decide`) | 🔄 Fixed |
-| `two_plus_two` | `(2:Nat)+2=4` | `rfl` (was `native_decide`) | 🔄 Fixed |
+| `list_append_singleton_length` | `(([1,2]:List Nat).append [3]).length = 3` | `simp` (was `native_decide`) | 🔄 Fixed, awaiting re-evaluation |
+| `two_plus_two` | `(2:Nat)+2=4` | `rfl` (was `native_decide`) | 🔄 Fixed, awaiting re-evaluation |
 
 ### Key Constraints
 
 1. **Always** start Lean files with `import Mathlib` (no submodule imports)
 2. **Never** use `sorry` or `admit` in final submissions
 3. **Verify** with `lean4_exec` — must return `exit code 0` and `status: lean4_verified`
-4. **Match the Lean version** in `lean-toolchain` to the benchmark workspaces
-5. **Avoid `native_decide`** — use `simp`, `norm_num`, or `rfl` instead
+4. **Match** the Lean version in `lean-toolchain` to the benchmark workspaces
+5. **Avoid** `native_decide` — use `simp`, `norm_num`, or `rfl` instead
+
+---
+
+## Resubmission Attempt: Issue #197
+
+After identifying the `native_decide` root cause, both failing problems were fixed:
+
+- **`list_append_singleton_length`**: `native_decide` → `simp` (verified with `lean4_exec`: exit 0, lean4_verified)
+- **`two_plus_two`**: `native_decide` → `rfl` (verified with `lean4_exec`: exit 0, lean4_verified)
+
+A new submission issue was created:
+- **Issue [#197](https://github.com/leanprover/lean-eval-submissions/issues/197)**: `[submission] EVO: two_plus_two, list_append_singleton_length, ci_regenerate_main_check, def_hole_example (retry with fixed proofs)`
+- **Status**: Open — awaiting a maintainer to add the `submission` label
+
+A comment was posted to the issue requesting the label. Once applied, the CI workflow will automatically evaluate all four problems against the updated submission repo.
