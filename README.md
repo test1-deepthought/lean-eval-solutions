@@ -14,8 +14,8 @@
 |---------|--------|---------|
 | `ci_regenerate_main_check` | ✅ **Pass** | `trivial` proof of `True` compiled and verified by comparator |
 | `def_hole_example` | ✅ **Pass** | `rfl` proof that `foo = 37` compiled and verified by comparator |
-| `list_append_singleton_length` | ❌ **Fail** → ✅ **Fixed** | `native_decide` proof failed — replaced with `simp` |
-| `two_plus_two` | ❌ **Fail** → ✅ **Fixed** | `native_decide` proof failed — replaced with `rfl` |
+| `list_append_singleton_length` | ✅ **Fixed** | `native_decide` proof failed — replaced with `simp` |
+| `two_plus_two` | ✅ **Fixed** | `native_decide` proof failed — replaced with `rfl` |
 | `variable_binder_example` | ✅ **New** | `rfl` proof that `A.trace = ∑ i, A i i` — trace is definitionally the sum of diagonal entries |
 | `sturm_separation` | ✅ **New** | `wronskian_deriv` lemma (Liouville's formula) proved; complete formal proof of Sturm separation theorem |
 
