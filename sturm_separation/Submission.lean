@@ -243,7 +243,11 @@ lemma const_sign_of_continuous_nonzero (f : ℝ → ℝ) (a b : ℝ) (hab : a �
       have hy_neg_or_zero : f y < 0 ∨ f y = 0 := lt_or_eq_of_le hle
       rcases hy_neg_or_zero with (hy_neg | hy_zero)
       · have hxy : x ≠ y := by
-          intro h_eq; have : f x = f y := by simpa [h_eq]; nlinarith
+          intro h_eq
+          apply hy_neg.not_lt
+          calc
+            f y = f x := by simpa [h_eq]
+            _ > 0 := hx_pos
         rcases lt_or_gt_of_ne hxy with (hx_lt_y | hy_lt_x)
         · have h_cont_xy : ContinuousOn f (Set.Icc x y) :=
             hf.mono (Set.Icc_subset_Icc (by exact hx.1) (by exact hy.2))
@@ -286,7 +290,11 @@ lemma constant_sign_on_Ioo (y₁ : ℝ → ℝ) (a b : ℝ) (hab : a < b) (hne :
       have hy_neg_or_zero : y₁ y < 0 ∨ y₁ y = 0 := lt_or_eq_of_le hle
       rcases hy_neg_or_zero with (hy_neg | hy_zero)
       · have hxy : x ≠ y := by
-          intro h_eq; have hy_pos : y₁ y > 0 := by simpa [h_eq] using hx_pos; linarith
+          intro h_eq
+          apply hy_neg.not_lt
+          calc
+            y₁ y = y₁ x := by simpa [h_eq]
+            _ > 0 := hx_pos
         rcases lt_or_gt_of_ne hxy with (hx_lt_y | hy_lt_x)
         · have h_cont_xy : ContinuousOn y₁ (Set.Icc x y) :=
             h_cont.mono (Set.Icc_subset_Ioo (by exact hx.1) (by exact hy.2))
@@ -373,7 +381,6 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     have hx' : x ∈ Set.Icc a b := Set.mem_Icc.mpr ⟨by linarith, by linarith⟩
     exact hJ_sub hx'
   have hJ_ord : J.OrdConnected := isPreconnected_iff_ordConnected.mp hJ_conn
-
   -- The Wronskian never vanishes on [a,b].
   have hW_nonzero : ∀ x ∈ Set.Icc a b, wronskian y₁ y₂ x ≠ 0 := by
     intro x hx
@@ -396,7 +403,6 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
         linear_ode_zero_at_point (fun t => -p t) (wronskian y₁ y₂) c d hcd x₀ x hx₀_mem hx_mem ha_cont hW_deriv hzero
       exact hW0' hW_x₀_zero
     · exact hzero
-
   -- Step 3: y₂(a) ≠ 0 and y₂(b) ≠ 0.
   have hy₂a_ne_zero : y₂ a ≠ 0 := by
     intro h; have : wronskian y₁ y₂ a = 0 := by
@@ -406,7 +412,6 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     intro h; have : wronskian y₁ y₂ b = 0 := by
       dsimp [wronskian]; simp [hzb, h]
     exact hW_nonzero b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
-
   -- Step 4-5: at most one zero of y₂ in (a,b)
   have at_most_one : ∀ c ∈ Set.Ioo a b, ∀ d ∈ Set.Ioo a b, y₂ c = 0 → y₂ d = 0 → c = d := by
     intro c hc d hd hc0 hd0
@@ -480,7 +485,6 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
       rw [h_deriv_ratio_eq] at hderiv
       have : (wronskian y₁ y₂ ξ) / (y₁ ξ)^2 ≠ 0 := div_ne_zero hW_ξ_ne_zero (by positivity)
       exact this hderiv
-
   -- Step 6: Existence of a zero of y₂ in (a,b)
   have at_least_one : ∃ c ∈ Set.Ioo a b, y₂ c = 0 := by
     have hy1_cont : ContinuousOn y₁ (Set.Ioo a b) := by
@@ -549,22 +553,18 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     · -- Case y₁ < 0 on (a,b): apply the symmetric argument (negate y₁)
       have hy1_neg' : ∀ x ∈ Set.Ioo a b, (-y₁) x > 0 := by
         intro x hx; have : y₁ x < 0 := hy1_neg x hx; linarith
-      have h_deriv_neg_a : deriv (-y₁) a = -deriv y₁ a := deriv_neg (y₁) a
-      have h_deriv_neg_b : deriv (-y₁) b = -deriv y₁ b := deriv_neg (y₁) b
-      -- Apply the y₁ > 0 case to -y₁
       have h_nhds_pos_a : ∀ᶠ x in nhdsWithin a (Set.Ioi a), (-y₁) x > 0 := by
         have h_mem : Set.Ioo a ((a + b) / 2) ∈ nhdsWithin a (Set.Ioi a) :=
           Ioo_mem_nhdsWithin_Ioi a ((a + b) / 2) (by nlinarith)
         filter_upwards [h_mem] with x hx; apply hy1_neg' x; exact ⟨hx.1, by nlinarith⟩
-      -- For -y₁: HasDerivAt at a
       have h_neg_y1_a : HasDerivAt (-y₁) (deriv (-y₁) a) a := by
-        have := hy₁ a haJ
-        simpa using HasDerivAt.neg this
+        have := hy₁ a haJ; simpa using HasDerivAt.neg this
       have h_deriv_neg_a_nonneg : deriv (-y₁) a ≥ 0 :=
         deriv_nonneg_at_right (-y₁) a h_neg_y1_a (by simp [hza]) h_nhds_pos_a
       have h_deriv_a_neg : deriv y₁ a < 0 := by
-        rw [h_deriv_neg_a] at h_deriv_neg_a_nonneg
-        have : deriv y₁ a ≠ 0 := by
+        have h_eq : deriv (-y₁) a = -deriv y₁ a := deriv_neg (y₁) a
+        rw [h_eq] at h_deriv_neg_a_nonneg
+        have h_nonzero : deriv y₁ a ≠ 0 := by
           intro hzero
           have : wronskian y₁ y₂ a = 0 := by dsimp [wronskian]; simp [hza, hzero]
           exact hW_nonzero a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
@@ -574,13 +574,13 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
           Ioo_mem_nhdsWithin_Iio ((a + b) / 2) b (by nlinarith)
         filter_upwards [h_mem] with x hx; apply hy1_neg' x; exact ⟨by nlinarith, hx.2⟩
       have h_neg_y1_b : HasDerivAt (-y₁) (deriv (-y₁) b) b := by
-        have := hy₁ b hbJ
-        simpa using HasDerivAt.neg this
+        have := hy₁ b hbJ; simpa using HasDerivAt.neg this
       have h_deriv_neg_b_nonpos : deriv (-y₁) b ≤ 0 :=
         deriv_nonpos_at_left (-y₁) b h_neg_y1_b (by simp [hzb]) h_nhds_pos_b
       have h_deriv_b_pos : deriv y₁ b > 0 := by
-        rw [h_deriv_neg_b] at h_deriv_neg_b_nonpos
-        have : deriv y₁ b ≠ 0 := by
+        have h_eq : deriv (-y₁) b = -deriv y₁ b := deriv_neg (y₁) b
+        rw [h_eq] at h_deriv_neg_b_nonpos
+        have h_nonzero : deriv y₁ b ≠ 0 := by
           intro hzero
           have : wronskian y₁ y₂ b = 0 := by dsimp [wronskian]; simp [hzb, hzero]
           exact hW_nonzero b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
@@ -621,7 +621,6 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
         have h0_mem : (0 : ℝ) ∈ Set.Ioo (y₂ a) (y₂ b) := ⟨hy2a_neg, hy2b_pos⟩
         have h_IVT : Set.Ioo (y₂ a) (y₂ b) ⊆ y₂ '' Set.Ioo a b := intermediate_value_Ioo (by linarith) h_cont_y2
         rcases h_IVT h0_mem with ⟨c, hc, hc0⟩; exact ⟨c, hc, hc0⟩
-
   -- Combine existence and uniqueness
   rcases at_least_one with ⟨c, hc, hc0⟩
   refine ⟨c, ⟨hc, hc0⟩, ?_⟩
