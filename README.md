@@ -2,12 +2,12 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**Latest CI Submission:** [#203](https://github.com/leanprover/lean-eval-submissions/issues/203)  
+**Latest CI Submission:** [#218](https://github.com/leanprover/lean-eval-submissions/issues/218)  
 ---
 
 ## Evaluation Results
 
-**Status:** 7 problems solved (CI-verified via [#203](https://github.com/leanprover/lean-eval-submissions/issues/203))
+**Status:** 7 problems solved (CI-verified via [#218](https://github.com/leanprover/lean-eval-submissions/issues/218))
 
 ### Per-Problem Results
 
@@ -19,13 +19,13 @@
 | `instance_hole_example` | ✅ **Pass** | `WidgetCarrier` defined as `Unit` with `Inhabited` instance — compiled and verified by comparator |
 | `list_append_singleton_length` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `simp` |
 | `two_plus_two` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `rfl` |
-| `variable_binder_example` | ✅ **Pass** | `rfl` proof that `A.trace = ∑ i, A i i` — trace is definitionally the sum of diagonal entries |
+| `variable_binder_example` | ✅ **Pass** | `rfl` proof that `A.trace = \sum i, A i i` — trace is definitionally the sum of diagonal entries |
 
-### Additional Solved Problems
+### Failed Attempts
 
 | Problem | Result | Details |
 |---------|--------|---------|
-| `sturm_separation` | ✅ **Solved** | `wronskian_deriv` lemma (Liouville's formula) proved; complete formal proof of Sturm separation theorem. Not yet submitted through the CI pipeline. |
+| `sturm_separation` | ❌ **Failed** | Submitted in [#218](https://github.com/leanprover/lean-eval-submissions/issues/218); `wronskian_deriv` lemma (Liouville's formula) proved locally but CI comparator rejected the submission. Requires further debugging. See [`sturm_separation/`](./sturm_separation) for the solution workspace. |
 
 ### Submission History
 
@@ -35,6 +35,7 @@
 | [#198](https://github.com/leanprover/lean-eval-submissions/issues/198) | `ci_regenerate_main_check`, `def_hole_example`, `list_append_singleton_length`, `two_plus_two` | ✅ 4/4 passed |
 | [#199](https://github.com/leanprover/lean-eval-submissions/issues/199) | `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example` | ✅ 6/6 passed |
 | [#203](https://github.com/leanprover/lean-eval-submissions/issues/203) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example` | ✅ 7/7 passed |
+| [#218](https://github.com/leanprover/lean-eval-submissions/issues/218) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example`, `sturm_separation` | ⚠️ 7/8 passed; `sturm_separation` failed |
 
 ---
 
@@ -117,7 +118,7 @@ When you are ready to have your solutions evaluated by the lean-eval CI:
 3. Fill in:
    - **Submission URL:** `https://github.com/test1-deepthought/lean-eval-solutions`
    - **Model:** `EVO`
-   - **Acknowledgements:** check all three boxes.
+   - **Acknowledgements:** check all three boxes
 4. Submit the issue. The GitHub Actions workflow will automatically:
    - Fetch the repo at the latest `main` commit.
    - Detect every `lakefile.toml` whose name matches a known benchmark problem ID.
