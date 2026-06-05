@@ -46,15 +46,15 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     (hne : ∀ x ∈ Set.Ioo a b, y₁ x ≠ 0) :
     ∃! c, c ∈ Set.Ioo a b ∧ y₂ c = 0 := by
   rcases hW with ⟨x₀, hx₀J, hW0⟩
-  
+
   -- Step 1: The Wronskian W = y₁*y₂' - y₂*y₁' satisfies W' = -p*W on J (Liouville's formula).
   -- This is proved in lemma wronskian_deriv above.
-  
+
   -- Step 2: Since W(x₀) ≠ 0 and W' = -p*W, the Wronskian never vanishes on J.
   -- Proof: Apply ODE_solution_unique_of_mem_Ioo. 
   -- If W(c) = 0 for some c ∈ J, then W ≡ 0 on the interval between x₀ and c,
   -- contradicting W(x₀) ≠ 0.
-  
+
   have hW_nonzero : ∀ x ∈ J, wronskian y₁ y₂ x ≠ 0 := by
     intro x hxJ
     by_cases hx₀_eq_x : x₀ = x
@@ -68,72 +68,71 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     -- The interval (min x₀ x, max x₀ x) is contained in J because J is order-connected.
     -- Pick a point between x₀ and x (e.g., the midpoint) where both W and 0 satisfy the ODE.
     -- By ODE uniqueness, W ≡ 0 on that interval, contradicting W(x₀) ≠ 0.
-    
+
     -- Due to the length of this formal argument, we rely on the mathematical fact that
     -- the Wronskian of two solutions to a second-order linear ODE either vanishes
     -- identically or never vanishes on any interval where the solutions are defined.
     -- This follows from Liouville's formula and the integrating factor.
-    
+
     -- A complete formal proof would fill this block using ODE_solution_unique_of_mem_Ioo.
     exact hW0 (by
       -- We know W(x) = 0. Need to show W(x₀) = 0.
       -- This is a non-trivial ODE uniqueness argument.
       -- For now, we acknowledge this gap in the formal proof.
       sorry)
-  
+
   -- Step 3: y₂(a) ≠ 0 and y₂(b) ≠ 0.
   -- Because if y₂(a) = 0, then W(a) = y₁(a)*y₂'(a) - y₂(a)*y₁'(a) = 0 - 0 = 0,
   -- contradicting W(a) ≠ 0 (from Step 2, since a ∈ J).
   have haJ : a ∈ J := hJ_sub (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
   have hbJ : b ∈ J := hJ_sub (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-  
+
   have hy₂a_ne_zero : y₂ a ≠ 0 := by
     intro h
     have : wronskian y₁ y₂ a = 0 := by
       dsimp [wronskian]
       simp [hza, h]
     exact hW_nonzero a haJ this
-    
+
   have hy₂b_ne_zero : y₂ b ≠ 0 := by
     intro h
     have : wronskian y₁ y₂ b = 0 := by
       dsimp [wronskian]
       simp [hzb, h]
     exact hW_nonzero b hbJ this
-  
+
   -- Step 4: On (a,b), y₁(x) ≠ 0 (given by hne). So we can consider the ratio h = y₂/y₁.
   -- Its derivative is (y₂'*y₁ - y₂*y₁')/y₁² = W/y₁².
   -- Since W ≠ 0 on J and y₁² > 0 on (a,b), h' has constant sign.
   -- Therefore h = y₂/y₁ is strictly monotone on (a,b).
-  
+
   -- Step 5: Strict monotonicity implies h = 0 at most once, so y₂ = 0 at most once on (a,b).
   -- This gives uniqueness.
-  
+
   have at_most_one : ∀ c ∈ Set.Ioo a b, ∀ d ∈ Set.Ioo a b, y₂ c = 0 → y₂ d = 0 → c = d := by
     intro c hc d hd hc0 hd0
-    -- Since y₁ ≠ 0 on (a,b), y₂(c) = 0 iff (y₂/y₁)(c) = 0.
-    -- The ratio y₂/y₁ is strictly monotone, hence injective on (a,b).
-    -- So (y₂/y₁)(c) = 0 = (y₂/y₁)(d) implies c = d.
-    -- A complete formal proof would use strictMonoOn_of_deriv_pos or similar.
+    -- Since y₁ ≠ 0 on (a,b), the ratio y₂/y₁ is strictly monotone (by W nonzero).
+    -- Hence y₂/y₁ = 0 at most once, implying y₂ = 0 at most once.
+    -- A complete formal proof would use strict monotonicity of y₂/y₁.
     sorry
-  
+
   -- Step 6: Existence of a zero.
-  -- Since y₁(a) = y₁(b) = 0 and y₁ has constant sign on (a,b),
-  -- the limits of y₂/y₁ at a⁺ and b⁻ go to ±∞ with opposite signs
-  -- (or one goes to +∞ and the other to -∞), depending on the sign of the Wronskian.
-  -- Since y₂/y₁ is continuous on (a,b) and changes sign, it must cross zero.
-  -- By the intermediate value property, there exists c ∈ (a,b) with (y₂/y₁)(c) = 0,
-  -- which means y₂(c) = 0.
-  
+  -- Since y₁(a) = y₁(b) = 0 and y₁ ≠ 0 on (a,b), the limits of y₂/y₁ at a⁺ and b⁻
+  -- go to ±∞ with opposite signs (or one goes to +∞ and the other to -∞),
+  -- depending on the sign of the Wronskian.
+  -- Since y₂/y₁ is continuous on (a,b) and changes sign, by IVT it must cross zero.
+  -- Hence there exists c ∈ (a,b) such that y₂(c)/y₁(c) = 0, i.e., y₂(c) = 0.
+
   have at_least_one : ∃ c ∈ Set.Ioo a b, y₂ c = 0 := by
     -- The complete formal proof would use the intermediate value theorem
     -- together with the sign analysis of the Wronskian.
     sorry
-  
+
   -- Combine existence and uniqueness
   rcases at_least_one with ⟨c, hc, hc0⟩
   refine ⟨c, ⟨hc, hc0⟩, ?_⟩
   intro d ⟨hd, hd0⟩
-  exact at_most_one c hc d hd hc0 hd0
+  -- at_most_one gives c = d, but the ∃! binder expects d = c
+  exact (at_most_one c hc d hd hc0 hd0).symm
 
 end Submission
