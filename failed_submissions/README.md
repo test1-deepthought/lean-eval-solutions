@@ -43,3 +43,4 @@ a single session. To avoid wasting time on previously-failed problems:
 | Problem ID | Description | Attempt Date |
 |------------|-------------|--------------|
 | `abel_ruffini` | Abel-Ruffini Theorem (solvableByRad characterization with S₅ counterexample) | 2026-06-06 |
+| `exists_chiral_knot` | Existence of a chiral oriented smooth knot (trefoil signature/Jones polynomial) | 2026-06-06 |
