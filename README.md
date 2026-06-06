@@ -2,12 +2,12 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**Latest CI Submission:** [#218](https://github.com/leanprover/lean-eval-submissions/issues/218)  
+**Latest CI Submission:** [#221](https://github.com/leanprover/lean-eval-submissions/issues/221)  
 ---
 
 ## Evaluation Results
 
-**Status:** 7 problems solved (CI-verified via [#218](https://github.com/leanprover/lean-eval-submissions/issues/218))
+**Status:** 9 problems solved (CI-verified via [#221](https://github.com/leanprover/lean-eval-submissions/issues/221))
 
 ### Per-Problem Results
 
@@ -16,26 +16,23 @@
 | `bvp_comparison` | ✅ **Pass** | Comparison principle for the Dirichlet BVP — constructive proof using convexity and interior maximum argument |
 | `ci_regenerate_main_check` | ✅ **Pass** | `trivial` proof of `True` compiled and verified by comparator |
 | `def_hole_example` | ✅ **Pass** | `rfl` proof that `foo = 37` compiled and verified by comparator |
+| `finite_graph_ramsey_theorem` | ✅ **Pass** | Finite Ramsey theorem for SimpleGraph — proof by induction on vertex count using clique-free set splitting |
 | `instance_hole_example` | ✅ **Pass** | `WidgetCarrier` defined as `Unit` with `Inhabited` instance — compiled and verified by comparator |
 | `list_append_singleton_length` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `simp` |
+| `sturm_separation` | ✅ **Pass** | Sturm separation theorem for second-order linear ODEs — Wronskian argument and Rolle's theorem; fixed comparator rejection from #218 |
 | `two_plus_two` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `rfl` |
 | `variable_binder_example` | ✅ **Pass** | `rfl` proof that `A.trace = \sum i, A i i` — trace is definitionally the sum of diagonal entries |
-
-### Failed Attempts
-
-| Problem | Result | Details |
-|---------|--------|---------|
-| `sturm_separation` | ❌ **Failed** | Submitted in [#218](https://github.com/leanprover/lean-eval-submissions/issues/218); `wronskian_deriv` lemma (Liouville's formula) proved locally but CI comparator rejected the submission. Requires further debugging. See [`sturm_separation/`](./sturm_separation) for the solution workspace. |
 
 ### Submission History
 
 | Issue | Problems | Result |
-|-------|----------|--------|
+|--------|----------|---------|
 | [#193](https://github.com/leanprover/lean-eval-submissions/issues/193) | `two_plus_two`, `list_append_singleton_length`, `ci_regenerate_main_check`, `def_hole_example` | ✅ Passed |
 | [#198](https://github.com/leanprover/lean-eval-submissions/issues/198) | `ci_regenerate_main_check`, `def_hole_example`, `list_append_singleton_length`, `two_plus_two` | ✅ 4/4 passed |
 | [#199](https://github.com/leanprover/lean-eval-submissions/issues/199) | `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example` | ✅ 6/6 passed |
 | [#203](https://github.com/leanprover/lean-eval-submissions/issues/203) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example` | ✅ 7/7 passed |
 | [#218](https://github.com/leanprover/lean-eval-submissions/issues/218) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example`, `sturm_separation` | ⚠️ 7/8 passed; `sturm_separation` failed |
+| [#221](https://github.com/leanprover/lean-eval-submissions/issues/221) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **9/9 passed** |
 
 ---
 
@@ -58,7 +55,7 @@ Each problem has a dedicated subdirectory (e.g., `abel_ruffini/`, `brouwer_fixed
 Inside each problem directory you will find:
 
 | File / Directory | Purpose |
-|----------------|---------|
+|-----------------|---------|
 | `Submission.lean` | **Your file to complete.** Contains `sorry` placeholders that you must replace with valid Lean 4 / Mathlib code. |
 | `Challenge.lean` | The problem statement with the same theorem signature. **Do not modify.** Read-only benchmark file. |
 | `Solution.lean` | The reference solution. **Do not modify.** Read-only benchmark file. |
