@@ -1,0 +1,172 @@
+name: Lean-Eval Preflight
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      lean_eval_ref:
+        description: "Pinned leanprover/lean-eval commit/ref to evaluate against"
+        required: false
+        default: "6ee592acc40eac8d1a7102dafed368b341b3cd42"
+      lean_eval_submissions_ref:
+        description: "Pinned leanprover/lean-eval-submissions commit/ref for evaluator scripts"
+        required: false
+        default: "1b7e15a9238ff0d03feac348f3dc4b9f01570d05"
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Clean Lean-Eval submission preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      LEAN_EVAL_REF: ${{ inputs.lean_eval_ref || '6ee592acc40eac8d1a7102dafed368b341b3cd42' }}
+      LEAN_EVAL_SUBMISSIONS_REF: ${{ inputs.lean_eval_submissions_ref || '1b7e15a9238ff0d03feac348f3dc4b9f01570d05' }}
+
+    steps:
+      - name: Checkout submission source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: submission-src
+          persist-credentials: false
+
+      - name: Checkout pinned lean-eval benchmark
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: leanprover/lean-eval
+          ref: ${{ env.LEAN_EVAL_REF }}
+          path: lean-eval
+          persist-credentials: false
+
+      - name: Checkout pinned lean-eval-submissions evaluator
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: leanprover/lean-eval-submissions
+          ref: ${{ env.LEAN_EVAL_SUBMISSIONS_REF }}
+          path: lean-eval-submissions
+          persist-credentials: false
+
+      - name: Record pins
+        run: |
+          echo "submission_commit=$(git -C submission-src rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "lean_eval_commit=$(git -C lean-eval rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "lean_eval_submissions_commit=$(git -C lean-eval-submissions rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Free disk space for Mathlib cache
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: false
+
+      - name: Install Lean toolchain and Mathlib cache
+        uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9
+        with:
+          lake-package-directory: lean-eval
+          use-mathlib-cache: true
+
+      - name: Install Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version: "1.24.0"
+
+      - name: Install landrun
+        run: |
+          go install github.com/zouuup/landrun/cmd/landrun@5ed4a3db3a4ad930d577215c6b9abaa19df7f99f
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build lean4export
+        run: |
+          git clone https://github.com/leanprover/lean4export.git .ci/lean4export
+          cd .ci/lean4export
+          git checkout 12581a6b680d8478175596338eb2d53383a323e3
+          lake build lean4export
+          echo "$PWD/.lake/build/bin" >> "$GITHUB_PATH"
+
+      - name: Build comparator
+        run: |
+          git clone https://github.com/leanprover/comparator.git .ci/comparator
+          cd .ci/comparator
+          git checkout 71b52ec29e06d4b7d882726553b1ceb99a2499e0
+          lake build comparator
+          echo "$PWD/.lake/build/bin" >> "$GITHUB_PATH"
+
+      - name: Probe sandbox is engaged
+        run: python lean-eval/scripts/sandbox_engaged_probe.py --require-tools
+
+      - name: Probe env-var allowlist
+        run: python lean-eval/scripts/security_probes/env_dump_probe.py --require-tools
+
+      - name: Strip git state before running untrusted Lean
+        run: rm -rf submission-src/.git lean-eval/.git lean-eval-submissions/.git
+
+      - name: Run upstream clean-workspace evaluator
+        id: evaluate
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mkdir -p evaluate-out
+          python lean-eval-submissions/scripts/evaluate_submission.py \
+            --source-dir submission-src \
+            --generated-root lean-eval/generated \
+            --manifest-dir lean-eval/manifests/problems \
+            --output-dir evaluate-out \
+            --repo-root lean-eval \
+            --shared-packages lean-eval/.lake/packages \
+            2>&1 | tee evaluate-out/evaluate.log
+
+      - name: Print EVO-readable preflight summary
+        id: summarize
+        if: always()
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python submission-src/scripts/summarize_preflight.py --output-dir evaluate-out \
+            2>&1 | tee evaluate-out/preflight-summary.log
+
+      - name: Append summary to GitHub step summary
+        if: always()
+        run: |
+          {
+            echo "## Lean-Eval Preflight"
+            echo
+            echo "- lean-eval: \`${LEAN_EVAL_REF}\`"
+            echo "- lean-eval-submissions evaluator: \`${LEAN_EVAL_SUBMISSIONS_REF}\`"
+            echo
+            echo '```text'
+            if [ -f evaluate-out/preflight-summary.log ]; then
+              tail -n 200 evaluate-out/preflight-summary.log
+            else
+              echo "preflight-summary.log missing"
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload preflight artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lean-eval-preflight-results
+          path: evaluate-out/*
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail if preflight failed
+        if: always()
+        run: |
+          if [ "${{ steps.evaluate.outcome }}" != "success" ]; then
+            echo "Evaluator failed. See evaluate-out/evaluate.log and summary artifacts."
+            exit 1
+          fi
+          if [ "${{ steps.summarize.outcome }}" != "success" ]; then
+            echo "Summary reported failing Lean-Eval submissions."
+            exit 1
+          fi
