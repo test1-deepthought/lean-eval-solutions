@@ -157,8 +157,9 @@ theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → �
               · apply Finset.mem_union_right; apply Finset.mem_filter.mpr; exact ⟨hu, hadj⟩
           
           have h_disjoint : A ∩ B = ∅ := by
-            apply Finset.eq_empty_of_forall_not_mem
-            intro u hu
+            apply Finset.not_nonempty_iff_eq_empty.mp
+            intro h_nonempty
+            obtain ⟨u, hu⟩ := h_nonempty
             have huA : u ∈ A := (Finset.mem_inter.mp hu).left
             have huB : u ∈ B := (Finset.mem_inter.mp hu).right
             have hadj : G.Adj v u := (Finset.mem_filter.mp huA).2
@@ -186,7 +187,7 @@ theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → �
             have h1H : ¬ H.CliqueFree (r'-1) ∨ ¬ Hᶜ.CliqueFree s' := h1 H
             rcases h1H with (hH | hH_compl)
             · have hH_clique : ∃ (t : Finset (Fin n1)), H.IsNClique (r'-1) t := by
-                rw [SimpleGraph.CliqueFree] at hH; push_neg at hH; exact hH
+                rw [SimpleGraph.CliqueFree] at hH; push Not at hH; exact hH
               obtain ⟨t, ht⟩ := hH_clique
               have h_clique_img : G.IsNClique (r'-1) (image f_emb t) := by
                 refine SimpleGraph.IsNClique.mk ?_ ?_
@@ -240,7 +241,7 @@ theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → �
               left
               exact λ hG_cf => hG_cf (insert v (image f_emb t)) h_clique_v
             · have hH_compl_clique : ∃ (t : Finset (Fin n1)), Hᶜ.IsNClique s' t := by
-                rw [SimpleGraph.CliqueFree] at hH_compl; push_neg at hH_compl; exact hH_compl
+                rw [SimpleGraph.CliqueFree] at hH_compl; push Not at hH_compl; exact hH_compl
               obtain ⟨t, ht⟩ := hH_compl_clique
               have h_clique_compl_img : Gᶜ.IsNClique s' (image f_emb t) := by
                 refine SimpleGraph.IsNClique.mk ?_ ?_
@@ -275,7 +276,7 @@ theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → �
             have h2H : ¬ H.CliqueFree r' ∨ ¬ Hᶜ.CliqueFree (s'-1) := h2 H
             rcases h2H with (hH | hH_compl)
             · have hH_clique : ∃ (t : Finset (Fin n2)), H.IsNClique r' t := by
-                rw [SimpleGraph.CliqueFree] at hH; push_neg at hH; exact hH
+                rw [SimpleGraph.CliqueFree] at hH; push Not at hH; exact hH
               obtain ⟨t, ht⟩ := hH_clique
               have h_clique_img : G.IsNClique r' (image f_emb t) := by
                 refine SimpleGraph.IsNClique.mk ?_ ?_
@@ -295,7 +296,7 @@ theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → �
               left
               exact λ hG_cf => hG_cf (image f_emb t) h_clique_img
             · have hH_compl_clique : ∃ (t : Finset (Fin n2)), Hᶜ.IsNClique (s'-1) t := by
-                rw [SimpleGraph.CliqueFree] at hH_compl; push_neg at hH_compl; exact hH_compl
+                rw [SimpleGraph.CliqueFree] at hH_compl; push Not at hH_compl; exact hH_compl
               obtain ⟨t, ht⟩ := hH_compl_clique
               have h_clique_compl_img : Gᶜ.IsNClique (s'-1) (image f_emb t) := by
                 refine SimpleGraph.IsNClique.mk ?_ ?_
