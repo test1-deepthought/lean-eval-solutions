@@ -233,8 +233,6 @@ lemma Ioo_mem_nhdsWithin_Iio (a b : ℝ) (hab : a < b) : Set.Ioo a b ∈ nhdsWit
   have hx_gt_a : a < x := by nlinarith
   exact ⟨hx_gt_a, hx2⟩
 
--- New lemmas for the main proof
-
 lemma strictMonoOn_of_deriv_pos_on_Ioo (f f' : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     (hf : ∀ x ∈ Ioo a b, HasDerivAt f (f' x) x) (hf' : ∀ x ∈ Ioo a b, 0 < f' x) :
     StrictMonoOn f (Ioo a b) := by
@@ -448,12 +446,17 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     have hy1_deriv_a_pos : deriv y₁ a > 0 := by
       have h_nonneg : 0 ≤ deriv y₁ a := by
         have hpos : ∀ᶠ x in nhdsWithin a (Set.Ioi a), y₁ x > 0 := by
+          have ha_min : a < min b (a+1) := by
+            have h1 : a < a+1 := by nlinarith
+            exact lt_min_iff.mpr ⟨hab, h1⟩
           have h_nhd : Ioo a (min b (a+1)) ∈ nhdsWithin a (Set.Ioi a) :=
-            Ioo_mem_nhdsWithin_Ioi a (min b (a+1)) (by nlinarith)
+            Ioo_mem_nhdsWithin_Ioi a (min b (a+1)) ha_min
           filter_upwards [h_nhd] with x hx
           rcases hx with ⟨hxa, hxmin⟩
           have hx_Ioo : x ∈ Ioo a b := ⟨hxa, by
-            have : x < min b (a+1) := hxmin; nlinarith⟩
+            calc
+              x < min b (a+1) := hxmin
+              _ ≤ b := min_le_left _ _⟩
           exact hy1_pos x hx_Ioo
         have h_deriv : HasDerivAt y₁ (deriv y₁ a) a := hy₁ a haJ
         exact deriv_nonneg_at_right y₁ a h_deriv hza hpos
@@ -471,11 +474,18 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     have hy1_deriv_b_neg : deriv y₁ b < 0 := by
       have h_nonpos : deriv y₁ b ≤ 0 := by
         have hpos : ∀ᶠ x in nhdsWithin b (Set.Iio b), y₁ x > 0 := by
+          have hmax_lt_b : max a (b-1) < b := by
+            have hb1 : b-1 < b := by nlinarith
+            have ha_lt_b : a < b := hab
+            refine max_lt_iff.mpr ⟨ha_lt_b, hb1⟩
           have h_nhd : Ioo (max a (b-1)) b ∈ nhdsWithin b (Set.Iio b) :=
-            Ioo_mem_nhdsWithin_Iio (max a (b-1)) b (by nlinarith)
+            Ioo_mem_nhdsWithin_Iio (max a (b-1)) b hmax_lt_b
           filter_upwards [h_nhd] with x hx
           rcases hx with ⟨hxmax, hxb⟩
-          have hx_Ioo : x ∈ Ioo a b := ⟨by nlinarith, hxb⟩
+          have hx_Ioo : x ∈ Ioo a b := ⟨by
+            have : a ≤ max a (b-1) := le_max_left _ _
+            have : max a (b-1) < x := hxmax
+            nlinarith, hxb⟩
           exact hy1_pos x hx_Ioo
         have h_deriv : HasDerivAt y₁ (deriv y₁ b) b := hy₁ b hbJ
         exact deriv_nonpos_at_left y₁ b h_deriv hzb hpos
@@ -649,11 +659,11 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
         have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
         exact hW_nonzero x hxJ hx_eq
 
-    -- 6. Uniqueness: at most one zero of y₂ in (a,b) via strict monotonicity of y₂/y₁
+    -- 6. Uniqueness: at most one zero of y₂ in (a,b)
     have h_unique : ∀ c d ∈ Ioo a b, y₂ c = 0 → y₂ d = 0 → c = d := by
       intro c d hc hd hc0 hd0
       by_contra! hcd
-      have hlt_or : c < d ∨ d < c := Ne.lt_or_lt hcd
+      have hlt_or : c < d ∨ d < c := Ne.lt_or_gt hcd
       rcases hlt_or with (hlt | hlt)
       · -- c < d. (y₂/y₁)' = W/y₁² has constant sign, so y₂/y₁ is strictly monotone, hence injective.
         have h_deriv_ratio : ∀ x ∈ Ioo a b, HasDerivAt (fun x => y₂ x / y₁ x) (W x / (y₁ x)^2) x := by
