@@ -233,131 +233,143 @@ lemma Ioo_mem_nhdsWithin_Iio (a b : ℝ) (hab : a < b) : Set.Ioo a b ∈ nhdsWit
   have hx_gt_a : a < x := by nlinarith
   exact ⟨hx_gt_a, hx2⟩
 
-lemma const_sign_of_continuous_nonzero (f : ℝ → ℝ) (a b : ℝ) (hab : a ≤ b) (hf : ContinuousOn f (Set.Icc a b))
-    (hf0 : ∀ x ∈ Set.Icc a b, f x ≠ 0) : (∀ x ∈ Set.Icc a b, f x > 0) ∨ (∀ x ∈ Set.Icc a b, f x < 0) := by
-  by_cases h_pos : ∃ x ∈ Set.Icc a b, f x > 0
-  · rcases h_pos with ⟨x, hx, hx_pos⟩
-    have h_all_pos : ∀ y ∈ Set.Icc a b, f y > 0 := by
-      intro y hy
-      by_contra! hle
-      have hy_neg_or_zero : f y < 0 ∨ f y = 0 := lt_or_eq_of_le hle
-      rcases hy_neg_or_zero with (hy_neg | hy_zero)
-      · have hxy : x ≠ y := by
-          intro h_eq
-          apply hy_neg.not_lt
-          calc
-            f y = f x := by simpa [h_eq]
-            _ > 0 := hx_pos
-        rcases lt_or_gt_of_ne hxy with (hx_lt_y | hy_lt_x)
-        · have h_cont_xy : ContinuousOn f (Set.Icc x y) :=
-            hf.mono (Set.Icc_subset_Icc (by exact hx.1) (by exact hy.2))
-          have h_IVT : Set.Icc (f y) (f x) ⊆ f '' Set.Icc x y :=
-            intermediate_value_Icc' (by linarith) h_cont_xy
-          have h0_mem : (0 : ℝ) ∈ Set.Icc (f y) (f x) := ⟨by linarith, by linarith⟩
-          rcases h_IVT h0_mem with ⟨z, hz, hz0⟩
-          have hz_icc : z ∈ Set.Icc a b := Set.mem_Icc.mpr ⟨by
-            have : a ≤ x := hx.1; have : x ≤ z := hz.1; linarith, by
-            have : z ≤ y := hz.2; have : y ≤ b := hy.2; linarith⟩
-          exact hf0 z hz_icc hz0
-        · have h_cont_xy : ContinuousOn f (Set.Icc y x) :=
-            hf.mono (Set.Icc_subset_Icc (by exact hy.1) (by exact hx.2))
-          have h_IVT : Set.Icc (f y) (f x) ⊆ f '' Set.Icc y x :=
-            intermediate_value_Icc (by linarith) h_cont_xy
-          have h0_mem : (0 : ℝ) ∈ Set.Icc (f y) (f x) := ⟨by linarith, by linarith⟩
-          rcases h_IVT h0_mem with ⟨z, hz, hz0⟩
-          have hz_icc : z ∈ Set.Icc a b := Set.mem_Icc.mpr ⟨by
-            have : a ≤ y := hy.1; have : y ≤ z := hz.1; linarith, by
-            have : z ≤ x := hz.2; have : x ≤ b := hx.2; linarith⟩
-          exact hf0 z hz_icc hz0
-      · exact hf0 y hy hy_zero
-    exact Or.inl h_all_pos
-  · have h_all_neg : ∀ y ∈ Set.Icc a b, f y < 0 := by
-      intro y hy
-      by_contra! hge
-      have hy_nonpos : f y ≤ 0 := by
-        by_contra! hgt; exact h_pos ⟨y, hy, hgt⟩
-      have : f y = 0 := by linarith
-      exact hf0 y hy this
-    exact Or.inr h_all_neg
+-- New lemmas for the main proof
 
-lemma constant_sign_on_Ioo (y₁ : ℝ → ℝ) (a b : ℝ) (hab : a < b) (hne : ∀ x ∈ Set.Ioo a b, y₁ x ≠ 0)
-    (h_cont : ContinuousOn y₁ (Set.Ioo a b)) : (∀ x ∈ Set.Ioo a b, y₁ x > 0) ∨ (∀ x ∈ Set.Ioo a b, y₁ x < 0) := by
-  by_cases h_pos : ∃ x ∈ Set.Ioo a b, y₁ x > 0
-  · rcases h_pos with ⟨x, hx, hx_pos⟩
-    have h_all_pos : ∀ y ∈ Set.Ioo a b, y₁ y > 0 := by
-      intro y hy
-      by_contra! hle
-      have hy_neg_or_zero : y₁ y < 0 ∨ y₁ y = 0 := lt_or_eq_of_le hle
-      rcases hy_neg_or_zero with (hy_neg | hy_zero)
-      · have hxy : x ≠ y := by
-          intro h_eq
-          apply hy_neg.not_lt
-          calc
-            y₁ y = y₁ x := by simpa [h_eq]
-            _ > 0 := hx_pos
-        rcases lt_or_gt_of_ne hxy with (hx_lt_y | hy_lt_x)
-        · have h_cont_xy : ContinuousOn y₁ (Set.Icc x y) :=
-            h_cont.mono (Set.Icc_subset_Ioo (by exact hx.1) (by exact hy.2))
-          have h_IVT : Set.Icc (y₁ y) (y₁ x) ⊆ y₁ '' Set.Icc x y :=
-            intermediate_value_Icc' (by linarith) h_cont_xy
-          have h0_mem : (0 : ℝ) ∈ Set.Icc (y₁ y) (y₁ x) := ⟨by linarith, by linarith⟩
-          rcases h_IVT h0_mem with ⟨z, hz, hz0⟩
-          have hz_Ioo : z ∈ Set.Ioo a b := ⟨by
-            have : a < x := hx.1; have : x ≤ z := hz.1; linarith, by
-            have : z ≤ y := hz.2; have : y < b := hy.2; linarith⟩
-          exact hne z hz_Ioo hz0
-        · have h_cont_xy : ContinuousOn y₁ (Set.Icc y x) :=
-            h_cont.mono (Set.Icc_subset_Ioo (by exact hy.1) (by exact hx.2))
-          have h_IVT : Set.Icc (y₁ y) (y₁ x) ⊆ y₁ '' Set.Icc y x :=
-            intermediate_value_Icc (by linarith) h_cont_xy
-          have h0_mem : (0 : ℝ) ∈ Set.Icc (y₁ y) (y₁ x) := ⟨by linarith, by linarith⟩
-          rcases h_IVT h0_mem with ⟨z, hz, hz0⟩
-          have hz_Ioo : z ∈ Set.Ioo a b := ⟨by
-            have : a < y := hy.1; have : y ≤ z := hz.1; linarith, by
-            have : z ≤ x := hz.2; have : x < b := hx.2; linarith⟩
-          exact hne z hz_Ioo hz0
-      · exact hne y hy hy_zero
-    exact Or.inl h_all_pos
-  · have h_all_neg : ∀ y ∈ Set.Ioo a b, y₁ y < 0 := by
-      intro y hy
-      by_contra! hge
-      have hy_nonpos : y₁ y ≤ 0 := by
-        by_contra! hgt; exact h_pos ⟨y, hy, hgt⟩
-      have : y₁ y = 0 := by linarith
-      exact hne y hy this
-    exact Or.inr h_all_neg
+lemma strictMonoOn_of_deriv_pos_on_Ioo (f f' : ℝ → ℝ) (a b : ℝ) (hab : a < b)
+    (hf : ∀ x ∈ Ioo a b, HasDerivAt f (f' x) x) (hf' : ∀ x ∈ Ioo a b, 0 < f' x) :
+    StrictMonoOn f (Ioo a b) := by
+  apply strictMonoOn_of_hasDerivWithinAt_pos (convex_Ioo a b)
+  · intro x hx; exact (hf x hx).continuousAt.continuousWithinAt
+  · intro x hx
+    have hx' : x ∈ Ioo a b := by simpa [interior_Ioo] using hx
+    exact (hf x hx').hasDerivWithinAt
+  · intro x hx
+    have hx' : x ∈ Ioo a b := by simpa [interior_Ioo] using hx
+    exact hf' x hx'
+
+lemma strictAntiOn_of_deriv_neg_on_Ioo (f f' : ℝ → ℝ) (a b : ℝ) (hab : a < b)
+    (hf : ∀ x ∈ Ioo a b, HasDerivAt f (f' x) x) (hf' : ∀ x ∈ Ioo a b, f' x < 0) :
+    StrictAntiOn f (Ioo a b) := by
+  apply strictAntiOn_of_hasDerivWithinAt_neg (convex_Ioo a b)
+  · intro x hx; exact (hf x hx).continuousAt.continuousWithinAt
+  · intro x hx
+    have hx' : x ∈ Ioo a b := by simpa [interior_Ioo] using hx
+    exact (hf x hx').hasDerivWithinAt
+  · intro x hx
+    have hx' : x ∈ Ioo a b := by simpa [interior_Ioo] using hx
+    exact hf' x hx'
+
+lemma const_sign_on_Ioo (f : ℝ → ℝ) (a b : ℝ) (hab : a < b) (hf : ∀ x ∈ Ioo a b, ContinuousAt f x)
+    (hf_nonzero : ∀ x ∈ Ioo a b, f x ≠ 0) : (∀ x ∈ Ioo a b, f x > 0) ∨ (∀ x ∈ Ioo a b, f x < 0) := by
+  by_cases hpos : ∃ x ∈ Ioo a b, f x > 0
+  · rcases hpos with ⟨x₁, hx₁, hpos⟩
+    refine Or.inl ?_
+    intro x hx
+    by_cases hx_pos : f x > 0
+    · exact hx_pos
+    · have hx_nonpos : f x ≤ 0 := by linarith
+      have hx_nonzero : f x ≠ 0 := hf_nonzero x hx
+      have hx_neg : f x < 0 := by
+        by_contra! hge
+        have : f x = 0 := by nlinarith
+        exact hx_nonzero this
+      by_cases hxx₁ : x ≤ x₁
+      · have hcont : ContinuousOn f (Icc x x₁) := by
+          intro y hy
+          have hy_Ioo : y ∈ Ioo a b := by
+            have haz : a < y := lt_of_lt_of_le hx.1 hy.1
+            have hzb : y < b := lt_of_le_of_lt hy.2 hx₁.2
+            exact ⟨haz, hzb⟩
+          exact (hf y hy_Ioo).continuousWithinAt
+        have hzero_mem : (0 : ℝ) ∈ Ioo (f x) (f x₁) := by
+          constructor <;> nlinarith
+        have himage : Ioo (f x) (f x₁) ⊆ f '' Ioo x x₁ :=
+          intermediate_value_Ioo hxx₁ hcont
+        rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+        have hz_Ioo : z ∈ Ioo a b := by
+          have haz : a < z := hx.1.trans hz_mem.1
+          have hzb : z < b := hz_mem.2.trans hx₁.2
+          exact ⟨haz, hzb⟩
+        exact absurd hz_eq (hf_nonzero z hz_Ioo)
+      · have hxx₁' : x₁ ≤ x := by linarith
+        have hcont : ContinuousOn f (Icc x₁ x) := by
+          intro y hy
+          have hy_Ioo : y ∈ Ioo a b := by
+            have haz : a < y := lt_of_lt_of_le hx₁.1 hy.1
+            have hzb : y < b := lt_of_le_of_lt hy.2 hx.2
+            exact ⟨haz, hzb⟩
+          exact (hf y hy_Ioo).continuousWithinAt
+        have hzero_mem : (0 : ℝ) ∈ Ioo (f x) (f x₁) := by
+          constructor <;> nlinarith
+        have himage : Ioo (f x) (f x₁) ⊆ f '' Ioo x₁ x :=
+          intermediate_value_Ioo' hxx₁' hcont
+        rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+        have hz_Ioo : z ∈ Ioo a b := by
+          have haz : a < z := hx₁.1.trans hz_mem.1
+          have hzb : z < b := hz_mem.2.trans hx.2
+          exact ⟨haz, hzb⟩
+        exact absurd hz_eq (hf_nonzero z hz_Ioo)
+  · push_neg at hpos
+    have hneg : ∃ x ∈ Ioo a b, f x < 0 := by
+      by_contra! h
+      have : ∀ x ∈ Ioo a b, f x = 0 := by
+        intro x hx
+        have hx_nonzero := hf_nonzero x hx
+        have hx_nonpos : f x ≤ 0 := hpos x hx
+        have hx_nonneg : 0 ≤ f x := h x hx
+        nlinarith
+      have hmid : ((a + b)/2) ∈ Ioo a b := by
+        constructor <;> nlinarith
+      exact absurd (this ((a+b)/2) hmid) (hf_nonzero ((a+b)/2) hmid)
+    rcases hneg with ⟨x₁, hx₁, hneg⟩
+    refine Or.inr ?_
+    intro x hx
+    by_cases hx_neg : f x < 0
+    · exact hx_neg
+    · have hx_nonneg : f x ≥ 0 := by linarith
+      have hx_nonzero : f x ≠ 0 := hf_nonzero x hx
+      have hx_pos : f x > 0 := by
+        by_contra! hle
+        have : f x = 0 := by nlinarith
+        exact hx_nonzero this
+      by_cases hxx₁ : x ≤ x₁
+      · have hcont : ContinuousOn f (Icc x x₁) := by
+          intro y hy
+          have hy_Ioo : y ∈ Ioo a b := by
+            have haz : a < y := lt_of_lt_of_le hx.1 hy.1
+            have hzb : y < b := lt_of_le_of_lt hy.2 hx₁.2
+            exact ⟨haz, hzb⟩
+          exact (hf y hy_Ioo).continuousWithinAt
+        have hzero_mem : (0 : ℝ) ∈ Ioo (f x₁) (f x) := by
+          constructor <;> nlinarith
+        have himage : Ioo (f x₁) (f x) ⊆ f '' Ioo x x₁ :=
+          intermediate_value_Ioo' hxx₁ hcont
+        rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+        have hz_Ioo : z ∈ Ioo a b := by
+          have haz : a < z := hx.1.trans hz_mem.1
+          have hzb : z < b := hz_mem.2.trans hx₁.2
+          exact ⟨haz, hzb⟩
+        exact absurd hz_eq (hf_nonzero z hz_Ioo)
+      · have hxx₁' : x₁ ≤ x := by linarith
+        have hcont : ContinuousOn f (Icc x₁ x) := by
+          intro y hy
+          have hy_Ioo : y ∈ Ioo a b := by
+            have haz : a < y := lt_of_lt_of_le hx₁.1 hy.1
+            have hzb : y < b := lt_of_le_of_lt hy.2 hx.2
+            exact ⟨haz, hzb⟩
+          exact (hf y hy_Ioo).continuousWithinAt
+        have hzero_mem : (0 : ℝ) ∈ Ioo (f x₁) (f x) := by
+          constructor <;> nlinarith
+        have himage : Ioo (f x₁) (f x) ⊆ f '' Ioo x₁ x :=
+          intermediate_value_Ioo hxx₁' hcont
+        rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+        have hz_Ioo : z ∈ Ioo a b := by
+          have haz : a < z := hx₁.1.trans hz_mem.1
+          have hzb : z < b := hz_mem.2.trans hx.2
+          exact ⟨haz, hzb⟩
+        exact absurd hz_eq (hf_nonzero z hz_Ioo)
 
 namespace Submission
-
-noncomputable def wronskian (y₁ y₂ : ℝ → ℝ) (x : ℝ) : ℝ :=
-  y₁ x * deriv y₂ x - y₂ x * deriv y₁ x
-
-lemma wronskian_deriv (p q y₁ y₂ : ℝ → ℝ) (x : ℝ)
-    (hy₁ : HasDerivAt y₁ (deriv y₁ x) x)
-    (hy₁' : HasDerivAt (deriv y₁) (-(p x * deriv y₁ x + q x * y₁ x)) x)
-    (hy₂ : HasDerivAt y₂ (deriv y₂ x) x)
-    (hy₂' : HasDerivAt (deriv y₂) (-(p x * deriv y₂ x + q x * y₂ x)) x) : 
-    HasDerivAt (wronskian y₁ y₂) (-(p x * wronskian y₁ y₂ x)) x := by
-  dsimp [wronskian]
-  have h_mul1 : HasDerivAt (fun x' => y₁ x' * deriv y₂ x') 
-      ((deriv y₁ x) * deriv y₂ x + y₁ x * (-(p x * deriv y₂ x + q x * y₂ x))) x := by
-    apply HasDerivAt.mul hy₁ hy₂'
-  have h_mul2 : HasDerivAt (fun x' => y₂ x' * deriv y₁ x')
-      ((deriv y₂ x) * deriv y₁ x + y₂ x * (-(p x * deriv y₁ x + q x * y₁ x))) x := by
-    apply HasDerivAt.mul hy₂ hy₁'
-  have h_sub : HasDerivAt (fun x' => y₁ x' * deriv y₂ x' - y₂ x' * deriv y₁ x')
-      (((deriv y₁ x) * deriv y₂ x + y₁ x * (-(p x * deriv y₂ x + q x * y₂ x))) -
-       ((deriv y₂ x) * deriv y₁ x + y₂ x * (-(p x * deriv y₁ x + q x * y₁ x)))) x := by
-    apply HasDerivAt.sub h_mul1 h_mul2
-  convert h_sub using 1
-  ring
-
-lemma deriv_ratio_eq_wronskian_div_sq (y₁ y₂ : ℝ → ℝ) (x : ℝ) (hy₁ : HasDerivAt y₁ (deriv y₁ x) x) 
-    (hy₂ : HasDerivAt y₂ (deriv y₂ x) x) (hy1x_ne : y₁ x ≠ 0) :
-    deriv (fun t : ℝ => y₂ t / y₁ t) x = (wronskian y₁ y₂ x) / (y₁ x)^2 := by
-  have h := (HasDerivAt.div hy₂ hy₁ hy1x_ne).deriv
-  dsimp [wronskian] at h ⊢
-  simpa [mul_comm] using h
 
 theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     (J : Set ℝ) (hJ_open : IsOpen J) (hJ_conn : IsPreconnected J)
@@ -371,260 +383,410 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
     (hza : y₁ a = 0) (hzb : y₁ b = 0)
     (hne : ∀ x ∈ Set.Ioo a b, y₁ x ≠ 0) :
     ∃! c, c ∈ Set.Ioo a b ∧ y₂ c = 0 := by
-  rcases hW with ⟨x₀, hx₀J, hW0⟩
-  have hW0' : wronskian y₁ y₂ x₀ ≠ 0 := by
-    dsimp [wronskian]; exact hW0
-  have haJ : a ∈ J := hJ_sub (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-  have hbJ : b ∈ J := hJ_sub (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-  have hIoo_J : Set.Ioo a b ⊆ J := by
-    intro x hx; rcases hx with ⟨hax, hxb⟩
-    have hx' : x ∈ Set.Icc a b := Set.mem_Icc.mpr ⟨by linarith, by linarith⟩
-    exact hJ_sub hx'
-  have hJ_ord : J.OrdConnected := isPreconnected_iff_ordConnected.mp hJ_conn
-  -- The Wronskian never vanishes on [a,b].
-  have hW_nonzero : ∀ x ∈ Set.Icc a b, wronskian y₁ y₂ x ≠ 0 := by
-    intro x hx
-    have hxJ : x ∈ J := hJ_sub hx
-    by_cases h_eq : x₀ = x
-    · subst h_eq; exact hW0'
-    by_cases hzero : wronskian y₁ y₂ x = 0
-    · exfalso
-      rcases exists_open_interval_containing_two_points J hJ_open hJ_conn x₀ x hx₀J hxJ h_eq with ⟨c, d, hcd, hIcc_sub_J, hx₀_mem, hx_mem⟩
-      have hW_deriv : ∀ t ∈ Set.Ioo c d, HasDerivAt (wronskian y₁ y₂) ((-p t) * (wronskian y₁ y₂ t)) t := by
+  rcases hW with ⟨x₀, hx₀J, hW₀⟩
+  set W := fun x : ℝ => y₁ x * deriv y₂ x - y₂ x * deriv y₁ x with hWdef
+  have haJ : a ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.left_mem_Icc.mpr (by linarith))
+  have hbJ : b ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.right_mem_Icc.mpr (by linarith))
+  have hJ_ord : J.OrdConnected := (isPreconnected_iff_ordConnected.mp hJ_conn)
+
+  -- 1. W' = -p*W on J
+  have hW_deriv : ∀ x ∈ J, HasDerivAt W (-(p x) * W x) x := by
+    intro x hxJ
+    dsimp [W]
+    have hy₁_x : HasDerivAt y₁ (deriv y₁ x) x := hy₁ x hxJ
+    have hy₁'_x : HasDerivAt (deriv y₁) (-(p x * deriv y₁ x + q x * y₁ x)) x := hy₁' x hxJ
+    have hy₂_x : HasDerivAt y₂ (deriv y₂ x) x := hy₂ x hxJ
+    have hy₂'_x : HasDerivAt (deriv y₂) (-(p x * deriv y₂ x + q x * y₂ x)) x := hy₂' x hxJ
+    have h1 : HasDerivAt (fun x : ℝ => y₁ x * deriv y₂ x) (deriv y₁ x * deriv y₂ x + y₁ x * (-(p x * deriv y₂ x + q x * y₂ x))) x :=
+      HasDerivAt.mul hy₁_x hy₂'_x
+    have h2 : HasDerivAt (fun x : ℝ => y₂ x * deriv y₁ x) (deriv y₂ x * deriv y₁ x + y₂ x * (-(p x * deriv y₁ x + q x * y₁ x))) x :=
+      HasDerivAt.mul hy₂_x hy₁'_x
+    have hsub : HasDerivAt (fun x : ℝ => y₁ x * deriv y₂ x - y₂ x * deriv y₁ x)
+      ((deriv y₁ x * deriv y₂ x + y₁ x * (-(p x * deriv y₂ x + q x * y₂ x))) - (deriv y₂ x * deriv y₁ x + y₂ x * (-(p x * deriv y₁ x + q x * y₁ x)))) x :=
+      HasDerivAt.sub h1 h2
+    have hsimpl : ((deriv y₁ x * deriv y₂ x + y₁ x * (-(p x * deriv y₂ x + q x * y₂ x))) - (deriv y₂ x * deriv y₁ x + y₂ x * (-(p x * deriv y₁ x + q x * y₁ x)))) = -(p x) * (y₁ x * deriv y₂ x - y₂ x * deriv y₁ x) := by
+      ring
+    rw [hsimpl] at hsub
+    exact hsub
+
+  -- 2. W never vanishes on J (by ODE uniqueness from x₀)
+  have hW_nonzero : ∀ x ∈ J, W x ≠ 0 := by
+    intro x hxJ
+    by_contra! hWx
+    by_cases hxx₀ : x = x₀
+    · subst hxx₀; exact hW₀ hWx
+    · rcases exists_open_interval_containing_two_points J hJ_open hJ_conn x x₀ hxJ hx₀J hxx₀ with ⟨c, d, hcd, hIcc_sub, hx_mem, hx₀_mem⟩
+      have hp_cont : ContinuousOn (-p) (Icc c d) := (hp.mono hIcc_sub).neg
+      have hW_deriv_on : ∀ t ∈ Ioo c d, HasDerivAt W (-(p t) * W t) t := by
         intro t ht
-        have htJ : t ∈ J := hIcc_sub_J (Set.mem_Icc.mpr ⟨by
-          have := ht.1; linarith, by
-          have := ht.2; linarith⟩)
-        have h := wronskian_deriv p q y₁ y₂ t (hy₁ t htJ) (hy₁' t htJ) (hy₂ t htJ) (hy₂' t htJ)
-        simpa [mul_comm, mul_left_comm, mul_assoc, neg_mul] using h
-      have ha_cont : ContinuousOn (fun t : ℝ => -p t) (Set.Icc c d) :=
-        (hp.mono hIcc_sub_J).neg
-      have hW_x₀_zero : wronskian y₁ y₂ x₀ = 0 :=
-        linear_ode_zero_at_point (fun t => -p t) (wronskian y₁ y₂) c d hcd x₀ x hx₀_mem hx_mem ha_cont hW_deriv hzero
-      exact hW0' hW_x₀_zero
-    · exact hzero
-  -- Step 3: y₂(a) ≠ 0 and y₂(b) ≠ 0.
-  have hy₂a_ne_zero : y₂ a ≠ 0 := by
-    intro h; have : wronskian y₁ y₂ a = 0 := by
-      dsimp [wronskian]; simp [hza, h]
-    exact hW_nonzero a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
-  have hy₂b_ne_zero : y₂ b ≠ 0 := by
-    intro h; have : wronskian y₁ y₂ b = 0 := by
-      dsimp [wronskian]; simp [hzb, h]
-    exact hW_nonzero b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
-  -- Step 4-5: at most one zero of y₂ in (a,b)
-  have at_most_one : ∀ c ∈ Set.Ioo a b, ∀ d ∈ Set.Ioo a b, y₂ c = 0 → y₂ d = 0 → c = d := by
-    intro c hc d hd hc0 hd0
-    by_contra! hne_cd
-    rcases lt_or_gt_of_ne hne_cd with (hlt | hgt)
-    · -- c < d
-      have h_ratio_eq : (fun x : ℝ => y₂ x / y₁ x) c = (fun x : ℝ => y₂ x / y₁ x) d := by
-        simp [hc0, hd0]
-      have hy1_ne : ∀ x ∈ Set.Icc c d, y₁ x ≠ 0 := by
-        intro x hx; have hxIoo : x ∈ Set.Ioo a b := ⟨by
-          have := hc.1; have := hx.1; linarith, by
-          have := hd.2; have := hx.2; linarith⟩
-        exact hne x hxIoo
-      have h_cont : ContinuousOn (fun x : ℝ => y₂ x / y₁ x) (Set.Icc c d) := by
-        refine ContinuousOn.div ?_ ?_ hy1_ne
-        · intro x hx; have hxJ : x ∈ J := hIoo_J ⟨by
-            have := hc.1; have := hx.1; linarith, by
-            have := hd.2; have := hx.2; linarith⟩
-          exact (hy₂ x hxJ).continuousAt.continuousWithinAt
-        · intro x hx; have hxJ : x ∈ J := hIoo_J ⟨by
-            have := hc.1; have := hx.1; linarith, by
-            have := hd.2; have := hx.2; linarith⟩
-          exact (hy₁ x hxJ).continuousAt.continuousWithinAt
-      rcases exists_deriv_eq_zero hlt h_cont h_ratio_eq with ⟨ξ, hξ, hderiv⟩
-      have hξJ : ξ ∈ J := hIoo_J ⟨by
-        have := hc.1; have := hξ.1; linarith, by
-        have := hd.2; have := hξ.2; linarith⟩
-      have hy1ξ_ne : y₁ ξ ≠ 0 := hne ξ ⟨by
-        have := hc.1; have := hξ.1; linarith, by
-        have := hd.2; have := hξ.2; linarith⟩
-      have hW_ξ_ne_zero : wronskian y₁ y₂ ξ ≠ 0 := by
-        apply hW_nonzero ξ; refine Set.mem_Icc.mpr ⟨by
-          have := hc.1; have := hξ.1; linarith, by
-          have := hd.2; have := hξ.2; linarith⟩
-      have h_deriv_ratio_eq : deriv (fun x : ℝ => y₂ x / y₁ x) ξ = (wronskian y₁ y₂ ξ) / (y₁ ξ)^2 :=
-        deriv_ratio_eq_wronskian_div_sq y₁ y₂ ξ (hy₁ ξ hξJ) (hy₂ ξ hξJ) hy1ξ_ne
-      rw [h_deriv_ratio_eq] at hderiv
-      have : (wronskian y₁ y₂ ξ) / (y₁ ξ)^2 ≠ 0 := div_ne_zero hW_ξ_ne_zero (by positivity)
-      exact this hderiv
-    · -- d < c, symmetric
-      have h_ratio_eq : (fun x : ℝ => y₂ x / y₁ x) d = (fun x : ℝ => y₂ x / y₁ x) c := by
-        simp [hc0, hd0]
-      have hy1_ne : ∀ x ∈ Set.Icc d c, y₁ x ≠ 0 := by
-        intro x hx; have hxIoo : x ∈ Set.Ioo a b := ⟨by
-          have := hd.1; have := hx.1; linarith, by
-          have := hc.2; have := hx.2; linarith⟩
-        exact hne x hxIoo
-      have h_cont : ContinuousOn (fun x : ℝ => y₂ x / y₁ x) (Set.Icc d c) := by
-        refine ContinuousOn.div ?_ ?_ hy1_ne
-        · intro x hx; have hxJ : x ∈ J := hIoo_J ⟨by
-            have := hd.1; have := hx.1; linarith, by
-            have := hc.2; have := hx.2; linarith⟩
-          exact (hy₂ x hxJ).continuousAt.continuousWithinAt
-        · intro x hx; have hxJ : x ∈ J := hIoo_J ⟨by
-            have := hd.1; have := hx.1; linarith, by
-            have := hc.2; have := hx.2; linarith⟩
-          exact (hy₁ x hxJ).continuousAt.continuousWithinAt
-      rcases exists_deriv_eq_zero hgt h_cont h_ratio_eq with ⟨ξ, hξ, hderiv⟩
-      have hξJ : ξ ∈ J := hIoo_J ⟨by
-        have := hd.1; have := hξ.1; linarith, by
-        have := hc.2; have := hξ.2; linarith⟩
-      have hy1ξ_ne : y₁ ξ ≠ 0 := hne ξ ⟨by
-        have := hd.1; have := hξ.1; linarith, by
-        have := hc.2; have := hξ.2; linarith⟩
-      have hW_ξ_ne_zero : wronskian y₁ y₂ ξ ≠ 0 := by
-        apply hW_nonzero ξ; refine Set.mem_Icc.mpr ⟨by
-          have := hd.1; have := hξ.1; linarith, by
-          have := hc.2; have := hξ.2; linarith⟩
-      have h_deriv_ratio_eq : deriv (fun x : ℝ => y₂ x / y₁ x) ξ = (wronskian y₁ y₂ ξ) / (y₁ ξ)^2 :=
-        deriv_ratio_eq_wronskian_div_sq y₁ y₂ ξ (hy₁ ξ hξJ) (hy₂ ξ hξJ) hy1ξ_ne
-      rw [h_deriv_ratio_eq] at hderiv
-      have : (wronskian y₁ y₂ ξ) / (y₁ ξ)^2 ≠ 0 := div_ne_zero hW_ξ_ne_zero (by positivity)
-      exact this hderiv
-  -- Step 6: Existence of a zero of y₂ in (a,b)
-  have at_least_one : ∃ c ∈ Set.Ioo a b, y₂ c = 0 := by
-    have hy1_cont : ContinuousOn y₁ (Set.Ioo a b) := by
-      intro x hx; have hxJ : x ∈ J := hIoo_J hx; exact (hy₁ x hxJ).continuousAt.continuousWithinAt
-    have hy1_const_sign := constant_sign_on_Ioo y₁ a b hab hne hy1_cont
-    rcases hy1_const_sign with (hy1_pos | hy1_neg)
-    · -- Case y₁ > 0 on (a,b)
-      have h_nhds_pos_a : ∀ᶠ x in nhdsWithin a (Set.Ioi a), y₁ x > 0 := by
-        have h_mem : Set.Ioo a ((a + b) / 2) ∈ nhdsWithin a (Set.Ioi a) :=
-          Ioo_mem_nhdsWithin_Ioi a ((a + b) / 2) (by nlinarith)
-        filter_upwards [h_mem] with x hx; apply hy1_pos x; exact ⟨hx.1, by nlinarith⟩
-      have h_deriv_a_nonneg : deriv y₁ a ≥ 0 :=
-        deriv_nonneg_at_right y₁ a (hy₁ a haJ) hza h_nhds_pos_a
-      have h_deriv_a_pos : deriv y₁ a > 0 := by
-        by_contra! hle
-        have : deriv y₁ a = 0 := by linarith
-        have : wronskian y₁ y₂ a = 0 := by dsimp [wronskian]; simp [hza, this]
-        exact hW_nonzero a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
-      have h_nhds_pos_b : ∀ᶠ x in nhdsWithin b (Set.Iio b), y₁ x > 0 := by
-        have h_mem : Set.Ioo ((a + b) / 2) b ∈ nhdsWithin b (Set.Iio b) :=
-          Ioo_mem_nhdsWithin_Iio ((a + b) / 2) b (by nlinarith)
-        filter_upwards [h_mem] with x hx; apply hy1_pos x; exact ⟨by nlinarith, hx.2⟩
-      have h_deriv_b_nonpos : deriv y₁ b ≤ 0 :=
-        deriv_nonpos_at_left y₁ b (hy₁ b hbJ) hzb h_nhds_pos_b
-      have h_deriv_b_neg : deriv y₁ b < 0 := by
-        by_contra! hge
-        have : deriv y₁ b = 0 := by linarith
-        have : wronskian y₁ y₂ b = 0 := by dsimp [wronskian]; simp [hzb, this]
-        exact hW_nonzero b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
-      -- W has constant sign on [a,b]
-      have hW_cont : ContinuousOn (wronskian y₁ y₂) (Set.Icc a b) := by
-        intro x hx; have hxJ : x ∈ J := hJ_sub hx
-        have hW_deriv_x := wronskian_deriv p q y₁ y₂ x (hy₁ x hxJ) (hy₁' x hxJ) (hy₂ x hxJ) (hy₂' x hxJ)
-        exact hW_deriv_x.continuousAt.continuousWithinAt
-      have hW_const_sign : (∀ x ∈ Set.Icc a b, wronskian y₁ y₂ x > 0) ∨ (∀ x ∈ Set.Icc a b, wronskian y₁ y₂ x < 0) :=
-        const_sign_of_continuous_nonzero (wronskian y₁ y₂) a b (by linarith) hW_cont hW_nonzero
-      rcases hW_const_sign with (hW_pos | hW_neg)
-      · -- W > 0
-        have hy2a_neg : y₂ a < 0 := by
-          have : wronskian y₁ y₂ a = -y₂ a * deriv y₁ a := by dsimp [wronskian]; simp [hza]
-          have hW_a_pos : wronskian y₁ y₂ a > 0 := hW_pos a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_a_pos; nlinarith
-        have hy2b_pos : y₂ b > 0 := by
-          have : wronskian y₁ y₂ b = -y₂ b * deriv y₁ b := by dsimp [wronskian]; simp [hzb]
-          have hW_b_pos : wronskian y₁ y₂ b > 0 := hW_pos b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_b_pos; nlinarith
-        have h_cont_y2 : ContinuousOn y₂ (Set.Icc a b) := by
-          intro x hx; have hxJ : x ∈ J := hJ_sub hx; exact (hy₂ x hxJ).continuousAt.continuousWithinAt
-        have h0_mem : (0 : ℝ) ∈ Set.Ioo (y₂ a) (y₂ b) := ⟨hy2a_neg, hy2b_pos⟩
-        have h_IVT : Set.Ioo (y₂ a) (y₂ b) ⊆ y₂ '' Set.Ioo a b := intermediate_value_Ioo (by linarith) h_cont_y2
-        rcases h_IVT h0_mem with ⟨c, hc, hc0⟩; exact ⟨c, hc, hc0⟩
-      · -- W < 0
-        have hy2a_pos : y₂ a > 0 := by
-          have : wronskian y₁ y₂ a = -y₂ a * deriv y₁ a := by dsimp [wronskian]; simp [hza]
-          have hW_a_neg : wronskian y₁ y₂ a < 0 := hW_neg a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_a_neg; nlinarith
-        have hy2b_neg : y₂ b < 0 := by
-          have : wronskian y₁ y₂ b = -y₂ b * deriv y₁ b := by dsimp [wronskian]; simp [hzb]
-          have hW_b_neg : wronskian y₁ y₂ b < 0 := hW_neg b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_b_neg; nlinarith
-        have h_cont_y2 : ContinuousOn y₂ (Set.Icc a b) := by
-          intro x hx; have hxJ : x ∈ J := hJ_sub hx; exact (hy₂ x hxJ).continuousAt.continuousWithinAt
-        have h0_mem : (0 : ℝ) ∈ Set.Ioo (y₂ b) (y₂ a) := ⟨hy2b_neg, hy2a_pos⟩
-        have h_IVT : Set.Ioo (y₂ b) (y₂ a) ⊆ y₂ '' Set.Ioo a b := intermediate_value_Ioo (by linarith) h_cont_y2
-        rcases h_IVT h0_mem with ⟨c, hc, hc0⟩; exact ⟨c, hc, hc0⟩
-    · -- Case y₁ < 0 on (a,b): apply the symmetric argument (negate y₁)
-      have hy1_neg' : ∀ x ∈ Set.Ioo a b, (-y₁) x > 0 := by
-        intro x hx; have : y₁ x < 0 := hy1_neg x hx; linarith
-      have h_nhds_pos_a : ∀ᶠ x in nhdsWithin a (Set.Ioi a), (-y₁) x > 0 := by
-        have h_mem : Set.Ioo a ((a + b) / 2) ∈ nhdsWithin a (Set.Ioi a) :=
-          Ioo_mem_nhdsWithin_Ioi a ((a + b) / 2) (by nlinarith)
-        filter_upwards [h_mem] with x hx; apply hy1_neg' x; exact ⟨hx.1, by nlinarith⟩
-      have h_neg_y1_a : HasDerivAt (-y₁) (deriv (-y₁) a) a := by
-        have := hy₁ a haJ; simpa using HasDerivAt.neg this
-      have h_deriv_neg_a_nonneg : deriv (-y₁) a ≥ 0 :=
-        deriv_nonneg_at_right (-y₁) a h_neg_y1_a (by simp [hza]) h_nhds_pos_a
-      have h_deriv_a_neg : deriv y₁ a < 0 := by
-        have h_eq : deriv (-y₁) a = -deriv y₁ a := deriv_neg (y₁) a
-        rw [h_eq] at h_deriv_neg_a_nonneg
-        have h_nonzero : deriv y₁ a ≠ 0 := by
-          intro hzero
-          have : wronskian y₁ y₂ a = 0 := by dsimp [wronskian]; simp [hza, hzero]
-          exact hW_nonzero a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
-        nlinarith
-      have h_nhds_pos_b : ∀ᶠ x in nhdsWithin b (Set.Iio b), (-y₁) x > 0 := by
-        have h_mem : Set.Ioo ((a + b) / 2) b ∈ nhdsWithin b (Set.Iio b) :=
-          Ioo_mem_nhdsWithin_Iio ((a + b) / 2) b (by nlinarith)
-        filter_upwards [h_mem] with x hx; apply hy1_neg' x; exact ⟨by nlinarith, hx.2⟩
-      have h_neg_y1_b : HasDerivAt (-y₁) (deriv (-y₁) b) b := by
-        have := hy₁ b hbJ; simpa using HasDerivAt.neg this
-      have h_deriv_neg_b_nonpos : deriv (-y₁) b ≤ 0 :=
-        deriv_nonpos_at_left (-y₁) b h_neg_y1_b (by simp [hzb]) h_nhds_pos_b
-      have h_deriv_b_pos : deriv y₁ b > 0 := by
-        have h_eq : deriv (-y₁) b = -deriv y₁ b := deriv_neg (y₁) b
-        rw [h_eq] at h_deriv_neg_b_nonpos
-        have h_nonzero : deriv y₁ b ≠ 0 := by
-          intro hzero
-          have : wronskian y₁ y₂ b = 0 := by dsimp [wronskian]; simp [hzb, hzero]
-          exact hW_nonzero b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩) this
-        nlinarith
-      -- W has constant sign (same as before)
-      have hW_cont : ContinuousOn (wronskian y₁ y₂) (Set.Icc a b) := by
-        intro x hx; have hxJ : x ∈ J := hJ_sub hx
-        have hW_deriv_x := wronskian_deriv p q y₁ y₂ x (hy₁ x hxJ) (hy₁' x hxJ) (hy₂ x hxJ) (hy₂' x hxJ)
-        exact hW_deriv_x.continuousAt.continuousWithinAt
-      have hW_const_sign : (∀ x ∈ Set.Icc a b, wronskian y₁ y₂ x > 0) ∨ (∀ x ∈ Set.Icc a b, wronskian y₁ y₂ x < 0) :=
-        const_sign_of_continuous_nonzero (wronskian y₁ y₂) a b (by linarith) hW_cont hW_nonzero
-      rcases hW_const_sign with (hW_pos | hW_neg)
-      · -- W > 0: with deriv y₁ a < 0 and deriv y₁ b > 0, we get y₂ a > 0 and y₂ b < 0
-        have hy2a_pos : y₂ a > 0 := by
-          have : wronskian y₁ y₂ a = -y₂ a * deriv y₁ a := by dsimp [wronskian]; simp [hza]
-          have hW_a_pos : wronskian y₁ y₂ a > 0 := hW_pos a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_a_pos; nlinarith
-        have hy2b_neg : y₂ b < 0 := by
-          have : wronskian y₁ y₂ b = -y₂ b * deriv y₁ b := by dsimp [wronskian]; simp [hzb]
-          have hW_b_pos : wronskian y₁ y₂ b > 0 := hW_pos b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_b_pos; nlinarith
-        have h_cont_y2 : ContinuousOn y₂ (Set.Icc a b) := by
-          intro x hx; have hxJ : x ∈ J := hJ_sub hx; exact (hy₂ x hxJ).continuousAt.continuousWithinAt
-        have h0_mem : (0 : ℝ) ∈ Set.Ioo (y₂ b) (y₂ a) := ⟨hy2b_neg, hy2a_pos⟩
-        have h_IVT : Set.Ioo (y₂ b) (y₂ a) ⊆ y₂ '' Set.Ioo a b := intermediate_value_Ioo (by linarith) h_cont_y2
-        rcases h_IVT h0_mem with ⟨c, hc, hc0⟩; exact ⟨c, hc, hc0⟩
-      · -- W < 0: with deriv y₁ a < 0 and deriv y₁ b > 0, we get y₂ a < 0 and y₂ b > 0
-        have hy2a_neg : y₂ a < 0 := by
-          have : wronskian y₁ y₂ a = -y₂ a * deriv y₁ a := by dsimp [wronskian]; simp [hza]
-          have hW_a_neg : wronskian y₁ y₂ a < 0 := hW_neg a (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_a_neg; nlinarith
-        have hy2b_pos : y₂ b > 0 := by
-          have : wronskian y₁ y₂ b = -y₂ b * deriv y₁ b := by dsimp [wronskian]; simp [hzb]
-          have hW_b_neg : wronskian y₁ y₂ b < 0 := hW_neg b (Set.mem_Icc.mpr ⟨by linarith, by linarith⟩)
-          rw [this] at hW_b_neg; nlinarith
-        have h_cont_y2 : ContinuousOn y₂ (Set.Icc a b) := by
-          intro x hx; have hxJ : x ∈ J := hJ_sub hx; exact (hy₂ x hxJ).continuousAt.continuousWithinAt
-        have h0_mem : (0 : ℝ) ∈ Set.Ioo (y₂ a) (y₂ b) := ⟨hy2a_neg, hy2b_pos⟩
-        have h_IVT : Set.Ioo (y₂ a) (y₂ b) ⊆ y₂ '' Set.Ioo a b := intermediate_value_Ioo (by linarith) h_cont_y2
-        rcases h_IVT h0_mem with ⟨c, hc, hc0⟩; exact ⟨c, hc, hc0⟩
-  -- Combine existence and uniqueness
-  rcases at_least_one with ⟨c, hc, hc0⟩
-  refine ⟨c, ⟨hc, hc0⟩, ?_⟩
-  intro d ⟨hd, hd0⟩
-  exact (at_most_one c hc d hd hc0 hd0).symm
+        have htJ : t ∈ J := hIcc_sub (Set.Ioo_subset_Icc_self ht)
+        exact hW_deriv t htJ
+      have hWx₀ : W x₀ = 0 :=
+        linear_ode_zero_at_point (-p) W c d hcd x₀ x hx₀_mem hx_mem hp_cont hW_deriv_on hWx
+      exact hW₀ hWx₀
+
+  have hWa_nonzero : W a ≠ 0 := hW_nonzero a haJ
+  have hWb_nonzero : W b ≠ 0 := hW_nonzero b hbJ
+
+  -- 3. y₁ and y₂ are continuous on (a,b)
+  have hy1_cont : ∀ x ∈ Ioo a b, ContinuousAt y₁ x := by
+    intro x hx
+    have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+    exact (hy₁ x hxJ).continuousAt
+
+  have hy2_cont : ∀ x ∈ Ioo a b, ContinuousAt y₂ x := by
+    intro x hx
+    have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+    exact (hy₂ x hxJ).continuousAt
+
+  -- 4. y₁ has constant sign on (a,b)
+  have hy1_sign : (∀ x ∈ Ioo a b, y₁ x > 0) ∨ (∀ x ∈ Ioo a b, y₁ x < 0) :=
+    const_sign_on_Ioo y₁ a b hab hy1_cont hne
+
+  rcases hy1_sign with (hy1_pos | hy1_neg)
+  · -- ===== Case y₁ > 0 on (a,b) =====
+    have hy1_deriv_a_pos : deriv y₁ a > 0 := by
+      have h_nonneg : 0 ≤ deriv y₁ a := by
+        have hpos : ∀ᶠ x in nhdsWithin a (Set.Ioi a), y₁ x > 0 := by
+          have h_nhd : Ioo a (min b (a+1)) ∈ nhdsWithin a (Set.Ioi a) :=
+            Ioo_mem_nhdsWithin_Ioi a (min b (a+1)) (by nlinarith)
+          filter_upwards [h_nhd] with x hx
+          rcases hx with ⟨hxa, hxmin⟩
+          have hx_Ioo : x ∈ Ioo a b := ⟨hxa, by
+            have : x < min b (a+1) := hxmin; nlinarith⟩
+          exact hy1_pos x hx_Ioo
+        have h_deriv : HasDerivAt y₁ (deriv y₁ a) a := hy₁ a haJ
+        exact deriv_nonneg_at_right y₁ a h_deriv hza hpos
+      have h_nonzero : deriv y₁ a ≠ 0 := by
+        intro hzero
+        apply hWa_nonzero
+        calc
+          W a = y₁ a * deriv y₂ a - y₂ a * deriv y₁ a := rfl
+          _ = 0 * deriv y₂ a - y₂ a * deriv y₁ a := by rw [hza]
+          _ = -(y₂ a) * deriv y₁ a := by ring
+          _ = -(y₂ a) * 0 := by rw [hzero]
+          _ = 0 := by ring
+      exact lt_of_le_of_ne h_nonneg h_nonzero.symm
+
+    have hy1_deriv_b_neg : deriv y₁ b < 0 := by
+      have h_nonpos : deriv y₁ b ≤ 0 := by
+        have hpos : ∀ᶠ x in nhdsWithin b (Set.Iio b), y₁ x > 0 := by
+          have h_nhd : Ioo (max a (b-1)) b ∈ nhdsWithin b (Set.Iio b) :=
+            Ioo_mem_nhdsWithin_Iio (max a (b-1)) b (by nlinarith)
+          filter_upwards [h_nhd] with x hx
+          rcases hx with ⟨hxmax, hxb⟩
+          have hx_Ioo : x ∈ Ioo a b := ⟨by nlinarith, hxb⟩
+          exact hy1_pos x hx_Ioo
+        have h_deriv : HasDerivAt y₁ (deriv y₁ b) b := hy₁ b hbJ
+        exact deriv_nonpos_at_left y₁ b h_deriv hzb hpos
+      have h_nonzero : deriv y₁ b ≠ 0 := by
+        intro hzero
+        apply hWb_nonzero
+        calc
+          W b = y₁ b * deriv y₂ b - y₂ b * deriv y₁ b := rfl
+          _ = 0 * deriv y₂ b - y₂ b * deriv y₁ b := by rw [hzb]
+          _ = -(y₂ b) * deriv y₁ b := by ring
+          _ = -(y₂ b) * 0 := by rw [hzero]
+          _ = 0 := by ring
+      exact lt_of_le_of_ne h_nonpos h_nonzero
+
+    have hy2a_nonzero : y₂ a ≠ 0 := by
+      intro hy2a
+      apply hWa_nonzero
+      calc
+        W a = y₁ a * deriv y₂ a - y₂ a * deriv y₁ a := rfl
+        _ = 0 * deriv y₂ a - y₂ a * deriv y₁ a := by rw [hza]
+        _ = -(y₂ a) * deriv y₁ a := by ring
+        _ = -0 * deriv y₁ a := by rw [hy2a]
+        _ = 0 := by ring
+
+    have hy2b_nonzero : y₂ b ≠ 0 := by
+      intro hy2b
+      apply hWb_nonzero
+      calc
+        W b = y₁ b * deriv y₂ b - y₂ b * deriv y₁ b := rfl
+        _ = 0 * deriv y₂ b - y₂ b * deriv y₁ b := by rw [hzb]
+        _ = -(y₂ b) * deriv y₁ b := by ring
+        _ = -0 * deriv y₁ b := by rw [hy2b]
+        _ = 0 := by ring
+
+    -- 5. Existence of a zero of y₂ in (a,b)
+    have h_exists : ∃ c ∈ Ioo a b, y₂ c = 0 := by
+      by_contra! h_no_zero
+      have hy2_const_sign : (∀ x ∈ Ioo a b, y₂ x > 0) ∨ (∀ x ∈ Ioo a b, y₂ x < 0) :=
+        const_sign_on_Ioo y₂ a b hab hy2_cont h_no_zero
+      rcases hy2_const_sign with (hy2_pos | hy2_neg)
+      · -- y₂ > 0 on (a,b)
+        have hW_sign_opp : W a * W b < 0 := by
+          have hWa_eq : W a = -(y₂ a) * deriv y₁ a := by
+            dsimp [W]; rw [hza, zero_mul, sub_zero]
+          have hWb_eq : W b = -(y₂ b) * deriv y₁ b := by
+            dsimp [W]; rw [hzb, zero_mul, sub_zero]
+          rw [hWa_eq, hWb_eq]
+          have hy2a_pos : y₂ a > 0 := by
+            by_contra! hle
+            have hy2a_neg_or : y₂ a < 0 := by
+              by_contra! hge; nlinarith
+            have h_cont : ContinuousOn y₂ (Icc a ((a + b) / 2)) := by
+              intro z hz
+              have hz_Ioo : z ∈ Ioo a b := by
+                rcases hz with ⟨hz1, hz2⟩
+                refine ⟨by nlinarith, by nlinarith⟩
+              exact (hy2_cont z hz_Ioo).continuousWithinAt
+            have hzero_mem : (0 : ℝ) ∈ Ioo (y₂ a) (y₂ ((a+b)/2)) := by
+              have : y₂ a < 0 := hy2a_neg_or; have : y₂ ((a+b)/2) > 0 := hy2_pos ((a+b)/2) (by nlinarith)
+              constructor <;> nlinarith
+            have himage : Ioo (y₂ a) (y₂ ((a+b)/2)) ⊆ y₂ '' Ioo a ((a+b)/2) :=
+              intermediate_value_Ioo (by nlinarith) h_cont
+            rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+            rcases hz_mem with ⟨hz1, hz2⟩
+            exact h_no_zero z ⟨by nlinarith, by nlinarith⟩ hz_eq
+          have hy2b_pos : y₂ b > 0 := by
+            by_contra! hle
+            have hy2b_neg_or : y₂ b < 0 := by
+              by_contra! hge; nlinarith
+            have h_cont : ContinuousOn y₂ (Icc ((a+b)/2) b) := by
+              intro z hz
+              have hz_Ioo : z ∈ Ioo a b := by
+                rcases hz with ⟨hz1, hz2⟩
+                refine ⟨by nlinarith, by nlinarith⟩
+              exact (hy2_cont z hz_Ioo).continuousWithinAt
+            have hzero_mem : (0 : ℝ) ∈ Ioo (y₂ ((a+b)/2)) (y₂ b) := by
+              have : y₂ ((a+b)/2) > 0 := hy2_pos ((a+b)/2) (by nlinarith)
+              have : y₂ b < 0 := hy2b_neg_or; constructor <;> nlinarith
+            have himage : Ioo (y₂ ((a+b)/2)) (y₂ b) ⊆ y₂ '' Ioo ((a+b)/2) b :=
+              intermediate_value_Ioo (by nlinarith) h_cont
+            rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+            rcases hz_mem with ⟨hz1, hz2⟩
+            exact h_no_zero z ⟨by nlinarith, by nlinarith⟩ hz_eq
+          nlinarith
+        have hW_cont : ContinuousOn W (Icc a b) := by
+          intro x hx
+          have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub hx
+          exact (hW_deriv x hxJ).continuousAt.continuousWithinAt
+        have hIVT : ∃ x ∈ Ioo a b, W x = 0 := by
+          by_cases hWab : W a < W b
+          · have h0 : W a < 0 ∧ 0 < W b := by nlinarith
+            have hzero_mem : (0 : ℝ) ∈ Ioo (W a) (W b) := ⟨h0.1, h0.2⟩
+            have himage : Ioo (W a) (W b) ⊆ W '' Ioo a b :=
+              intermediate_value_Ioo (by linarith) hW_cont
+            rcases himage hzero_mem with ⟨z, hz, hz_eq⟩
+            exact ⟨z, hz, hz_eq⟩
+          · have hWba : W b < W a := by nlinarith
+            have h0 : W b < 0 ∧ 0 < W a := by nlinarith
+            have hzero_mem : (0 : ℝ) ∈ Ioo (W b) (W a) := ⟨h0.1, h0.2⟩
+            have himage : Ioo (W b) (W a) ⊆ W '' Ioo a b :=
+              intermediate_value_Ioo (by linarith) hW_cont
+            rcases himage hzero_mem with ⟨z, hz, hz_eq⟩
+            exact ⟨z, hz, hz_eq⟩
+        rcases hIVT with ⟨x, hx, hx_eq⟩
+        have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+        exact hW_nonzero x hxJ hx_eq
+      · -- y₂ < 0 on (a,b) - symmetric
+        have hW_sign_opp : W a * W b < 0 := by
+          have hWa_eq : W a = -(y₂ a) * deriv y₁ a := by
+            dsimp [W]; rw [hza, zero_mul, sub_zero]
+          have hWb_eq : W b = -(y₂ b) * deriv y₁ b := by
+            dsimp [W]; rw [hzb, zero_mul, sub_zero]
+          rw [hWa_eq, hWb_eq]
+          have hy2a_neg : y₂ a < 0 := by
+            by_contra! hge
+            have hy2a_pos_or : y₂ a > 0 := by
+              by_contra! hle; nlinarith
+            have h_cont : ContinuousOn y₂ (Icc a ((a+b)/2)) := by
+              intro z hz
+              have hz_Ioo : z ∈ Ioo a b := by
+                rcases hz with ⟨hz1, hz2⟩
+                refine ⟨by nlinarith, by nlinarith⟩
+              exact (hy2_cont z hz_Ioo).continuousWithinAt
+            have hzero_mem : (0 : ℝ) ∈ Ioo (y₂ ((a+b)/2)) (y₂ a) := by
+              have : y₂ ((a+b)/2) < 0 := hy2_neg ((a+b)/2) (by nlinarith)
+              have : y₂ a > 0 := hy2a_pos_or; constructor <;> nlinarith
+            have himage : Ioo (y₂ ((a+b)/2)) (y₂ a) ⊆ y₂ '' Ioo ((a+b)/2) a :=
+              intermediate_value_Ioo' (by nlinarith) h_cont
+            rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+            rcases hz_mem with ⟨hz1, hz2⟩
+            exact h_no_zero z ⟨by nlinarith, by nlinarith⟩ hz_eq
+          have hy2b_neg : y₂ b < 0 := by
+            by_contra! hge
+            have hy2b_pos_or : y₂ b > 0 := by
+              by_contra! hle; nlinarith
+            have h_cont : ContinuousOn y₂ (Icc ((a+b)/2) b) := by
+              intro z hz
+              have hz_Ioo : z ∈ Ioo a b := by
+                rcases hz with ⟨hz1, hz2⟩
+                refine ⟨by nlinarith, by nlinarith⟩
+              exact (hy2_cont z hz_Ioo).continuousWithinAt
+            have hzero_mem : (0 : ℝ) ∈ Ioo (y₂ b) (y₂ ((a+b)/2)) := by
+              have : y₂ b > 0 := hy2b_pos_or; have : y₂ ((a+b)/2) < 0 := hy2_neg ((a+b)/2) (by nlinarith)
+              constructor <;> nlinarith
+            have himage : Ioo (y₂ b) (y₂ ((a+b)/2)) ⊆ y₂ '' Ioo ((a+b)/2) b :=
+              intermediate_value_Ioo' (by nlinarith) h_cont
+            rcases himage hzero_mem with ⟨z, hz_mem, hz_eq⟩
+            rcases hz_mem with ⟨hz1, hz2⟩
+            exact h_no_zero z ⟨by nlinarith, by nlinarith⟩ hz_eq
+          nlinarith
+        have hW_cont : ContinuousOn W (Icc a b) := by
+          intro x hx
+          have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub hx
+          exact (hW_deriv x hxJ).continuousAt.continuousWithinAt
+        have hIVT : ∃ x ∈ Ioo a b, W x = 0 := by
+          by_cases hWab : W a < W b
+          · have h0 : W a < 0 ∧ 0 < W b := by nlinarith
+            have hzero_mem : (0 : ℝ) ∈ Ioo (W a) (W b) := ⟨h0.1, h0.2⟩
+            have himage : Ioo (W a) (W b) ⊆ W '' Ioo a b :=
+              intermediate_value_Ioo (by linarith) hW_cont
+            rcases himage hzero_mem with ⟨z, hz, hz_eq⟩
+            exact ⟨z, hz, hz_eq⟩
+          · have hWba : W b < W a := by nlinarith
+            have h0 : W b < 0 ∧ 0 < W a := by nlinarith
+            have hzero_mem : (0 : ℝ) ∈ Ioo (W b) (W a) := ⟨h0.1, h0.2⟩
+            have himage : Ioo (W b) (W a) ⊆ W '' Ioo a b :=
+              intermediate_value_Ioo (by linarith) hW_cont
+            rcases himage hzero_mem with ⟨z, hz, hz_eq⟩
+            exact ⟨z, hz, hz_eq⟩
+        rcases hIVT with ⟨x, hx, hx_eq⟩
+        have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+        exact hW_nonzero x hxJ hx_eq
+
+    -- 6. Uniqueness: at most one zero of y₂ in (a,b) via strict monotonicity of y₂/y₁
+    have h_unique : ∀ c d ∈ Ioo a b, y₂ c = 0 → y₂ d = 0 → c = d := by
+      intro c d hc hd hc0 hd0
+      by_contra! hcd
+      have hlt_or : c < d ∨ d < c := Ne.lt_or_lt hcd
+      rcases hlt_or with (hlt | hlt)
+      · -- c < d. (y₂/y₁)' = W/y₁² has constant sign, so y₂/y₁ is strictly monotone, hence injective.
+        have h_deriv_ratio : ∀ x ∈ Ioo a b, HasDerivAt (fun x => y₂ x / y₁ x) (W x / (y₁ x)^2) x := by
+          intro x hx
+          have hy1x : HasDerivAt y₁ (deriv y₁ x) x := hy₁ x (Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx))
+          have hy2x : HasDerivAt y₂ (deriv y₂ x) x := hy₂ x (Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx))
+          have hy1x_ne : y₁ x ≠ 0 := hne x hx
+          have hdiv : HasDerivAt (y₂ / y₁) ((deriv y₂ x * y₁ x - y₂ x * deriv y₁ x) / (y₁ x)^2) x :=
+            HasDerivAt.div hy2x hy1x hy1x_ne
+          have hnum : deriv y₂ x * y₁ x - y₂ x * deriv y₁ x = W x := by
+            dsimp [W]; ring
+          rw [hnum] at hdiv
+          exact hdiv
+        have hW_nonzero_on_Ioo : ∀ x ∈ Ioo a b, W x ≠ 0 := by
+          intro x hx
+          have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+          exact hW_nonzero x hxJ
+        have hW_const_sign : (∀ x ∈ Ioo a b, W x > 0) ∨ (∀ x ∈ Ioo a b, W x < 0) := by
+          have hW_cont_on : ∀ x ∈ Ioo a b, ContinuousAt W x := by
+            intro x hx
+            have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+            exact (hW_deriv x hxJ).continuousAt
+          exact const_sign_on_Ioo W a b hab hW_cont_on hW_nonzero_on_Ioo
+        rcases hW_const_sign with (hW_pos | hW_neg)
+        · -- W > 0 on (a,b), so (y₂/y₁)' > 0
+          have h_ratio_deriv_pos : ∀ x ∈ Ioo a b, 0 < W x / (y₁ x)^2 := by
+            intro x hx
+            have hy1_sq_pos : 0 < (y₁ x)^2 := pow_pos (hy1_pos x hx) 2
+            exact div_pos (hW_pos x hx) hy1_sq_pos
+          have h_strict_mono : StrictMonoOn (fun x => y₂ x / y₁ x) (Ioo a b) :=
+            strictMonoOn_of_deriv_pos_on_Ioo (fun x => y₂ x / y₁ x) (fun x => W x / (y₁ x)^2) a b hab h_deriv_ratio h_ratio_deriv_pos
+          have hc_mem : c ∈ Ioo a b := hc
+          have hd_mem : d ∈ Ioo a b := hd
+          have h_val_eq : (y₂ c / y₁ c) = (y₂ d / y₁ d) := by
+            rw [hc0, hd0, zero_div, zero_div]
+          have hc_eq_d : c = d := (h_strict_mono.eq_iff_eq hc_mem hd_mem).mp h_val_eq
+          exact hcd hc_eq_d
+        · -- W < 0 on (a,b), so (y₂/y₁)' < 0
+          have h_ratio_deriv_neg : ∀ x ∈ Ioo a b, W x / (y₁ x)^2 < 0 := by
+            intro x hx
+            have hy1_sq_pos : 0 < (y₁ x)^2 := pow_pos (hy1_pos x hx) 2
+            exact (div_neg_iff_of_pos hy1_sq_pos).mpr (hW_neg x hx)
+          have h_strict_anti : StrictAntiOn (fun x => y₂ x / y₁ x) (Ioo a b) :=
+            strictAntiOn_of_deriv_neg_on_Ioo (fun x => y₂ x / y₁ x) (fun x => W x / (y₁ x)^2) a b hab h_deriv_ratio h_ratio_deriv_neg
+          have hc_mem : c ∈ Ioo a b := hc
+          have hd_mem : d ∈ Ioo a b := hd
+          have h_val_eq : (y₂ c / y₁ c) = (y₂ d / y₁ d) := by
+            rw [hc0, hd0, zero_div, zero_div]
+          have hc_eq_d : c = d := (h_strict_anti.eq_iff_eq hc_mem hd_mem).mp h_val_eq
+          exact hcd hc_eq_d
+      · -- d < c, symmetric to above
+        have h_deriv_ratio : ∀ x ∈ Ioo a b, HasDerivAt (fun x => y₂ x / y₁ x) (W x / (y₁ x)^2) x := by
+          intro x hx
+          have hy1x : HasDerivAt y₁ (deriv y₁ x) x := hy₁ x (Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx))
+          have hy2x : HasDerivAt y₂ (deriv y₂ x) x := hy₂ x (Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx))
+          have hy1x_ne : y₁ x ≠ 0 := hne x hx
+          have hdiv : HasDerivAt (y₂ / y₁) ((deriv y₂ x * y₁ x - y₂ x * deriv y₁ x) / (y₁ x)^2) x :=
+            HasDerivAt.div hy2x hy1x hy1x_ne
+          have hnum : deriv y₂ x * y₁ x - y₂ x * deriv y₁ x = W x := by
+            dsimp [W]; ring
+          rw [hnum] at hdiv
+          exact hdiv
+        have hW_nonzero_on_Ioo : ∀ x ∈ Ioo a b, W x ≠ 0 := by
+          intro x hx
+          have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+          exact hW_nonzero x hxJ
+        have hW_const_sign : (∀ x ∈ Ioo a b, W x > 0) ∨ (∀ x ∈ Ioo a b, W x < 0) := by
+          have hW_cont_on : ∀ x ∈ Ioo a b, ContinuousAt W x := by
+            intro x hx
+            have hxJ : x ∈ J := Set.mem_of_subset_of_mem hJ_sub (Set.Ioo_subset_Icc_self hx)
+            exact (hW_deriv x hxJ).continuousAt
+          exact const_sign_on_Ioo W a b hab hW_cont_on hW_nonzero_on_Ioo
+        rcases hW_const_sign with (hW_pos | hW_neg)
+        · have h_ratio_deriv_pos : ∀ x ∈ Ioo a b, 0 < W x / (y₁ x)^2 := by
+            intro x hx
+            have hy1_sq_pos : 0 < (y₁ x)^2 := pow_pos (hy1_pos x hx) 2
+            exact div_pos (hW_pos x hx) hy1_sq_pos
+          have h_strict_mono : StrictMonoOn (fun x => y₂ x / y₁ x) (Ioo a b) :=
+            strictMonoOn_of_deriv_pos_on_Ioo (fun x => y₂ x / y₁ x) (fun x => W x / (y₁ x)^2) a b hab h_deriv_ratio h_ratio_deriv_pos
+          have hc_mem : c ∈ Ioo a b := hc
+          have hd_mem : d ∈ Ioo a b := hd
+          have h_val_eq : (y₂ c / y₁ c) = (y₂ d / y₁ d) := by
+            rw [hc0, hd0, zero_div, zero_div]
+          have hc_eq_d : c = d := (h_strict_mono.eq_iff_eq hc_mem hd_mem).mp h_val_eq
+          exact hcd hc_eq_d
+        · have h_ratio_deriv_neg : ∀ x ∈ Ioo a b, W x / (y₁ x)^2 < 0 := by
+            intro x hx
+            have hy1_sq_pos : 0 < (y₁ x)^2 := pow_pos (hy1_pos x hx) 2
+            exact (div_neg_iff_of_pos hy1_sq_pos).mpr (hW_neg x hx)
+          have h_strict_anti : StrictAntiOn (fun x => y₂ x / y₁ x) (Ioo a b) :=
+            strictAntiOn_of_deriv_neg_on_Ioo (fun x => y₂ x / y₁ x) (fun x => W x / (y₁ x)^2) a b hab h_deriv_ratio h_ratio_deriv_neg
+          have hc_mem : c ∈ Ioo a b := hc
+          have hd_mem : d ∈ Ioo a b := hd
+          have h_val_eq : (y₂ c / y₁ c) = (y₂ d / y₁ d) := by
+            rw [hc0, hd0, zero_div, zero_div]
+          have hc_eq_d : c = d := (h_strict_anti.eq_iff_eq hc_mem hd_mem).mp h_val_eq
+          exact hcd hc_eq_d
+
+    exact ⟨h_exists, h_unique⟩
+  · -- ===== Case y₁ < 0 on (a,b) =====
+    -- Apply the same argument to -y₁, -y₂. Note that W = y₁*y₂' - y₂*y₁' is unchanged.
+    have h_neg_y1_pos : ∀ x ∈ Ioo a b, (-y₁) x > 0 := by
+      intro x hx; simpa using hy1_neg x hx
+    have h_neg_y1_zero_a : (-y₁) a = 0 := by simpa [hza]
+    have h_neg_y1_zero_b : (-y₁) b = 0 := by simpa [hzb]
+    have h_neg_y1_nonzero : ∀ x ∈ Ioo a b, (-y₁) x ≠ 0 := by
+      intro x hx; simpa using hne x hx
+    have hW_neg : ∃ x₀' ∈ J, (-y₁) x₀' * deriv (-y₂) x₀' - (-y₂) x₀' * deriv (-y₁) x₀' ≠ 0 := by
+      refine ⟨x₀, hx₀J, ?_⟩
+      have hW_eq : (-y₁) x₀ * deriv (-y₂) x₀ - (-y₂) x₀ * deriv (-y₁) x₀ = y₁ x₀ * deriv y₂ x₀ - y₂ x₀ * deriv y₁ x₀ := by
+        simp [deriv_neg, W]
+      rw [hW_eq]
+      exact hW₀
+    have h_result : ∃! c, c ∈ Ioo a b ∧ (-y₂) c = 0 :=
+      sturm_separation p q (-y₁) (-y₂) a b hab J hJ_open hJ_conn hJ_sub hp hq
+        (fun x hxJ => by
+          have hy1x := hy₁ x hxJ
+          have : HasDerivAt (-y₁) (-(deriv y₁ x)) x := HasDerivAt.neg hy1x
+          simpa [deriv_neg] using this)
+        (fun x hxJ => by
+          simpa [deriv_neg, neg_mul, add_comm, sub_eq_add_neg] using hy₁' x hxJ)
+        (fun x hxJ => by
+          have hy2x := hy₂ x hxJ
+          have : HasDerivAt (-y₂) (-(deriv y₂ x)) x := HasDerivAt.neg hy2x
+          simpa [deriv_neg] using this)
+        (fun x hxJ => by
+          simpa [deriv_neg, neg_mul, add_comm, sub_eq_add_neg] using hy₂' x hxJ)
+        hW_neg h_neg_y1_zero_a h_neg_y1_zero_b h_neg_y1_nonzero
+    rcases h_result with ⟨c, ⟨hc, hc0⟩, huniq⟩
+    refine ⟨c, ⟨hc, ?_⟩, ?_⟩
+    · simpa using hc0
+    · intro d ⟨hd, hd0⟩
+      apply huniq d ⟨hd, ?_⟩
+      simpa using hd0
 
 end Submission
