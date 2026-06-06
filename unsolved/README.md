@@ -1,8 +1,6 @@
 # Unsolved Benchmark Problems
 
-This directory documents the ~146 benchmark problems from the [lean-eval](https://github.com/leanprover/lean-eval) repository that could not be solved in the initial submission effort.
-
-## Why These Problems Are Unsolved
+This directory documents the ~146 benchmark problems from the [lean-eval](https://github.com/leanprover/lean-eval) repository that remains to be solved.
 
 The lean-eval benchmark is a curated collection of **research-level formal mathematics** problems, created by expert mathematicians (Kim Morrison, Thomas Browning, et al.). Each problem requires:
 
@@ -10,8 +8,6 @@ The lean-eval benchmark is a curated collection of **research-level formal mathe
 2. **Extensive Mathlib knowledge** — knowing which lemmas exist and how to compose them
 3. **Advanced Lean 4 proof engineering** — many proofs require tens or hundreds of lines
 4. **Understanding of the specific proof strategy** described in each problem's `informal_solution`
-
-The 4 solved problems (`ci_regenerate_main_check`, `def_hole_example`, `list_append_singleton_length`, `two_plus_two`) were the only ones with trivial proofs (`trivial`, `rfl`, `simp`). The remaining ~146 problems have proofs requiring significant mathematical work.
 
 ## Problem Categories
 
