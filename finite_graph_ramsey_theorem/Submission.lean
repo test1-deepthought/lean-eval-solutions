@@ -4,6 +4,8 @@ open Finset
 
 set_option autoImplicit false
 
+namespace Submission
+
 theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → ∃ n : ℕ, ∀ G : SimpleGraph (Fin n), ¬ G.CliqueFree r ∨ ¬ Gᶜ.CliqueFree s := by
   intro r s hr hs
   let P (k : ℕ) : Prop :=
@@ -360,3 +362,5 @@ theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → �
   
   have h_total : P (r + s) := Nat.strong_induction_on (r + s) hP
   exact h_total r s rfl hr hs
+
+end Submission
