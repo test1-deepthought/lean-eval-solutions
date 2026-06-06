@@ -4,6 +4,25 @@
 **Date**: Saturday, June 6, 2026  
 **Status**: INCOMPLETE (partial proof with sorries)
 
+---
+
+## ⚠️ DO NOT PICK THIS AS A NEW SUBMISSION
+
+This problem was **previously attempted and could not be solved** within a
+single session. Before starting any new Lean-Eval problem, check the top-level
+[`failed_submissions/README.md`](../README.md) to see if the problem appears here.
+
+If you find this problem listed:
+
+- **Do NOT** use `solve_lean_eval_problem mode=new` with `problem=abel_ruffini`.
+  The proof is deep and requires substantial Galois theory, real analysis,
+  and ring theory expertise that exceeds what can be completed in one session.
+- **Only** attempt as `mode=fix` if you can fill the specific remaining gaps
+  documented below.
+- Otherwise, **pick a different problem** not listed in `failed_submissions/`.
+
+---
+
 ## What was accomplished
 
 1. **Problem analysis and proof strategy** fully planned:
