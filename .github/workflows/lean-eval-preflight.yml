@@ -1,4 +1,5 @@
 name: Lean-Eval Preflight
+run-name: Lean-Eval Preflight ${{ inputs.problem_id || 'all candidates' }}
 
 on:
   push:
@@ -6,6 +7,10 @@ on:
       - main
   workflow_dispatch:
     inputs:
+      problem_id:
+        description: "Optional Lean-Eval problem id to evaluate; empty evaluates all candidates"
+        required: false
+        default: ""
       lean_eval_ref:
         description: "Pinned leanprover/lean-eval commit/ref to evaluate against"
         required: false
@@ -26,6 +31,7 @@ jobs:
     env:
       LEAN_EVAL_REF: ${{ inputs.lean_eval_ref || '6ee592acc40eac8d1a7102dafed368b341b3cd42' }}
       LEAN_EVAL_SUBMISSIONS_REF: ${{ inputs.lean_eval_submissions_ref || '1b7e15a9238ff0d03feac348f3dc4b9f01570d05' }}
+      TARGET_PROBLEM_ID: ${{ inputs.problem_id || '' }}
 
     steps:
       - name: Checkout submission source
@@ -55,6 +61,7 @@ jobs:
           echo "submission_commit=$(git -C submission-src rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
           echo "lean_eval_commit=$(git -C lean-eval rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
           echo "lean_eval_submissions_commit=$(git -C lean-eval-submissions rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "target_problem=${TARGET_PROBLEM_ID:-all candidates}" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Free disk space for Mathlib cache
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
@@ -105,8 +112,21 @@ jobs:
       - name: Probe env-var allowlist
         run: python lean-eval/scripts/security_probes/env_dump_probe.py --require-tools
 
-      - name: Strip git state before running untrusted Lean
-        run: rm -rf submission-src/.git lean-eval/.git lean-eval-submissions/.git
+      - name: Prepare targeted evaluation source
+        run: |
+          set -euo pipefail
+          rm -rf evaluation-source
+          mkdir -p evaluation-source
+          if [ -n "${TARGET_PROBLEM_ID}" ]; then
+            if [ ! -d "submission-src/${TARGET_PROBLEM_ID}" ]; then
+              echo "Target problem directory not found: submission-src/${TARGET_PROBLEM_ID}"
+              exit 1
+            fi
+            cp -a "submission-src/${TARGET_PROBLEM_ID}" "evaluation-source/${TARGET_PROBLEM_ID}"
+          else
+            cp -a submission-src/. evaluation-source/.
+          fi
+          rm -rf evaluation-source/.git submission-src/.git lean-eval/.git lean-eval-submissions/.git
 
       - name: Run upstream clean-workspace evaluator
         id: evaluate
@@ -115,7 +135,7 @@ jobs:
           set -o pipefail
           mkdir -p evaluate-out
           python lean-eval-submissions/scripts/evaluate_submission.py \
-            --source-dir submission-src \
+            --source-dir evaluation-source \
             --generated-root lean-eval/generated \
             --manifest-dir lean-eval/manifests/problems \
             --output-dir evaluate-out \
@@ -140,6 +160,7 @@ jobs:
             echo
             echo "- lean-eval: \`${LEAN_EVAL_REF}\`"
             echo "- lean-eval-submissions evaluator: \`${LEAN_EVAL_SUBMISSIONS_REF}\`"
+            echo "- target problem: \`${TARGET_PROBLEM_ID:-all candidates}\`"
             echo
             echo '```text'
             if [ -f evaluate-out/preflight-summary.log ]; then
