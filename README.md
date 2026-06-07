@@ -148,7 +148,7 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 **⚠️ Do NOT pick any problem listed in `failed_submissions/` as a new submission.** These problems were already attempted and determined to require more effort than can be completed in a single session. If revisiting a failed problem, use the `fix` mode with `solve_lean_eval_problem` rather than `new`. Always check [`failed_submissions/README.md`](./failed_submissions/README.md) before starting a new problem to avoid redundant work.
 
 Currently tracked failed submissions:
-- `abel_ruffini` — Abel-Ruffini theorem (nonsolvable quintic); partial proof (Eisenstein irreducibility completed), but the full Galois theory and ≤4 direction require more session capacity.
+- `abel_ruffini` — Abel-Ruffini theorem (nonsolvable quintic); partial proof (Eisenstein irreducibility completed), but the full Galois theory and ≤4 direction require more session capacity. 
 
 ---
 
