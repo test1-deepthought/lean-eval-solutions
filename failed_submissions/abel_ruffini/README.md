@@ -1,67 +1,25 @@
-# Abel-Ruffini Theorem — Failed Attempt
+# `abel_ruffini`
 
-**Problem ID**: `abel_ruffini`  
-**Date**: Saturday, June 6, 2026  
-**Status**: INCOMPLETE (partial proof with sorries)
+Abel–Ruffini theorem
 
----
+- Problem ID: `abel_ruffini`
+- Test Problem: no
+- Submitter: Kim Morrison
+- Notes: §57 of Oliver Knill's 'Some Fundamental Theorems in Mathematics' gives the Abel–Ruffini theorem in degree-threshold form: for each n ≥ 1, every complex root of every degree-n rational polynomial lies in solvableByRad ℚ ℂ if and only if n ≤ 4. This packages solvability of all linear, quadratic, cubic, and quartic equations by radicals together with the failure of such a universal statement from degree five onward. Mathlib defines solvableByRad and proves the direction from radical solvability of a root to solvability of the associated Galois group, and the Archive contains a specific nonsolvable quintic, but Mathlib does not currently contain this full degree-boundary theorem. Distinct from the existing solvable_by_radicals_converse problem (the per-polynomial Galois characterization).
+- Source: P. Ruffini (1799), N. H. Abel (1824), É. Galois (1832). Listed as §57 in O. Knill, Some Fundamental Theorems in Mathematics (https://people.math.harvard.edu/~knill/graphgeometry/papers/fundamental.pdf); the general-quintic insolvability is #16 on Freek Wiedijk's 'Formalizing 100 Theorems' list (https://www.cs.ru.nl/~freek/100/).
+- Informal solution: For n ≤ 4: every degree-n polynomial over ℚ has a solvable Galois group (subgroups of S₄ are solvable), and by the Galois correspondence for radical extensions (Kummer theory in characteristic zero) a solvable Galois group implies every root lies in solvableByRad — concretely the Cardano formula for cubics and the Ferrari/resolvent reduction for quartics exhibit the roots by radicals. For n ≥ 5: exhibit one degree-n polynomial whose Galois group is not solvable (e.g. a polynomial reducing to X⁵−4X+2 with Galois group S₅, padded by linear factors to degree n), so by the forward direction of Abel–Ruffini some root is not in solvableByRad, refuting the universally-quantified left-hand side. Combining, the iff holds exactly at the boundary n ≤ 4.
 
-## ⚠️ DO NOT PICK THIS AS A NEW SUBMISSION
+Do not modify `Challenge.lean` or `Solution.lean`. Those files are part of the
+trusted benchmark and fixed by the repository.
 
-This problem was **previously attempted and could not be solved** within a
-single session. Before starting any new Lean-Eval problem, check the top-level
-[`failed_submissions/README.md`](../README.md) to see if the problem appears here.
+Write your solution in `Submission.lean` and any additional local modules under
+`Submission/`.
 
-If you find this problem listed:
+Participants may use Mathlib freely. Any helper code not already available in
+Mathlib must be inlined into the submission workspace.
 
-- **Do NOT** use `solve_lean_eval_problem mode=new` with `problem=abel_ruffini`.
-  The proof is deep and requires substantial Galois theory, real analysis,
-  and ring theory expertise that exceeds what can be completed in one session.
-- **Only** attempt as `mode=fix` if you can fill the specific remaining gaps
-  documented below.
-- Otherwise, **pick a different problem** not listed in `failed_submissions/`.
+Multi-file submissions are allowed through `Submission.lean` and additional local
+modules under `Submission/`.
 
----
-
-## What was accomplished
-
-1. **Problem analysis and proof strategy** fully planned:
-   - → direction (n ≥ 5): counterexample via X⁵ - 4X + 2 with Galois group S₅
-   - ← direction (n ≤ 4): constructive formulas (linear, quadratic, cubic, quartic)
-
-2. **Mathlib exploration completed** — all key theorems identified and verified:
-   - `solvableByRad.isSolvable'` — the forward direction (radical → solvable Galois)
-   - `Polynomial.Gal.galActionHom_bijective_of_prime_degree'` — sufficient condition for S₅
-   - `Equiv.Perm.fin_5_not_solvable` — S₅ not solvable
-   - `irreducible_of_eisenstein_criterion` — Eisenstein criterion
-   - `IsPrimitive.Int.irreducible_iff_irreducible_map_cast` — ℤ ↔ ℚ irreducibility
-
-3. **Eisenstein irreducibility proof** (partial):
-   - Polynomial coefficients, natDegree=5, monic, leading coefficient=1 all computed
-   - Eisenstein structure assembled but not fully filled in
-
-4. **Existing Mathlib Archive reference**: The Archive/Wiedijk100Theorems/AbelRuffini.lean
-   in mathlib4 at commit c63252f contains a related but different proof
-   (constructing an algebraic number not solvable by radicals for the specific
-   quintic X⁵ - 4X + 2).
-
-## What remains
-
-- Complete Eisenstein case analysis in `irreducible_of_eisenstein_criterion` call
-- Real root count lemma (IVT for 2 roots, derivative bound for ≤3)
-- Apply `galActionHom_bijective_of_prime_degree'` with root count data
-- Contradiction with `Equiv.Perm.fin_5_not_solvable`
-- Handle n > 5 padding
-- Full ← direction (n≤4) using solvableByRad induction
-
-## Why it failed
-
-This is a **deeply challenging formalization** requiring:
-- Galois theory (S₅ Galois group from root-counting conditions)
-- Real analysis (IVT, derivative bounds for root counting)
-- Eisenstein criterion application
-- Constructive radical formulas for degrees 1-4
-- solvableByRad induction principles
-
-The proof is approximately 300-500 lines of Lean across multiple lemmas,
-requiring expertise in Galois theory, analysis, and ring theory in Mathlib.
+`lake test` runs comparator for this problem. The command expects a comparator
+binary in `PATH`, or in the `COMPARATOR_BIN` environment variable.
