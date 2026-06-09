@@ -2,7 +2,7 @@
 
 Problem: posSemidef_map_exp
 Mode: fix
-Submission ref before failure: c8a9ae9a680b6a62eff4b8f55d17a9e4a5f94cca
+Submission ref before failure: c50301b29e8add358d14078d94c53ccdf103db37
 
 ## Verified Lemmas Completed
 (record in PROVE frontier state / attached candidate files)
@@ -11,7 +11,7 @@ Submission ref before failure: c8a9ae9a680b6a62eff4b8f55d17a9e4a5f94cca
 (not supplied)
 
 ## Exact Failed Lean Error
-Need to rewrite with correct import and fix syntax typo
+CI failed - need to investigate preflight results
 
 ## Next Lemma To Prove
 (not supplied)
