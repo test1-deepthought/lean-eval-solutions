@@ -155,3 +155,7 @@ Currently tracked failed submissions:
 ## Unsolved Problems
 
 See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems (~146 unsolved problems tracked in `unsolved/README.md`).
+
+## Current failed submissions
+
+- `posSemidef_map_exp`: `failed_submissions/posSemidef_map_exp/report.md` (20260609T130131Z)
