@@ -1,10 +1,10 @@
 import Mathlib
-import Submission.Helpers
 
 open scoped MatrixOrder Matrix
 open Real Filter Topology BigOperators
 
 set_option linter.unusedSimpArgs false
+set_option linter.unusedVariables false
 
 namespace Submission
 
@@ -51,13 +51,13 @@ lemma expPartialSum_apply {n : Type*} (A : Matrix n n ℝ) (N : ℕ) (i j : n) :
   calc
     (expPartialSum A N) i j = (∑ k ∈ Finset.range (N+1), ((1 : ℝ) / (Nat.factorial k : ℝ)) • (hadamard_pow A k)) i j := rfl
     _ = ∑ k ∈ Finset.range (N+1), (((1 : ℝ) / (Nat.factorial k : ℝ)) • (hadamard_pow A k)) i j := by
-      rw [Finset.sum_apply i, Finset.sum_apply j]
+      rw [Matrix.sum_apply]
     _ = ∑ k ∈ Finset.range (N+1), ((1 : ℝ) / (Nat.factorial k : ℝ)) * (hadamard_pow A k) i j := by
       simp [Matrix.smul_apply, smul_eq_mul]
     _ = ∑ k ∈ Finset.range (N+1), ((1 : ℝ) / (Nat.factorial k : ℝ)) * ((A i j) ^ k) := by
       simp [hadamard_pow_apply]
     _ = ∑ k ∈ Finset.range (N+1), ((A i j) ^ k) / (Nat.factorial k : ℝ) := by
-      simp [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc]
+      simp [div_eq_mul_inv, mul_comm]
 
 lemma expPartialSum_posSemidef {n : Type*} [Fintype n] [DecidableEq n]
     {A : Matrix n n ℝ} (hA : A.PosSemidef) (N : ℕ) : (expPartialSum A N).PosSemidef := by
@@ -83,10 +83,7 @@ lemma tendsto_exp_series (x : ℝ) : Tendsto (λ N : ℕ => ∑ k ∈ Finset.ran
   have hsum : HasSum (λ n : ℕ => x ^ n / (Nat.factorial n : ℝ)) (Real.exp x) := by
     have hsum' := (Real.summable_pow_div_factorial x).hasSum
     have h_eq : (∑' n : ℕ, x ^ n / (Nat.factorial n : ℝ)) = Real.exp x := by
-      calc
-        (∑' n : ℕ, x ^ n / (Nat.factorial n : ℝ)) = NormedSpace.exp ℝ x := by
-          simpa using (congrArg (fun f : ℝ → ℝ => f x) (NormedSpace.exp_eq_tsum_div (𝕂 := ℝ) (𝔸 := ℝ))).symm
-        _ = Real.exp x := by rw [Real.exp_eq_exp_ℝ]
+      rw [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div (𝕂 := ℝ)]
     simpa [h_eq] using hsum'
   have h_tendsto_range : Tendsto (λ N : ℕ => ∑ k ∈ Finset.range N, x ^ k / (Nat.factorial k : ℝ)) atTop (𝓝 (Real.exp x)) :=
     hsum.tendsto_sum_nat
