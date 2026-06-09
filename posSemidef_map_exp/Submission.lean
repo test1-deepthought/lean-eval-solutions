@@ -1,7 +1,7 @@
 import Mathlib
-
 open scoped MatrixOrder Matrix
 open Real Filter Topology BigOperators
+open Complex
 
 set_option linter.unusedSimpArgs false
 set_option linter.unusedVariables false
@@ -78,18 +78,33 @@ lemma expPartialSum_posSemidef {n : Type*} [Fintype n] [DecidableEq n]
       exact hp.smul hpos
     exact hsum.add hterm
 
+lemma ofReal_pow_re (x : ℝ) (k : ℕ) : ((x : ℂ) ^ k).re = x ^ k := by
+  induction' k with k ih
+  · simp
+  · simp [pow_succ, ih, mul_comm]
+
 lemma tendsto_exp_series (x : ℝ) : Tendsto (λ N : ℕ => ∑ k ∈ Finset.range (N+1), x ^ k / (Nat.factorial k : ℝ)) 
     atTop (𝓝 (Real.exp x)) := by
-  have hsum : HasSum (λ n : ℕ => x ^ n / (Nat.factorial n : ℝ)) (Real.exp x) := by
-    have h := NormedSpace.expSeries_div_hasSum_exp (𝕂 := ℝ) (x := x)
-    simpa [Real.exp_eq_exp_ℝ] using h
-  have h_tendsto_range : Tendsto (λ N : ℕ => ∑ k ∈ Finset.range N, x ^ k / (Nat.factorial k : ℝ)) atTop (𝓝 (Real.exp x)) :=
-    hsum.tendsto_sum_nat
-  refine h_tendsto_range.comp ?_
-  apply tendsto_atTop_atTop.mpr
-  intro b
-  refine ⟨b, λ n hn => ?_⟩
-  omega
+  have h_tendsto_cpx : Tendsto (λ n : ℕ => (Complex.exp' (x : ℂ)) n) atTop (𝓝 (Complex.exp (x : ℂ))) := by
+    simpa [Complex.exp_def] using (Complex.exp' (x : ℂ)).tendsto_limit
+  have h_tendsto_succ : Tendsto (λ n : ℕ => (Complex.exp' (x : ℂ)) (n+1)) atTop (𝓝 (Complex.exp (x : ℂ))) :=
+    h_tendsto_cpx.comp (tendsto_add_atTop_nat 1)
+  have h_re_tendsto : Tendsto (λ n : ℕ => ((Complex.exp' (x : ℂ)) (n+1) : ℂ).re) atTop (𝓝 ((Complex.exp (x : ℂ)).re)) := by
+    exact continuous_re.tendsto _ |>.comp h_tendsto_succ
+  have h_re_sum : ∀ n : ℕ, ((Complex.exp' (x : ℂ)) (n+1) : ℂ).re = (∑ k ∈ Finset.range (n+1), x ^ k / (Nat.factorial k : ℝ)) := by
+    intro n
+    calc
+      ((Complex.exp' (x : ℂ)) (n+1) : ℂ).re = ((∑ k ∈ Finset.range (n+1), (x : ℂ) ^ k / (Nat.factorial k : ℂ)) : ℂ).re := by
+        rfl
+      _ = ∑ k ∈ Finset.range (n+1), ((x : ℂ) ^ k / (Nat.factorial k : ℂ)).re := by simp
+      _ = ∑ k ∈ Finset.range (n+1), x ^ k / (Nat.factorial k : ℝ) := by
+        simp [ofReal_pow_re]
+  simp_rw [h_re_sum] at h_re_tendsto
+  have h_real_exp : Real.exp x = (Complex.exp (x : ℂ)).re := by
+    calc
+      Real.exp x = ((Real.exp x : ℂ) : ℂ).re := (Complex.ofReal_re (Real.exp x)).symm
+      _ = (Complex.exp (x : ℂ)).re := by rw [Complex.ofReal_exp x]
+  simpa [h_real_exp] using h_re_tendsto
 
 lemma posSemidef_of_entrywise_limit {n : Type*} [Fintype n] [DecidableEq n]
     {M : Matrix n n ℝ} {S : ℕ → Matrix n n ℝ}
