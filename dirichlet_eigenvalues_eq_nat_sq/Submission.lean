@@ -297,16 +297,16 @@ theorem dirichlet_eigenvalues_eq_nat_sq (lam : ℝ) :
       
       have hg_eq0 : ∀ x ∈ Set.Icc (0 : ℝ) Real.pi, y x * deriv y x = 0 := by
         intro x hx
-        have hx0 : (0 : ℝ) ∈ Set.Icc (0 : ℝ) Real.pi :=
-          Set.left_mem_Icc.mpr (by nlinarith [Real.pi_pos])
-        have hxpi : Real.pi ∈ Set.Icc (0 : ℝ) Real.pi :=
-          Set.right_mem_Icc.mpr (by nlinarith [Real.pi_pos])
-        have h_low : (fun t : ℝ => y t * deriv y t) 0 ≤ (fun t : ℝ => y t * deriv y t) x :=
-          hg_mono hx0 hx hx.1
-        have h_high : (fun t : ℝ => y t * deriv y t) x ≤ (fun t : ℝ => y t * deriv y t) Real.pi :=
-          hg_mono hx hxpi hx.2
-        have h_low' : 0 ≤ y x * deriv y x := by simpa [hg0_val] using h_low
-        have h_high' : y x * deriv y x ≤ 0 := by simpa [hgpi_val] using h_high
+        have hx0_mem : (0 : ℝ) ∈ Set.Icc (0 : ℝ) Real.pi := Set.left_mem_Icc.mpr (by nlinarith [Real.pi_pos])
+        have hxpi_mem : Real.pi ∈ Set.Icc (0 : ℝ) Real.pi := Set.right_mem_Icc.mpr (by nlinarith [Real.pi_pos])
+        have hx0_le_x : (0 : ℝ) ≤ x := hx.1
+        have hx_le_pi : x ≤ Real.pi := hx.2
+        have hlow : (fun t : ℝ => y t * deriv y t) (0 : ℝ) ≤ (fun t : ℝ => y t * deriv y t) x :=
+          hg_mono hx0_mem hx hx0_le_x
+        have hhigh : (fun t : ℝ => y t * deriv y t) x ≤ (fun t : ℝ => y t * deriv y t) Real.pi :=
+          hg_mono hx hxpi_mem hx_le_pi
+        have hlow' : 0 ≤ y x * deriv y x := by simpa [hg0_val] using hlow
+        have hhigh' : y x * deriv y x ≤ 0 := by simpa [hgpi_val] using hhigh
         nlinarith
       
       have hy'_x0 : deriv y x0 = 0 := by
