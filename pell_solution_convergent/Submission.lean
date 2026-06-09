@@ -1,5 +1,9 @@
 import Mathlib
+import Submission.Helpers
+
 open scoped Real
+
+namespace Submission
 
 lemma pell_gcd_one (d x y : ℤ) (hsol : x ^ 2 - d * y ^ 2 = 1) : x.gcd y = 1 := by
   have h_coprime : IsCoprime x y := by
@@ -117,3 +121,5 @@ theorem pell_solution_is_convergent (d : ℤ) (_hd : Squarefree d) (_hd0 : 0 < d
   refine ⟨n, ?_⟩
   rw [h_q_real] at hn
   exact hn
+
+end Submission
