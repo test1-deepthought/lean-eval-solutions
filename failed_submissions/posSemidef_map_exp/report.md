@@ -1,8 +1,8 @@
 # Failed Lean-Eval Submission
 
 Problem: posSemidef_map_exp
-Mode: new
-Submission ref before failure: 79197b9d6ca2e470564da70cab5fdf69caa8d231
+Mode: fix
+Submission ref before failure: c8a9ae9a680b6a62eff4b8f55d17a9e4a5f94cca
 
 ## Verified Lemmas Completed
 (record in PROVE frontier state / attached candidate files)
@@ -11,7 +11,7 @@ Submission ref before failure: 79197b9d6ca2e470564da70cab5fdf69caa8d231
 (not supplied)
 
 ## Exact Failed Lean Error
-CI preflight failed. Need to add import Submission.Helpers back. Sandbox lean4_exec cannot compile with this import because sandbox lacks Submission/ directory. Need to write through alternative mechanism.
+Need to rewrite with correct import and fix syntax typo
 
 ## Next Lemma To Prove
 (not supplied)
