@@ -1,5 +1,4 @@
 import Mathlib
-import Submission.Helpers
 
 open scoped MatrixOrder Matrix
 open Real Filter Topology BigOperators
@@ -82,10 +81,8 @@ lemma expPartialSum_posSemidef {n : Type*} [Fintype n] [DecidableEq n]
 lemma tendsto_exp_series (x : ℝ) : Tendsto (λ N : ℕ => ∑ k ∈ Finset.range (N+1), x ^ k / (Nat.factorial k : ℝ)) 
     atTop (𝓝 (Real.exp x)) := by
   have hsum : HasSum (λ n : ℕ => x ^ n / (Nat.factorial n : ℝ)) (Real.exp x) := by
-    have hsum' := (Real.summable_pow_div_factorial x).hasSum
-    have h_eq : (∑' n : ℕ, x ^ n / (Nat.factorial n : ℝ)) = Real.exp x := by
-      rw [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div (𝕂 := ℝ)]
-    simpa [h_eq] using hsum'
+    have h := NormedSpace.expSeries_div_hasSum_exp (𝕂 := ℝ) (x := x)
+    simpa [Real.exp_eq_exp_ℝ] using h
   have h_tendsto_range : Tendsto (λ N : ℕ => ∑ k ∈ Finset.range N, x ^ k / (Nat.factorial k : ℝ)) atTop (𝓝 (Real.exp x)) :=
     hsum.tendsto_sum_nat
   refine h_tendsto_range.comp ?_
