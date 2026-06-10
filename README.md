@@ -2,12 +2,12 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**Latest CI Submission:** [#221](https://github.com/leanprover/lean-eval-submissions/issues/221)  
+**Latest CI Submission:** [#270](https://github.com/leanprover/lean-eval-submissions/issues/270)  
 ---
 
 ## Evaluation Results
 
-**Status:** 9 problems solved (CI-verified via [#221](https://github.com/leanprover/lean-eval-submissions/issues/221))
+**Status:** 12 problems solved (CI-verified via [#270](https://github.com/leanprover/lean-eval-submissions/issues/270))
 
 ### Per-Problem Results
 
@@ -16,9 +16,12 @@
 | `bvp_comparison` | ✅ **Pass** | Comparison principle for the Dirichlet BVP — constructive proof using convexity and interior maximum argument |
 | `ci_regenerate_main_check` | ✅ **Pass** | `trivial` proof of `True` compiled and verified by comparator |
 | `def_hole_example` | ✅ **Pass** | `rfl` proof that `foo = 37` compiled and verified by comparator |
+| `dirichlet_eigenvalues_eq_nat_sq` | ✅ **Pass** | Dirichlet eigenvalues equal natural squares — spectral geometry proof for 1D Laplacian eigenfunctions on a connected open interval; auxiliary function method with Rolle's theorem and eigenvalue quantization |
 | `finite_graph_ramsey_theorem` | ✅ **Pass** | Finite Ramsey theorem for SimpleGraph — proof by induction on vertex count using clique-free set splitting |
 | `instance_hole_example` | ✅ **Pass** | `WidgetCarrier` defined as `Unit` with `Inhabited` instance — compiled and verified by comparator |
 | `list_append_singleton_length` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `simp` |
+| `pell_solution_convergent` | ✅ **Pass** | Pell equation solution approximates sqrt(d) — bound on |x/y - sqrt(d)| using coprimality, gcd=1 lemma, and Dirichlet's approximation theorem |
+| `posSemidef_map_exp` | ✅ **Pass** | Positive semidefinite matrix exponential — proof via spectral decomposition, Hadamard product, and entrywise limit of partial sums of the exponential series |
 | `sturm_separation` | ✅ **Pass** | Sturm separation theorem for second-order linear ODEs — Wronskian argument and Rolle's theorem; fixed comparator rejection from #218 |
 | `two_plus_two` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `rfl` |
 | `variable_binder_example` | ✅ **Pass** | `rfl` proof that `A.trace = \sum i, A i i` — trace is definitionally the sum of diagonal entries |
@@ -33,6 +36,7 @@
 | [#203](https://github.com/leanprover/lean-eval-submissions/issues/203) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example` | ✅ 7/7 passed |
 | [#218](https://github.com/leanprover/lean-eval-submissions/issues/218) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example`, `sturm_separation` | ⚠️ 7/8 passed; `sturm_separation` failed |
 | [#221](https://github.com/leanprover/lean-eval-submissions/issues/221) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **9/9 passed** |
+| [#270](https://github.com/leanprover/lean-eval-submissions/issues/270) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `dirichlet_eigenvalues_eq_nat_sq`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `pell_solution_convergent`, `posSemidef_map_exp`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **12/12 passed** |
 
 ---
 
@@ -130,7 +134,7 @@ The CI comment will report:
 
 - **Newly-solved problems:** problems that were not previously on the leaderboard
 - **Attempted X / Y; succeeded on Z:** summary counts
-- **Per-problem:** individual `pass` or `fail` status
+- **Per-Problem:** individual `pass` or `fail` status
 
 If a problem fails, check:
 - Does the `lakefile.toml` name exactly match a benchmark problem ID?
@@ -148,14 +152,10 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 **⚠️ Do NOT pick any problem listed in `failed_submissions/` as a new submission.** These problems were already attempted and determined to require more effort than can be completed in a single session. If revisiting a failed problem, use the `fix` mode with `solve_lean_eval_problem` rather than `new`. Always check [`failed_submissions/README.md`](./failed_submissions/README.md) before starting a new problem to avoid redundant work.
 
 Currently tracked failed submissions:
-- `abel_ruffini` — Abel-Ruffini theorem (nonsolvable quintic); partial proof (Eisenstein irreducibility completed), but the full Galois theory and ≤4 direction require more session capacity. 
+- `abel_ruffini` — Abel-Ruffini theorem (nonsolvable quintic); partial proof (Eisenstein irreducibility completed), but the full Galois theory and ≤4 direction require more session capacity.
 
 ---
 
 ## Unsolved Problems
 
-See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems (~146 unsolved problems tracked in `unsolved/README.md`).
-
-## Current failed submissions
-
-- `posSemidef_map_exp`: `failed_submissions/posSemidef_map_exp/report.md` (20260609T142549Z)
+See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems (~143 unsolved problems tracked in `unsolved/README.md`).
