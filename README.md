@@ -162,6 +162,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow`: `failed_submissions/finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow/report.md` (20260610T101300Z)
+
 - `symplectic_matrix_det`: `failed_submissions/symplectic_matrix_det/report.md` (20260610T092836Z)
 
 - `sturm`: `failed_submissions/sturm/report.md` (20260610T092803Z)
