@@ -162,6 +162,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `symplectic_matrix_det`: `failed_submissions/symplectic_matrix_det/report.md` (20260610T092836Z)
+
 - `sturm`: `failed_submissions/sturm/report.md` (20260610T092803Z)
 
 - `contractibleSpace_houseWithTwoRooms`: `failed_submissions/contractibleSpace_houseWithTwoRooms/report.md` (20260610T073606Z)
