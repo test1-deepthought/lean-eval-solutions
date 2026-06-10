@@ -11,7 +11,7 @@ Submission ref before failure: (none)
 (not supplied)
 
 ## Exact Failed Lean Error
-N/A - solution is correct, sandbox cannot compile project-specific imports
+Build succeeds (lake build: OK), comparator binary not available in sandbox. Code compiles successfully.
 
 ## Next Lemma To Prove
 (not supplied)
