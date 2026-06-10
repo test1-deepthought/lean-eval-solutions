@@ -159,3 +159,7 @@ Currently tracked failed submissions:
 ## Unsolved Problems
 
 See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems (~143 unsolved problems tracked in `unsolved/README.md`).
+
+## Current failed submissions
+
+- `contractibleSpace_houseWithTwoRooms`: `failed_submissions/contractibleSpace_houseWithTwoRooms/report.md` (20260610T073606Z)
