@@ -33,9 +33,9 @@ namespace Submission
 open _root_.Helpers.WithCompanions
 open _root_.Helpers
 namespace Helpers
-def first : Nat := sorry
-theorem second_eq : first + rootHelper + preHole = first + 141 := sorry
-theorem third_eq : postHole + ({ value := 0 } : WithCompanions).value = 1000 := sorry
+def first : Nat := 1
+theorem second_eq : first + rootHelper + preHole = first + 141 := rfl
+theorem third_eq : postHole + ({ value := 0 } : WithCompanions).value = 1000 := rfl
 
 end Helpers
 
