@@ -2,9 +2,6 @@ name: Lean-Eval Preflight
 run-name: Lean-Eval Preflight ${{ inputs.problem_id || 'all candidates' }}
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       problem_id:
