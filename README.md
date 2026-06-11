@@ -162,6 +162,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `abel_ruffini`: `failed_submissions/abel_ruffini/report.md` (20260611T143556Z)
+
 - `wallpaper_groups_17`: `failed_submissions/wallpaper_groups_17/report.md` (20260610T152320Z)
 
 - `pi1_circle_mulEquiv_int`: `failed_submissions/pi1_circle_mulEquiv_int/report.md` (20260610T144830Z)
