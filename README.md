@@ -170,7 +170,7 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 - `multi_hole_helpers_example`: `failed_submissions/multi_hole_helpers_example/report.md` (20260610T132449Z)
 
-- `finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow`: `failed_submissions/finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow/report.md` (20260612T105952Z)
+- `finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow`: `failed_submissions/finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow/report.md` (20260612T111029Z)
 
 - `symplectic_matrix_det`: `failed_submissions/symplectic_matrix_det/report.md` (20260610T092836Z)
 
