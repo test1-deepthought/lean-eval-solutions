@@ -8,10 +8,10 @@ Submission ref before failure: (none)
 (record in PROVE frontier state / attached candidate files)
 
 ## Current Frontier Lemma
-Complete the bijection proof by constructing all 17 wallpaper groups explicitly with their crystallographicness proofs and pairwise non-equivalence invariants, then prove completeness via the classification theorem.
+(not supplied)
 
 ## Exact Failed Lean Error
-The complete proof requires formalizing the classification of 17 wallpaper groups (Pólya-Niggli 1924). The proof structure is established: (1) equivalence relation setoid defined and proven, (2) crystallographicCount expressed as ENat.card of quotient, (3) 17 groups constructed, (4) bijection with Fin 17 partially proven. The completeness direction (every crystallographic group is affinely equivalent to one of the 17) requires the full classification theorem, which involves Bieberbach's theorem, point group classification, crystallographic restriction, and extension cohomology - substantial formalization beyond current session scope.
+The theorem requires the full classification of 17 wallpaper groups (Pólya–Niggli 1924). This is a deep result in geometric group theory requiring Bieberbach theorems, point group classification, crystallographic restriction, and extension cohomology. The complete Lean formalization would construct all 17 explicit wallpaper groups as subgroups of EuclideanIsom 2, prove each is crystallographic (discrete + cocompact), prove they are pairwise non-equivalent under AffinelyEquivalent, and prove exhaustiveness. Infrastructure for constructing translation groups (p1), proving cocompactness, and setting up the equivalence relation has been provided. The remaining work includes constructing the remaining 16 groups, proving discreteness for each, and proving the classification theorem.
 
 ## Next Lemma To Prove
-Complete the bijection proof by constructing all 17 wallpaper groups explicitly with their crystallographicness proofs and pairwise non-equivalence invariants, then prove completeness via the classification theorem.
+(not supplied)
