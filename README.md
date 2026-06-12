@@ -162,7 +162,7 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
-- `abel_ruffini`: `failed_submissions/abel_ruffini/report.md` (20260612T040049Z)
+- `abel_ruffini`: `failed_submissions/abel_ruffini/report.md` (20260612T072949Z)
 
 - `wallpaper_groups_17`: `failed_submissions/wallpaper_groups_17/report.md` (20260610T152320Z)
 
