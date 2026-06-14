@@ -162,6 +162,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `linear_ode_asymptotic_stability`: `failed_submissions/linear_ode_asymptotic_stability/report.md` (20260614T215547Z)
+
 - `abel_ruffini`: `failed_submissions/abel_ruffini/report.md` (20260614T054756Z)
 
 - `wallpaper_groups_17`: `failed_submissions/wallpaper_groups_17/report.md` (20260612T121544Z)
