@@ -176,4 +176,4 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 - `sturm`: `failed_submissions/sturm/report.md` (20260610T092803Z)
 
-- `contractibleSpace_houseWithTwoRooms`: `failed_submissions/contractibleSpace_houseWithTwoRooms/report.md` (20260610T073606Z)
+- `contractibleSpace_houseWithTwoRooms`: `failed_submissions/contractibleSpace_houseWithTwoRooms/report.md` (20260614T155110Z)
