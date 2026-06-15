@@ -162,6 +162,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `irreducible_nonnegative_matrix_has_positive_eigenvector_at_spectralRadius`: `failed_submissions/irreducible_nonnegative_matrix_has_positive_eigenvector_at_spectralRadius/report.md` (20260615T003525Z)
+
 - `linear_ode_asymptotic_stability`: `failed_submissions/linear_ode_asymptotic_stability/report.md` (20260614T215547Z)
 
 - `abel_ruffini`: `failed_submissions/abel_ruffini/report.md` (20260614T054756Z)
