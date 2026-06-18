@@ -15,7 +15,7 @@ so that:
 3. **Gaps are documented** — each subdirectory contains a README.md explaining
    what was accomplished, what remains, and why the attempt failed.
 
-## ⚠️ Important: Do NOT pick these as new submissions
+## ⚠️ Important: Do NOT pick these as new submissions unless you want to continue working on the failed attempt
 
 Each problem in this folder was **attempted and could not be solved** within
 a single session. To avoid wasting time on previously-failed problems:
