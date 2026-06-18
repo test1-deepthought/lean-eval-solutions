@@ -72,8 +72,6 @@ The full proof of Sturm's theorem follows these steps:
 6. **Interval partition**: Partition (a,b) at all roots of all chain members. Between successive partition points, sigma is constant. At each partition point that is a root of p, sigma drops by 1. At partition points that are roots of other chain members, sigma is unchanged. Summing the drops yields `sigma(a) - sigma(b) =` number of roots of p in (a,b).
 
 ---
-
----
 ## Attempt 20260618T152502Z
 
 ## Agent Response Context
