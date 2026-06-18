@@ -70,3 +70,22 @@ The full proof of Sturm's theorem follows these steps:
 5. **Key property at a root of `p_i` (i ≥ 1)**: At a root r of `p_i`, the recurrence `p_{i-1} = q_i·p_i - p_{i+1}` (for some quotient `q_i`) implies `p_{i-1}(r)·p_{i+1}(r) < 0`. So the two neighbors have opposite signs, and the sign pattern `(s, 0, -s)` becomes `(s, ±ε, -s)` near r — no net change in variation count.
 
 6. **Interval partition**: Partition (a,b) at all roots of all chain members. Between successive partition points, sigma is constant. At each partition point that is a root of p, sigma drops by 1. At partition points that are roots of other chain members, sigma is unchanged. Summing the drops yields `sigma(a) - sigma(b) =` number of roots of p in (a,b).
+
+---
+## Attempt 20260618T144524Z
+
+## Date
+Thursday, June 18, 2026
+
+## Status
+Test save — no actual proof work was performed.
+
+## Purpose
+Verify the save_incomplete stage works correctly for documenting unsolved Lean-Eval problems.
+
+## Next Steps
+If this save succeeds, proceed with full proof planning and frontier lemma registration.
+
+## Agent Response Context
+
+Test save of incomplete Sturm problem proof attempt. No proof work was performed — this is a structural/plumbing test.
