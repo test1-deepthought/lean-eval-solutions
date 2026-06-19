@@ -345,3 +345,303 @@ The full Sturm theorem proof follows this structure:
 
 ### Isabelle/HOL Comparison
 The same theorem is formalized in Manuel Eberl's AFP entry "Sturm_Sequences" (~2000 lines). The Lean 4 formalization would be of similar magnitude.
+
+---
+## Attempt 20260619T125356Z
+
+## Verified Lemmas Completed
+```lean4
+import Mathlib
+open Polynomial
+open Real
+open Metric
+
+set_option autoImplicit false
+set_option maxHeartbeats 0
+
+lemma eval_mod_eq_eval_of_root (a q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) : (a % q).eval r = a.eval r := by
+  by_cases hq0 : q = 0
+  · subst hq0; simp
+  · have hlc0 : q.leadingCoeff ≠ 0 := Polynomial.leadingCoeff_ne_zero.mpr hq0
+    set m := q * C (q.leadingCoeff⁻¹) with hm_def
+    have hm_root : m.eval r = 0 := by
+      dsimp [m]; simp [hq]
+    have hdiv : a %ₘ m + m * (a /ₘ m) = a := Polynomial.modByMonic_add_div a m
+    have h_ev_mod : (a %ₘ m).eval r = a.eval r := by
+      have := congrArg (fun p => p.eval r) hdiv
+      simp [hm_root, eval_add, eval_mul] at this
+      nlinarith
+    calc
+      (a % q).eval r = (a %ₘ m).eval r := by rw [Polynomial.mod_def, hm_def]
+      _ = a.eval r := h_ev_mod
+
+lemma squarefree_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) :
+    (derivative p).eval r ≠ 0 := by
+  by_contra! h
+  have hXdiv : (X - C r) ∣ p := by
+    rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hr]
+  rcases hXdiv with ⟨q, hpq⟩
+  have hq_root : q.eval r = 0 := by
+    have hderiv : derivative p = q + (X - C r) * derivative q := by
+      calc
+        derivative p = derivative ((X - C r) * q) := by rw [hpq]
+        _ = derivative (X - C r) * q + (X - C r) * derivative q := by rw [derivative_mul]
+        _ = 1 * q + (X - C r) * derivative q := by simp
+        _ = q + (X - C r) * derivative q := by simp
+    calc
+      q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+      _ = (derivative p).eval r := by rw [hderiv]
+      _ = 0 := h
+  have hXdiv_q : (X - C r) ∣ q := by
+    rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hq_root]
+  rcases hXdiv_q with ⟨q', hqq'⟩
+  have hXsq_div : (X - C r) * (X - C r) ∣ p := by
+    use q'
+    calc
+      p = (X - C r) * q := hpq
+      _ = (X - C r) * ((X - C r) * q') := by rw [hqq']
+      _ = (X - C r) * (X - C r) * q' := by ring
+  have h_sqfree := hp (X - C r) hXsq_div
+  have h_not_unit : ¬ IsUnit (X - C r) := Polynomial.not_isUnit_X_sub_C r
+  exact h_not_unit h_sqfree
+
+lemma opposite_signs_at_root (p q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) (hp : p.eval r ≠ 0) : 
+    p.eval r * (-(p % q)).eval r < 0 := by
+  have hmod : (p % q).eval r = p.eval r := eval_mod_eq_eval_of_root p q r hq
+  have : p.eval r * (-(p.eval r)) < 0 := by
+    nlinarith [sq_pos_of_ne_zero hp]
+  calc
+    p.eval r * (-(p % q)).eval r = p.eval r * (-((p % q).eval r)) := by simp
+    _ = p.eval r * (-(p.eval r)) := by rw [hmod]
+    _ < 0 := this
+
+lemma sign_near_point (f : ℝ → ℝ) (r : ℝ) (hf : ContinuousAt f r) (hf0 : f r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → f x * f r > 0 := by
+  have hpos : |f r| > 0 := abs_pos.mpr hf0
+  have h_eps := Metric.tendsto_nhds_nhds.mp hf (|f r| / 2) (by nlinarith)
+  rcases h_eps with ⟨δ, hδ_pos, h⟩
+  refine ⟨δ, hδ_pos, λ x hx => ?_⟩
+  have hx_dist : dist x r < δ := by rwa [Real.dist_eq]
+  have hfx_dist : dist (f x) (f r) < |f r| / 2 := h hx_dist
+  have hfx : |f x - f r| < |f r| / 2 := by rwa [Real.dist_eq] at hfx_dist
+  by_cases hfr_pos : 0 < f r
+  · have hfr_abs : |f r| = f r := abs_of_pos hfr_pos
+    rw [hfr_abs] at hfx
+    have hfx_pos : 0 < f x := by
+      by_contra! hxle
+      have hsub_nonpos : f x - f r ≤ 0 := by nlinarith
+      have habs : |f x - f r| = -(f x - f r) := abs_of_nonpos hsub_nonpos
+      have hcalc : -(f x - f r) ≥ f r := by nlinarith
+      nlinarith
+    nlinarith
+  · have hfr_neg : f r < 0 := by
+      have hle : f r ≤ 0 := not_lt.mp hfr_pos
+      exact lt_of_le_of_ne hle hf0
+    have hfr_abs : |f r| = -f r := abs_of_neg hfr_neg
+    rw [hfr_abs] at hfx
+    have hfx_neg : f x < 0 := by
+      by_contra! hxge
+      have hsub_nonneg : 0 ≤ f x - f r := by nlinarith
+      have habs : |f x - f r| = f x - f r := abs_of_nonneg hsub_nonneg
+      have hcalc : f x - f r ≥ -f r := by nlinarith
+      nlinarith
+    nlinarith
+
+lemma sign_near_point_poly (p : ℝ[X]) (r : ℝ) (hp : p.eval r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → (p.eval x) * (p.eval r) > 0 :=
+  sign_near_point (λ x => p.eval x) r (Polynomial.continuousAt p (a := r)) hp
+
+lemma factor_theorem (p : ℝ[X]) (r : ℝ) (hr : p.eval r = 0) : (X - C r) ∣ p :=
+  (Polynomial.dvd_iff_isRoot.mpr (by rw [Polynomial.IsRoot, hr]))
+
+lemma factor_deriv (p q : ℝ[X]) (r : ℝ) (hpq : p = (X - C r) * q) : q.eval r = (derivative p).eval r := by
+  calc
+    q.eval r = (derivative ((X - C r) * q)).eval r := by
+      simp [derivative_mul, derivative_sub, derivative_C, derivative_X]
+    _ = (derivative p).eval r := by rw [hpq]
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) =>
+    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
+  sturmAux p (derivative p) (p.natDegree + 2)
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
+  signChanges ((sturmChain p).map fun q => q.eval x)
+
+lemma sturmChain_head (p : ℝ[X]) : (sturmChain p).head? = some p := by
+  unfold sturmChain sturmAux
+  by_cases h : derivative p = 0
+  · simp [h]
+  · simp [h]
+
+-- Verified lemmas list
+#check eval_mod_eq_eval_of_root
+#check squarefree_no_common_root
+#check opposite_signs_at_root
+#check sign_near_point
+#check sign_near_point_poly
+#check factor_theorem
+#check factor_deriv
+#check sturmChain_head
+```
+
+## Current Frontier Lemma
+sigma_drop_at_p_root
+
+## Exact Failed Lean Error
+The proof of Sturm's theorem is incomplete. The core lemma sigma_drop_at_p_root (proving sigma drops by exactly 1 at a simple root of p) requires analyzing the full Sturm chain's tail, which is a significant formalization effort (~2000 lines based on Isabelle/HOL AFP entry). The verified lemmas cover: polynomial remainder evaluation at roots, squarefree implies p'(r)≠0, opposite signs in remainder chain, sign preservation near non-zero points, factor theorem, and factor-derivative relationship.
+
+## Next Lemma To Prove
+sigma_drop_at_p_root
+
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open Real
+open Metric
+
+set_option autoImplicit false
+set_option maxHeartbeats 0
+
+lemma eval_mod_eq_eval_of_root (a q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) : (a % q).eval r = a.eval r := by
+  by_cases hq0 : q = 0
+  · subst hq0; simp
+  · have hlc0 : q.leadingCoeff ≠ 0 := Polynomial.leadingCoeff_ne_zero.mpr hq0
+    set m := q * C (q.leadingCoeff⁻¹) with hm_def
+    have hm_root : m.eval r = 0 := by
+      dsimp [m]; simp [hq]
+    have hdiv : a %ₘ m + m * (a /ₘ m) = a := Polynomial.modByMonic_add_div a m
+    have h_ev_mod : (a %ₘ m).eval r = a.eval r := by
+      have := congrArg (fun p => p.eval r) hdiv
+      simp [hm_root, eval_add, eval_mul] at this
+      nlinarith
+    calc
+      (a % q).eval r = (a %ₘ m).eval r := by rw [Polynomial.mod_def, hm_def]
+      _ = a.eval r := h_ev_mod
+
+lemma squarefree_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) :
+    (derivative p).eval r ≠ 0 := by
+  by_contra! h
+  have hXdiv : (X - C r) ∣ p := by
+    rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hr]
+  rcases hXdiv with ⟨q, hpq⟩
+  have hq_root : q.eval r = 0 := by
+    have hderiv : derivative p = q + (X - C r) * derivative q := by
+      calc
+        derivative p = derivative ((X - C r) * q) := by rw [hpq]
+        _ = derivative (X - C r) * q + (X - C r) * derivative q := by rw [derivative_mul]
+        _ = 1 * q + (X - C r) * derivative q := by simp
+        _ = q + (X - C r) * derivative q := by simp
+    calc
+      q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+      _ = (derivative p).eval r := by rw [hderiv]
+      _ = 0 := h
+  have hXdiv_q : (X - C r) ∣ q := by
+    rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hq_root]
+  rcases hXdiv_q with ⟨q', hqq'⟩
+  have hXsq_div : (X - C r) * (X - C r) ∣ p := by
+    use q'
+    calc
+      p = (X - C r) * q := hpq
+      _ = (X - C r) * ((X - C r) * q') := by rw [hqq']
+      _ = (X - C r) * (X - C r) * q' := by ring
+  have h_sqfree := hp (X - C r) hXsq_div
+  have h_not_unit : ¬ IsUnit (X - C r) := Polynomial.not_isUnit_X_sub_C r
+  exact h_not_unit h_sqfree
+
+lemma opposite_signs_at_root (p q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) (hp : p.eval r ≠ 0) : 
+    p.eval r * (-(p % q)).eval r < 0 := by
+  have hmod : (p % q).eval r = p.eval r := eval_mod_eq_eval_of_root p q r hq
+  have : p.eval r * (-(p.eval r)) < 0 := by
+    nlinarith [sq_pos_of_ne_zero hp]
+  calc
+    p.eval r * (-(p % q)).eval r = p.eval r * (-((p % q).eval r)) := by simp
+    _ = p.eval r * (-(p.eval r)) := by rw [hmod]
+    _ < 0 := this
+
+lemma sign_near_point (f : ℝ → ℝ) (r : ℝ) (hf : ContinuousAt f r) (hf0 : f r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → f x * f r > 0 := by
+  have hpos : |f r| > 0 := abs_pos.mpr hf0
+  have h_eps := Metric.tendsto_nhds_nhds.mp hf (|f r| / 2) (by nlinarith)
+  rcases h_eps with ⟨δ, hδ_pos, h⟩
+  refine ⟨δ, hδ_pos, λ x hx => ?_⟩
+  have hx_dist : dist x r < δ := by rwa [Real.dist_eq]
+  have hfx_dist : dist (f x) (f r) < |f r| / 2 := h hx_dist
+  have hfx : |f x - f r| < |f r| / 2 := by rwa [Real.dist_eq] at hfx_dist
+  by_cases hfr_pos : 0 < f r
+  · have hfr_abs : |f r| = f r := abs_of_pos hfr_pos
+    rw [hfr_abs] at hfx
+    have hfx_pos : 0 < f x := by
+      by_contra! hxle
+      have hsub_nonpos : f x - f r ≤ 0 := by nlinarith
+      have habs : |f x - f r| = -(f x - f r) := abs_of_nonpos hsub_nonpos
+      have hcalc : -(f x - f r) ≥ f r := by nlinarith
+      nlinarith
+    nlinarith
+  · have hfr_neg : f r < 0 := by
+      have hle : f r ≤ 0 := not_lt.mp hfr_pos
+      exact lt_of_le_of_ne hle hf0
+    have hfr_abs : |f r| = -f r := abs_of_neg hfr_neg
+    rw [hfr_abs] at hfx
+    have hfx_neg : f x < 0 := by
+      by_contra! hxge
+      have hsub_nonneg : 0 ≤ f x - f r := by nlinarith
+      have habs : |f x - f r| = f x - f r := abs_of_nonneg hsub_nonneg
+      have hcalc : f x - f r ≥ -f r := by nlinarith
+      nlinarith
+    nlinarith
+
+lemma sign_near_point_poly (p : ℝ[X]) (r : ℝ) (hp : p.eval r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → (p.eval x) * (p.eval r) > 0 :=
+  sign_near_point (λ x => p.eval x) r (Polynomial.continuousAt p (a := r)) hp
+
+lemma factor_theorem (p : ℝ[X]) (r : ℝ) (hr : p.eval r = 0) : (X - C r) ∣ p :=
+  (Polynomial.dvd_iff_isRoot.mpr (by rw [Polynomial.IsRoot, hr]))
+
+lemma factor_deriv (p q : ℝ[X]) (r : ℝ) (hpq : p = (X - C r) * q) : q.eval r = (derivative p).eval r := by
+  calc
+    q.eval r = (derivative ((X - C r) * q)).eval r := by
+      simp [derivative_mul, derivative_sub, derivative_C, derivative_X]
+    _ = (derivative p).eval r := by rw [hpq]
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) =>
+    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
+  sturmAux p (derivative p) (p.natDegree + 2)
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
+  signChanges ((sturmChain p).map fun q => q.eval x)
+
+lemma sturmChain_head (p : ℝ[X]) : (sturmChain p).head? = some p := by
+  unfold sturmChain sturmAux
+  by_cases h : derivative p = 0
+  · simp [h]
+  · simp [h]
+
+-- Verified lemmas list
+#check eval_mod_eq_eval_of_root
+#check squarefree_no_common_root
+#check opposite_signs_at_root
+#check sign_near_point
+#check sign_near_point_poly
+#check factor_theorem
+#check factor_deriv
+#check sturmChain_head
+```
