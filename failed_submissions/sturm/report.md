@@ -86,3 +86,102 @@ Remaining work:
 1. Prove sigma is constant on intervals where p has no roots (sigma_const_on_root_free_interval). This requires analyzing the sign pattern at non-p chain member roots using the Euclidean algorithm recurrence p_{i-1} = q_i·p_i - p_{i+1} and the lemma exactly_one_negative.
 2. Prove sigma drops by exactly 1 at simple roots of p (sigma_drop_at_root), combining sign_change_at_simple_root with analysis of non-p chain members near the root.
 3. Complete the main theorem by induction on the number of roots, using the two lemmas above and the cardinality lemma.
+
+---
+## Attempt 20260619T023717Z
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open Set
+
+lemma eval_mod_eq_eval_of_root (a q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) : (a % q).eval r = a.eval r := by
+  by_cases hq0 : q = 0
+  · subst hq0; simp
+  · have hlc0 : q.leadingCoeff ≠ 0 := Polynomial.leadingCoeff_ne_zero.mpr hq0
+    set m := q * C (q.leadingCoeff⁻¹) with hm_def
+    have hm_root : m.eval r = 0 := by
+      dsimp [m]; simp [hq]
+    have hdiv : a %ₘ m + m * (a /ₘ m) = a := Polynomial.modByMonic_add_div a m
+    have h_ev_mod : (a %ₘ m).eval r = a.eval r := by
+      have := congrArg (fun p => p.eval r) hdiv
+      simp [hm_root, eval_add, eval_mul] at this
+      nlinarith
+    calc
+      (a % q).eval r = (a %ₘ m).eval r := by rw [Polynomial.mod_def, hm_def]
+      _ = a.eval r := h_ev_mod
+
+lemma squarefree_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : 
+    (derivative p).eval r ≠ 0 := by
+  by_contra! h
+  have hXdiv : (X - C r) ∣ p := by
+    rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hr]
+  rcases hXdiv with ⟨q, hpq⟩
+  have hq_root : q.eval r = 0 := by
+    have hderiv : derivative p = q + (X - C r) * derivative q := by
+      calc
+        derivative p = derivative ((X - C r) * q) := by rw [hpq]
+        _ = derivative (X - C r) * q + (X - C r) * derivative q := by rw [derivative_mul]
+        _ = 1 * q + (X - C r) * derivative q := by simp
+        _ = q + (X - C r) * derivative q := by simp
+    calc
+      q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+      _ = (derivative p).eval r := by rw [hderiv]
+      _ = 0 := h
+  have hXdiv_q : (X - C r) ∣ q := by
+    rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hq_root]
+  rcases hXdiv_q with ⟨q', hqq'⟩
+  have hXsq_div : (X - C r) * (X - C r) ∣ p := by
+    use q'
+    calc
+      p = (X - C r) * q := hpq
+      _ = (X - C r) * ((X - C r) * q') := by rw [hqq']
+      _ = (X - C r) * (X - C r) * q' := by ring
+  have h_sqfree := hp (X - C r) hXsq_div
+  have h_not_unit : ¬ IsUnit (X - C r) := Polynomial.not_isUnit_X_sub_C r
+  exact h_not_unit h_sqfree
+
+lemma opposite_signs_at_root (p q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) (hp : p.eval r ≠ 0) : 
+    p.eval r * (-(p % q)).eval r < 0 := by
+  have hmod : (p % q).eval r = p.eval r := eval_mod_eq_eval_of_root p q r hq
+  have : p.eval r * (-(p.eval r)) < 0 := by
+    nlinarith [sq_pos_of_ne_zero hp]
+  calc
+    p.eval r * (-(p % q)).eval r = p.eval r * (-((p % q).eval r)) := by simp
+    _ = p.eval r * (-(p.eval r)) := by rw [hmod]
+    _ < 0 := this
+```
+
+
+## Sturm's Theorem - Lean Formalization Attempt
+
+### Status: INCOMPLETE
+
+### Verified Lemmas (3 of 3 - all compiled)
+
+1. **`eval_mod_eq_eval_of_root`**: For polynomials a, q over ℝ and point r, if q(r) = 0, then (a % q)(r) = a(r). This follows from polynomial division: a = (a/q)·q + (a%q), and evaluating at a root of q gives the result.
+
+2. **`squarefree_no_common_root`**: For a squarefree polynomial p and root r (p(r) = 0), the derivative p'(r) ≠ 0. Uses the factor theorem (X - r)|p and the squarefree property: if (X-r)²|p, then X-r is a unit (contradiction).
+
+3. **`opposite_signs_at_root`**: For polynomials p, q with q(r) = 0 and p(r) ≠ 0, we have p(r)·(-(p%q))(r) < 0. This shows that at a root of one chain member, the two neighboring entries have opposite signs.
+
+### Remaining Work (3 major components)
+
+1. **sigma_drop_at_root**: Prove that at a root r of a squarefree polynomial p, sigma drops by exactly 1 when crossing from left to right of r. Requires analyzing the sign pattern of the Sturm chain near a simple root: p changes sign while all later entries maintain their signs, causing exactly one sign variation to be lost.
+
+2. **sigma_const_no_root**: Prove that if p has no root in (x,y), then sigma(p,x) = sigma(p,y). Requires analyzing the behavior at roots of non-p chain members where the opposite_signs lemma shows sigma is invariant.
+
+3. **Interval partition and summation**: Collect all roots of chain members in (a,b), sort them, apply the two lemmas above, and use a telescoping sum to get the final result.
+
+### Complete Proof Sketch
+
+The full Sturm theorem proof follows this structure:
+1. For each root r of p (simple, by squarefreeness), pick δ small enough that no other chain member has a root in (r-δ, r+δ). Then sigma drops by exactly 1.
+2. For each root r of a non-p chain member, sigma is unchanged.
+3. Sort all roots r_1 < ... < r_k in (a,b).
+4. sigma(a) - sigma(b) = Σ_i (sigma(r_i-ε_i) - sigma(r_i+ε_i)) = k = number of p-roots in (a,b).
+
+### Isabelle/HOL Comparison
+The same theorem is formalized in Manuel Eberl's AFP entry "Sturm_Sequences" (~2000 lines). The Lean 4 formalization would be of similar magnitude.
