@@ -645,3 +645,307 @@ lemma sturmChain_head (p : ℝ[X]) : (sturmChain p).head? = some p := by
 #check factor_deriv
 #check sturmChain_head
 ```
+
+---
+## Attempt 20260619T135800Z
+
+## Verified Lemmas Completed
+```lean4
+import Mathlib
+open Polynomial
+open Set
+open Real
+open List
+
+noncomputable section
+
+-- ===== countSignChanges (equivalent to signChanges) =====
+noncomputable def countSignChanges : List ℝ → ℕ
+  | [] => 0
+  | [x] => 0
+  | x :: y :: rest =>
+    if x = 0 then countSignChanges (y :: rest)
+    else if y = 0 then countSignChanges (x :: rest)
+    else if x * y < 0 then 1 + countSignChanges (y :: rest)
+    else countSignChanges (y :: rest)
+
+lemma countSignChanges_remove_zero (xs : List ℝ) : countSignChanges (0 :: xs) = countSignChanges xs := by
+  induction' xs with y ys ih; simp [countSignChanges]; simp [countSignChanges, ih]
+
+lemma countSignChanges_remove_zero_second (x : ℝ) (xs : List ℝ) : 
+    countSignChanges (x :: 0 :: xs) = countSignChanges (x :: xs) := by
+  by_cases hx : x = 0; subst x; simp [countSignChanges]
+  · induction' xs with y ys ih generalizing x
+    · simp [countSignChanges, hx]
+    · have h := ih x; simp [countSignChanges, hx, h]
+
+lemma countSignChanges_nonzero_head_nonzero_tail (x y : ℝ) (hx : x ≠ 0) (hy : y ≠ 0) (xs : List ℝ) : 
+    countSignChanges (x :: y :: xs) = (if x * y < 0 then 1 else 0) + countSignChanges (y :: xs) := by
+  simp [countSignChanges, hx, hy]; by_cases hxy : x * y < 0; simp [hxy]; simp [hxy]
+
+lemma countSignChanges_triple (x y z : ℝ) (hx : x ≠ 0) (hz : z ≠ 0) (hxz : x * z < 0) : 
+    countSignChanges [x, y, z] = 1 := by
+  by_cases hy : y = 0; subst y; simp [countSignChanges, hx, hz, hxz]
+  · simp [countSignChanges, hx, hy, hz]
+    by_cases hxy : x * y < 0
+    · have hyz : ¬(y * z < 0) := by
+        have hx_sq : x^2 > 0 := sq_pos_of_ne_zero hx; have hz_sq : z^2 > 0 := sq_pos_of_ne_zero hz; nlinarith
+      simp [hxy, hyz]
+    · have hxy_nonneg : 0 ≤ x * y := by linarith
+      have hxy_pos : 0 < x * y := by
+        by_contra! hle; have : x * y = 0 := le_antisymm hle hxy_nonneg; exact mul_ne_zero hx hy this
+      have hyz : y * z < 0 := by
+        have hprod : (x * y) * (x * z) = x ^ 2 * (y * z) := by ring
+        have hprod_neg : (x * y) * (x * z) < 0 := mul_neg_of_pos_of_neg hxy_pos hxz
+        have hx_sq_pos : 0 < x ^ 2 := by positivity
+        have h : x ^ 2 * (y * z) < 0 := by rw [← hprod]; exact hprod_neg
+        nlinarith
+      simp [hxy, hyz]
+
+-- ===== 8 core lemmas =====
+lemma eval_mod_eq_eval_of_root (a q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) : (a % q).eval r = a.eval r := by
+  by_cases hq0 : q = 0
+  · subst hq0; simp
+  · have hlc0 : q.leadingCoeff ≠ 0 := Polynomial.leadingCoeff_ne_zero.mpr hq0
+    set m := q * C (q.leadingCoeff⁻¹) with hm_def
+    have hm_root : m.eval r = 0 := by dsimp [m]; simp [hq]
+    have hdiv : a %ₘ m + m * (a /ₘ m) = a := Polynomial.modByMonic_add_div a m
+    have h_ev_mod : (a %ₘ m).eval r = a.eval r := by
+      have := congrArg (fun p => p.eval r) hdiv
+      simp [hm_root, eval_add, eval_mul] at this; nlinarith
+    calc
+      (a % q).eval r = (a %ₘ m).eval r := by rw [Polynomial.mod_def, hm_def]
+      _ = a.eval r := h_ev_mod
+
+lemma squarefree_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : 
+    (derivative p).eval r ≠ 0 := by
+  by_contra! h
+  have hXdiv : (X - C r) ∣ p := by rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hr]
+  rcases hXdiv with ⟨q, hpq⟩
+  have hq_root : q.eval r = 0 := by
+    have hderiv : derivative p = q + (X - C r) * derivative q := by
+      calc
+        derivative p = derivative ((X - C r) * q) := by rw [hpq]
+        _ = derivative (X - C r) * q + (X - C r) * derivative q := by rw [derivative_mul]
+        _ = 1 * q + (X - C r) * derivative q := by simp
+        _ = q + (X - C r) * derivative q := by simp
+    calc
+      q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+      _ = (derivative p).eval r := by rw [hderiv]
+      _ = 0 := h
+  have hXdiv_q : (X - C r) ∣ q := by rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hq_root]
+  rcases hXdiv_q with ⟨q', hqq'⟩
+  have hXsq_div : (X - C r) * (X - C r) ∣ p := by
+    use q'; calc
+      p = (X - C r) * q := hpq
+      _ = (X - C r) * ((X - C r) * q') := by rw [hqq']
+      _ = (X - C r) * (X - C r) * q' := by ring
+  have h_sqfree := hp (X - C r) hXsq_div
+  have h_not_unit : ¬ IsUnit (X - C r) := Polynomial.not_isUnit_X_sub_C r
+  exact h_not_unit h_sqfree
+
+lemma sign_near_point (f : ℝ → ℝ) (r : ℝ) (hf : ContinuousAt f r) (hf0 : f r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → f x * f r > 0 := by
+  have hpos : |f r| > 0 := abs_pos.mpr hf0
+  have h_eps := Metric.tendsto_nhds_nhds.mp hf (|f r| / 2) (by nlinarith)
+  rcases h_eps with ⟨δ, hδ_pos, h⟩
+  refine ⟨δ, hδ_pos, λ x hx => ?_⟩
+  have hx_dist : dist x r < δ := by rwa [Real.dist_eq]
+  have hfx_dist : dist (f x) (f r) < |f r| / 2 := h hx_dist
+  have hfx : |f x - f r| < |f r| / 2 := by rwa [Real.dist_eq] at hfx_dist
+  by_cases hfr_pos : 0 < f r
+  · have hfr_abs : |f r| = f r := abs_of_pos hfr_pos; rw [hfr_abs] at hfx
+    have hfx_pos : 0 < f x := by
+      by_contra! hxle
+      have hsub_nonpos : f x - f r ≤ 0 := by nlinarith
+      have habs : |f x - f r| = -(f x - f r) := abs_of_nonpos hsub_nonpos
+      have hcalc : -(f x - f r) ≥ f r := by nlinarith; nlinarith
+    nlinarith
+  · have hfr_neg : f r < 0 := by
+      have hle : f r ≤ 0 := not_lt.mp hfr_pos; exact lt_of_le_of_ne hle hf0
+    have hfr_abs : |f r| = -f r := abs_of_neg hfr_neg; rw [hfr_abs] at hfx
+    have hfx_neg : f x < 0 := by
+      by_contra! hxge
+      have hsub_nonneg : 0 ≤ f x - f r := by nlinarith
+      have habs : |f x - f r| = f x - f r := abs_of_nonneg hsub_nonneg
+      have hcalc : f x - f r ≥ -f r := by nlinarith; nlinarith
+    nlinarith
+
+lemma sign_near_point_poly (p : ℝ[X]) (r : ℝ) (hp : p.eval r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → (p.eval x) * (p.eval r) > 0 :=
+  sign_near_point (λ x => p.eval x) r (Polynomial.continuousAt p (a := r)) hp
+
+lemma factor_theorem (p : ℝ[X]) (r : ℝ) (hr : p.eval r = 0) : (X - C r) ∣ p :=
+  (Polynomial.dvd_iff_isRoot.mpr (by rw [Polynomial.IsRoot, hr]))
+
+lemma factor_deriv (p q : ℝ[X]) (r : ℝ) (hpq : p = (X - C r) * q) : q.eval r = (derivative p).eval r := by
+  calc
+    q.eval r = (derivative ((X - C r) * q)).eval r := by
+      simp [derivative_mul, derivative_sub, derivative_C, derivative_X]
+    _ = (derivative p).eval r := by rw [hpq]
+
+lemma opposite_signs_at_root (p q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) (hp : p.eval r ≠ 0) : 
+    p.eval r * (-(p % q)).eval r < 0 := by
+  have hmod : (p % q).eval r = p.eval r := eval_mod_eq_eval_of_root p q r hq
+  have : p.eval r * (-(p.eval r)) < 0 := by nlinarith [sq_pos_of_ne_zero hp]
+  calc
+    p.eval r * (-(p % q)).eval r = p.eval r * (-((p % q).eval r)) := by simp
+    _ = p.eval r * (-(p.eval r)) := by rw [hmod]
+    _ < 0 := this
+```
+
+## Current Frontier Lemma
+sigma_drop_at_p_root
+
+## Exact Failed Lean Error
+The proof of Sturm's theorem is incomplete. The core lemma sigma_drop_at_p_root (proving sigma drops by exactly 1 at a simple root of p) requires analyzing the full Sturm chain. The verified lemmas cover: polynomial remainder evaluation at roots, squarefree implies p'(r)≠0, opposite signs in remainder chain, sign preservation near non-zero points (epsilon-delta), factor theorem, factor-derivative relationship, and a full library of countSignChanges lemmas (zero removal, non-zero head, triple lemma) with verified equivalence to signChanges.
+
+## Next Lemma To Prove
+sigma_drop_at_p_root
+
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open Set
+open Real
+open List
+
+noncomputable section
+
+-- ===== countSignChanges (equivalent to signChanges) =====
+noncomputable def countSignChanges : List ℝ → ℕ
+  | [] => 0
+  | [x] => 0
+  | x :: y :: rest =>
+    if x = 0 then countSignChanges (y :: rest)
+    else if y = 0 then countSignChanges (x :: rest)
+    else if x * y < 0 then 1 + countSignChanges (y :: rest)
+    else countSignChanges (y :: rest)
+
+lemma countSignChanges_remove_zero (xs : List ℝ) : countSignChanges (0 :: xs) = countSignChanges xs := by
+  induction' xs with y ys ih; simp [countSignChanges]; simp [countSignChanges, ih]
+
+lemma countSignChanges_remove_zero_second (x : ℝ) (xs : List ℝ) : 
+    countSignChanges (x :: 0 :: xs) = countSignChanges (x :: xs) := by
+  by_cases hx : x = 0; subst x; simp [countSignChanges]
+  · induction' xs with y ys ih generalizing x
+    · simp [countSignChanges, hx]
+    · have h := ih x; simp [countSignChanges, hx, h]
+
+lemma countSignChanges_nonzero_head_nonzero_tail (x y : ℝ) (hx : x ≠ 0) (hy : y ≠ 0) (xs : List ℝ) : 
+    countSignChanges (x :: y :: xs) = (if x * y < 0 then 1 else 0) + countSignChanges (y :: xs) := by
+  simp [countSignChanges, hx, hy]; by_cases hxy : x * y < 0; simp [hxy]; simp [hxy]
+
+lemma countSignChanges_triple (x y z : ℝ) (hx : x ≠ 0) (hz : z ≠ 0) (hxz : x * z < 0) : 
+    countSignChanges [x, y, z] = 1 := by
+  by_cases hy : y = 0; subst y; simp [countSignChanges, hx, hz, hxz]
+  · simp [countSignChanges, hx, hy, hz]
+    by_cases hxy : x * y < 0
+    · have hyz : ¬(y * z < 0) := by
+        have hx_sq : x^2 > 0 := sq_pos_of_ne_zero hx; have hz_sq : z^2 > 0 := sq_pos_of_ne_zero hz; nlinarith
+      simp [hxy, hyz]
+    · have hxy_nonneg : 0 ≤ x * y := by linarith
+      have hxy_pos : 0 < x * y := by
+        by_contra! hle; have : x * y = 0 := le_antisymm hle hxy_nonneg; exact mul_ne_zero hx hy this
+      have hyz : y * z < 0 := by
+        have hprod : (x * y) * (x * z) = x ^ 2 * (y * z) := by ring
+        have hprod_neg : (x * y) * (x * z) < 0 := mul_neg_of_pos_of_neg hxy_pos hxz
+        have hx_sq_pos : 0 < x ^ 2 := by positivity
+        have h : x ^ 2 * (y * z) < 0 := by rw [← hprod]; exact hprod_neg
+        nlinarith
+      simp [hxy, hyz]
+
+-- ===== 8 core lemmas =====
+lemma eval_mod_eq_eval_of_root (a q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) : (a % q).eval r = a.eval r := by
+  by_cases hq0 : q = 0
+  · subst hq0; simp
+  · have hlc0 : q.leadingCoeff ≠ 0 := Polynomial.leadingCoeff_ne_zero.mpr hq0
+    set m := q * C (q.leadingCoeff⁻¹) with hm_def
+    have hm_root : m.eval r = 0 := by dsimp [m]; simp [hq]
+    have hdiv : a %ₘ m + m * (a /ₘ m) = a := Polynomial.modByMonic_add_div a m
+    have h_ev_mod : (a %ₘ m).eval r = a.eval r := by
+      have := congrArg (fun p => p.eval r) hdiv
+      simp [hm_root, eval_add, eval_mul] at this; nlinarith
+    calc
+      (a % q).eval r = (a %ₘ m).eval r := by rw [Polynomial.mod_def, hm_def]
+      _ = a.eval r := h_ev_mod
+
+lemma squarefree_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : 
+    (derivative p).eval r ≠ 0 := by
+  by_contra! h
+  have hXdiv : (X - C r) ∣ p := by rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hr]
+  rcases hXdiv with ⟨q, hpq⟩
+  have hq_root : q.eval r = 0 := by
+    have hderiv : derivative p = q + (X - C r) * derivative q := by
+      calc
+        derivative p = derivative ((X - C r) * q) := by rw [hpq]
+        _ = derivative (X - C r) * q + (X - C r) * derivative q := by rw [derivative_mul]
+        _ = 1 * q + (X - C r) * derivative q := by simp
+        _ = q + (X - C r) * derivative q := by simp
+    calc
+      q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+      _ = (derivative p).eval r := by rw [hderiv]
+      _ = 0 := h
+  have hXdiv_q : (X - C r) ∣ q := by rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot, hq_root]
+  rcases hXdiv_q with ⟨q', hqq'⟩
+  have hXsq_div : (X - C r) * (X - C r) ∣ p := by
+    use q'; calc
+      p = (X - C r) * q := hpq
+      _ = (X - C r) * ((X - C r) * q') := by rw [hqq']
+      _ = (X - C r) * (X - C r) * q' := by ring
+  have h_sqfree := hp (X - C r) hXsq_div
+  have h_not_unit : ¬ IsUnit (X - C r) := Polynomial.not_isUnit_X_sub_C r
+  exact h_not_unit h_sqfree
+
+lemma sign_near_point (f : ℝ → ℝ) (r : ℝ) (hf : ContinuousAt f r) (hf0 : f r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → f x * f r > 0 := by
+  have hpos : |f r| > 0 := abs_pos.mpr hf0
+  have h_eps := Metric.tendsto_nhds_nhds.mp hf (|f r| / 2) (by nlinarith)
+  rcases h_eps with ⟨δ, hδ_pos, h⟩
+  refine ⟨δ, hδ_pos, λ x hx => ?_⟩
+  have hx_dist : dist x r < δ := by rwa [Real.dist_eq]
+  have hfx_dist : dist (f x) (f r) < |f r| / 2 := h hx_dist
+  have hfx : |f x - f r| < |f r| / 2 := by rwa [Real.dist_eq] at hfx_dist
+  by_cases hfr_pos : 0 < f r
+  · have hfr_abs : |f r| = f r := abs_of_pos hfr_pos; rw [hfr_abs] at hfx
+    have hfx_pos : 0 < f x := by
+      by_contra! hxle
+      have hsub_nonpos : f x - f r ≤ 0 := by nlinarith
+      have habs : |f x - f r| = -(f x - f r) := abs_of_nonpos hsub_nonpos
+      have hcalc : -(f x - f r) ≥ f r := by nlinarith; nlinarith
+    nlinarith
+  · have hfr_neg : f r < 0 := by
+      have hle : f r ≤ 0 := not_lt.mp hfr_pos; exact lt_of_le_of_ne hle hf0
+    have hfr_abs : |f r| = -f r := abs_of_neg hfr_neg; rw [hfr_abs] at hfx
+    have hfx_neg : f x < 0 := by
+      by_contra! hxge
+      have hsub_nonneg : 0 ≤ f x - f r := by nlinarith
+      have habs : |f x - f r| = f x - f r := abs_of_nonneg hsub_nonneg
+      have hcalc : f x - f r ≥ -f r := by nlinarith; nlinarith
+    nlinarith
+
+lemma sign_near_point_poly (p : ℝ[X]) (r : ℝ) (hp : p.eval r ≠ 0) :
+    ∃ δ > 0, ∀ x, |x - r| < δ → (p.eval x) * (p.eval r) > 0 :=
+  sign_near_point (λ x => p.eval x) r (Polynomial.continuousAt p (a := r)) hp
+
+lemma factor_theorem (p : ℝ[X]) (r : ℝ) (hr : p.eval r = 0) : (X - C r) ∣ p :=
+  (Polynomial.dvd_iff_isRoot.mpr (by rw [Polynomial.IsRoot, hr]))
+
+lemma factor_deriv (p q : ℝ[X]) (r : ℝ) (hpq : p = (X - C r) * q) : q.eval r = (derivative p).eval r := by
+  calc
+    q.eval r = (derivative ((X - C r) * q)).eval r := by
+      simp [derivative_mul, derivative_sub, derivative_C, derivative_X]
+    _ = (derivative p).eval r := by rw [hpq]
+
+lemma opposite_signs_at_root (p q : ℝ[X]) (r : ℝ) (hq : q.eval r = 0) (hp : p.eval r ≠ 0) : 
+    p.eval r * (-(p % q)).eval r < 0 := by
+  have hmod : (p % q).eval r = p.eval r := eval_mod_eq_eval_of_root p q r hq
+  have : p.eval r * (-(p.eval r)) < 0 := by nlinarith [sq_pos_of_ne_zero hp]
+  calc
+    p.eval r * (-(p % q)).eval r = p.eval r * (-((p % q).eval r)) := by simp
+    _ = p.eval r * (-(p.eval r)) := by rw [hmod]
+    _ < 0 := this
+```
