@@ -2,8 +2,6 @@ import Mathlib
 
 open PowerSeries
 
-namespace Submission
-
 noncomputable def catQ : ℚ⟦X⟧ := PowerSeries.map (algebraMap ℕ ℚ) catalanSeries
 
 lemma catQ_sq_mul_X_add_one_eq_catQ : catQ ^ 2 * X + 1 = catQ := by
@@ -33,6 +31,9 @@ lemma GQ_sub_GQ_sq_eq_X : GQ - GQ ^ 2 = X := by
     _ = X * 1 := by rw [catQ_minus_X_mul_catQ_sq_eq_one]
     _ = X := by simp
 
+namespace Submission
+
+-- Proof: the compositional inverse of X - X^2 is the Catalan generating function
 theorem substInv_X_sub_X_sq_eq_catalan (n : ℕ) :
     haveI : Invertible (coeff 1 ((X : ℚ⟦X⟧) - X ^ 2)) := by
       simp [coeff_X, coeff_X_pow]; exact invertibleOne
