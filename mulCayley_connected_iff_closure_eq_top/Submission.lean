@@ -41,6 +41,8 @@ def walk_to_product' {G : Type*} [Group G] (S : Set G) :
         rw [h1, h_au]
         apply Subgroup.mul_mem _ (Subgroup.inv_mem _ (Subgroup.subset_closure h)) ih
 
+namespace Submission
+
 theorem mulCayley_connected_iff_closure_eq_top {G : Type*} [Group G]
     (S : Set G) :
     (SimpleGraph.mulCayley S).Connected ↔ Subgroup.closure S = ⊤ := by
@@ -60,7 +62,7 @@ theorem mulCayley_connected_iff_closure_eq_top {G : Type*} [Group G]
       exact this
     have h_reach_one : ∀ (g : G), (SimpleGraph.mulCayley S).Reachable (1 : G) g := by
       intro g
-      apply Subgroup.closure_induction (p := fun (x : G) (hx : x ∈ Subgroup.closure S) => 
+      apply Subgroup.closure_induction (p := fun (x : G) (hx : x ∈ Subgroup.closure S) =>
         (SimpleGraph.mulCayley S).Reachable (1 : G) x)
       · intro s hs
         by_cases hs_eq : s ≠ 1
@@ -109,3 +111,5 @@ theorem mulCayley_connected_iff_closure_eq_top {G : Type*} [Group G]
       nonempty := by
         infer_instance
     }
+
+end Submission
