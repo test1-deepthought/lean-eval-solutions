@@ -158,6 +158,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `rouche_zero_count_eq`: `failed_submissions/rouche_zero_count_eq/report.md` (20260622T154801Z)
+
 - `brouwer_fixed_point`: `failed_submissions/brouwer_fixed_point/report.md` (20260622T151739Z)
 
 - `substInv_X_sub_X_sq_eq_catalan`: `failed_submissions/substInv_X_sub_X_sq_eq_catalan/report.md` (20260622T145110Z)
