@@ -158,6 +158,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `substInv_X_sub_X_sq_eq_catalan`: `failed_submissions/substInv_X_sub_X_sq_eq_catalan/report.md` (20260622T145110Z)
+
 - `euler_lagrange_equation`: `failed_submissions/euler_lagrange_equation/report.md` (20260616T150412Z)
 
 - `irreducible_nonnegative_matrix_has_positive_eigenvector_at_spectralRadius`: `failed_submissions/irreducible_nonnegative_matrix_has_positive_eigenvector_at_spectralRadius/report.md` (20260615T003525Z)
