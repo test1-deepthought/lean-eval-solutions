@@ -1,5 +1,4 @@
 import Mathlib
-import Submission.Helpers
 
 open scoped Real
 
@@ -90,7 +89,7 @@ theorem pell_solution_is_convergent (d : ℤ) (_hd : Squarefree d) (_hd0 : 0 < d
   have hgcd : x.gcd y = 1 := pell_gcd_one d x y _hsol
   have h_coprime : Nat.Coprime x.natAbs y.natAbs := by
     have h_gcd_nat : (x.natAbs).gcd (y.natAbs) = 1 := by
-      simpa using hgcd
+      simpa [Int.gcd] using hgcd
     exact (Nat.coprime_iff_gcd_eq_one.mpr h_gcd_nat)
   have hypos_int : (0 : ℤ) < y := _hy
   have hy_nonneg : (0 : ℤ) ≤ y := by omega
