@@ -33,6 +33,7 @@ lemma GQ_sub_GQ_sq_eq_X : GQ - GQ ^ 2 = X := by
 
 namespace Submission
 
+-- Proof: the compositional inverse of X - X^2 is the Catalan generating function
 theorem substInv_X_sub_X_sq_eq_catalan (n : ℕ) :
     haveI : Invertible (coeff 1 ((X : ℚ⟦X⟧) - X ^ 2)) := by
       simp [coeff_X, coeff_X_pow]; exact invertibleOne
