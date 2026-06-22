@@ -158,6 +158,8 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 ## Current failed submissions
 
+- `cubic_decay_asymptotic`: `failed_submissions/cubic_decay_asymptotic/report.md` (20260622T171126Z)
+
 - `isoperimetric_inequality`: `failed_submissions/isoperimetric_inequality/report.md` (20260622T164838Z)
 
 - `platonic_classification`: `failed_submissions/platonic_classification/report.md` (20260622T164808Z)
