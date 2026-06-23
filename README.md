@@ -48,7 +48,7 @@ This section documents the step-by-step process for selecting an unsolved proble
 
 ### 1. Select a Problem
 
-Problems are listed in the [`unsolved/`](./problems) directory of this repo. Each problem has a README entry describing the mathematical domain and difficulty level.
+Problems are listed in the [`problems/`](./problems) directory of this repo. Each problem has a README entry describing the mathematical domain and difficulty level.
 
 The actual problem workspaces live in the upstream repository:
 
