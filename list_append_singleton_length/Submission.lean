@@ -1,5 +1,4 @@
 import Mathlib
-import Submission.Helpers
 
 namespace Submission
 
