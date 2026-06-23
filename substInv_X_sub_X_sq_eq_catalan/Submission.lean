@@ -1,6 +1,8 @@
 import Mathlib
 open PowerSeries
 
+namespace Submission
+
 noncomputable def catQ : ℚ⟦X⟧ := PowerSeries.map (algebraMap ℕ ℚ) catalanSeries
 
 lemma catQ_sq_mul_X_add_one_eq_catQ : catQ ^ 2 * X + 1 = catQ := by
@@ -146,3 +148,5 @@ theorem substInv_X_sub_X_sq_eq_catalan (n : ℕ) :
     subst h_inst_eq
     rfl
   · rw [h_coeff_GQ_val, h_formula]
+
+end Submission
