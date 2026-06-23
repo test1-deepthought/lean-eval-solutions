@@ -2,12 +2,12 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**Latest CI Submission:** [#270](https://github.com/leanprover/lean-eval-submissions/issues/270)  
+**Latest CI Submission:** [#436](https://github.com/leanprover/lean-eval-submissions/issues/436)  
 ---
 
 ## Evaluation Results
 
-**Status:** 12 problems solved (CI-verified via [#270](https://github.com/leanprover/lean-eval-submissions/issues/270))
+**Status:** 13 problems solved (CI-verified via [#436](https://github.com/leanprover/lean-eval-submissions/issues/436))
 
 ### Per-Problem Results
 
@@ -20,6 +20,7 @@
 | `finite_graph_ramsey_theorem` | ✅ **Pass** | Finite Ramsey theorem for SimpleGraph — proof by induction on vertex count using clique-free set splitting |
 | `instance_hole_example` | ✅ **Pass** | `WidgetCarrier` defined as `Unit` with `Inhabited` instance — compiled and verified by comparator |
 | `list_append_singleton_length` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `simp` |
+| `multi_hole_helpers_example` | ✅ **Pass** | Multiple holes with helper lemmas in `Submission/Helpers.lean` — compiled and verified by comparator |
 | `pell_solution_convergent` | ✅ **Pass** | Pell equation solution approximates sqrt(d) — bound on |x/y - sqrt(d)| using coprimality, gcd=1 lemma, and Dirichlet's approximation theorem |
 | `posSemidef_map_exp` | ✅ **Pass** | Positive semidefinite matrix exponential — proof via spectral decomposition, Hadamard product, and entrywise limit of partial sums of the exponential series |
 | `sturm_separation` | ✅ **Pass** | Sturm separation theorem for second-order linear ODEs — Wronskian argument and Rolle's theorem; fixed comparator rejection from #218 |
@@ -37,6 +38,7 @@
 | [#218](https://github.com/leanprover/lean-eval-submissions/issues/218) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `instance_hole_example`, `list_append_singleton_length`, `two_plus_two`, `variable_binder_example`, `sturm_separation` | ⚠️ 7/8 passed; `sturm_separation` failed |
 | [#221](https://github.com/leanprover/lean-eval-submissions/issues/221) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **9/9 passed** |
 | [#270](https://github.com/leanprover/lean-eval-submissions/issues/270) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `dirichlet_eigenvalues_eq_nat_sq`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `pell_solution_convergent`, `posSemidef_map_exp`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **12/12 passed** |
+| [#436](https://github.com/leanprover/lean-eval-submissions/issues/436) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `dirichlet_eigenvalues_eq_nat_sq`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `multi_hole_helpers_example`, `pell_solution_convergent`, `posSemidef_map_exp`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **13/13 passed** |
 
 ---
 
@@ -176,8 +178,6 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 - `wallpaper_groups_17`: `failed_submissions/wallpaper_groups_17/report.md` (20260612T121544Z)
 
 - `pi1_circle_mulEquiv_int`: `failed_submissions/pi1_circle_mulEquiv_int/report.md` (20260610T144830Z)
-
-- `multi_hole_helpers_example`: `failed_submissions/multi_hole_helpers_example/report.md` (20260610T132449Z)
 
 - `finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow`: `failed_submissions/finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow/report.md` (20260612T111029Z)
 
