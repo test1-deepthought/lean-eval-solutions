@@ -136,11 +136,19 @@ theorem substInv_X_sub_X_sq_eq_catalan (n : ℕ) :
   
   have h_formula : (catalan n : ℚ) = (Nat.choose (2 * n) n : ℚ) / (↑n + 1) := by
     have h_nat : (n + 1) * catalan n = n.centralBinom := succ_mul_catalan_eq_centralBinom n
-    have h_nat_cast : (n + 1 : ℚ) * (catalan n : ℚ) = (n.centralBinom : ℚ) := by exact_mod_cast h_nat
-    have h_eq : (n + 1 : ℚ) * (catalan n : ℚ) = (Nat.choose (2 * n) n : ℚ) := by
-      simpa [Nat.centralBinom] using h_nat_cast
-    field_simp
-    nlinarith
+    have h_nat' : (catalan n : ℚ) * ((n : ℚ) + 1) = (n.centralBinom : ℚ) := by
+      calc
+        (catalan n : ℚ) * ((n : ℚ) + 1) = ((n : ℚ) + 1) * (catalan n : ℚ) := by ring
+        _ = (n + 1 : ℚ) * (catalan n : ℚ) := by simp
+        _ = (n.centralBinom : ℚ) := by exact_mod_cast h_nat
+    have h_centralBinom : (n.centralBinom : ℚ) = (Nat.choose (2 * n) n : ℚ) := by
+      simp [Nat.centralBinom]
+    calc
+      (catalan n : ℚ) = ((catalan n : ℚ) * ((n : ℚ) + 1)) / ((n : ℚ) + 1) := by
+        field_simp
+      _ = (n.centralBinom : ℚ) / ((n : ℚ) + 1) := by rw [h_nat']
+      _ = (Nat.choose (2 * n) n : ℚ) / ((n : ℚ) + 1) := by rw [h_centralBinom]
+      _ = (Nat.choose (2 * n) n : ℚ) / (↑n + 1) := by simp
   
   have h := h_coeff_eq (n+1)
   convert h.trans ?_ using 1
