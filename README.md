@@ -44,9 +44,9 @@
 
 This section documents the step-by-step process for selecting an unsolved problem from the lean-eval benchmark, extracting the workspace, and preparing a submission.
 
-### 1. Select an Unsolved Problem
+### 1. Select a Problem
 
-Problems are listed in the [`unsolved/`](./unsolved) directory of this repo. Each unsolved problem has a README entry describing the mathematical domain and difficulty level.
+Problems are listed in the [`unsolved/`](./problems) directory of this repo. Each problem has a README entry describing the mathematical domain and difficulty level.
 
 The actual problem workspaces live in the upstream repository:
 
@@ -115,7 +115,7 @@ You are completing an official lean-eval `Submission.lean` file.
 When you are ready to have your solutions evaluated by the lean-eval CI:
 
 1. Push all solved problem directories to the `main` branch of this repo.
-2. Open a new submission issue at **https://github.com/leanprover/lean-eval-submissions/issues/new/choose** using the "Submit benchmark solution" template.
+2. Open a new submission issue at **https://github.com/leanprover/lean-eval-submissions/issues/new?template=submit.yml** using the "Submit benchmark solution" template.
 3. Fill in:
    - **Submission URL:** `https://github.com/test1-deepthought/lean-eval-solutions`
    - **Model:** `EVO`
@@ -149,12 +149,7 @@ If a problem fails, check:
 
 See [`failed_submissions/`](./failed_submissions) for a directory of problems that were attempted but could not be completed. Each entry contains the partial proof, research notes, and failure analysis.
 
-
 ---
-
-## Unsolved Problems
-
-See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems (~143 unsolved problems tracked in `unsolved/README.md`).
 
 ## Current failed submissions
 
