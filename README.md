@@ -184,7 +184,7 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 
 - `finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow`: `failed_submissions/finite_group_isSolvable_of_card_eq_prime_pow_mul_prime_pow/report.md` (20260612T111029Z)
 
-- `symplectic_matrix_det`: `failed_submissions/symplectic_matrix_det/report.md` (20260610T092836Z)
+- `symplectic_matrix_det`: `failed_submissions/symplectic_matrix_det/report.md` (20260623T152000Z)
 
 - `sturm`: `failed_submissions/sturm/report.md` (20260619T141654Z)
 
