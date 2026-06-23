@@ -1,5 +1,4 @@
 import Mathlib
-
 open PowerSeries
 
 noncomputable def catQ : ℚ⟦X⟧ := PowerSeries.map (algebraMap ℕ ℚ) catalanSeries
