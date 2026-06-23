@@ -168,7 +168,7 @@ See [`unsolved/`](./unsolved) for the full list of remaining benchmark problems 
 
 - `brouwer_fixed_point`: `failed_submissions/brouwer_fixed_point/report.md` (20260622T151739Z)
 
-- `substInv_X_sub_X_sq_eq_catalan`: `failed_submissions/substInv_X_sub_X_sq_eq_catalan/report.md` (20260622T231043Z)
+- `substInv_X_sub_X_sq_eq_catalan`: `failed_submissions/substInv_X_sub_X_sq_eq_catalan/report.md` (20260623T094756Z)
 
 - `euler_lagrange_equation`: `failed_submissions/euler_lagrange_equation/report.md` (20260616T150412Z)
 
