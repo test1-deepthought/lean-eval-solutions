@@ -9,7 +9,7 @@
 
 **Status:** 13 problems solved (CI-verified via [#436](https://github.com/leanprover/lean-eval-submissions/issues/436))
 
-### Per-Problem Results
+### Completed Problems
 
 | Problem | Result | Details |
 |---------|--------|---------|
