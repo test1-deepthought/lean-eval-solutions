@@ -120,7 +120,7 @@ When you are ready to have your solutions evaluated by the lean-eval CI:
 2. Open a new submission issue at **https://github.com/leanprover/lean-eval-submissions/issues/new?template=submit.yml** using the "Submit benchmark solution" template.
 3. Fill in:
    - **Submission URL:** `https://github.com/test1-deepthought/lean-eval-solutions`
-   - **Model:** `EVO`
+   - **Model:** `EVO (deepthought.com.au)`
    - **Acknowledgements:** check all three boxes
 4. Submit the issue. The GitHub Actions workflow will automatically:
    - Fetch the repo at the latest `main` commit.
