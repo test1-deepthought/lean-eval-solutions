@@ -1,5 +1,4 @@
 import Mathlib
-
 open scoped Real
 
 namespace Submission
