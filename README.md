@@ -2,12 +2,12 @@
 
 **Model:** EVO  
 **Submission Repo:** https://github.com/test1-deepthought/lean-eval-solutions  
-**Latest CI Submission:** [#436](https://github.com/leanprover/lean-eval-submissions/issues/436)  
+**Latest CI Submission:** [#446](https://github.com/leanprover/lean-eval-submissions/issues/446)  
 ---
 
 ## Evaluation Results
 
-**Status:** 13 problems solved (CI-verified via [#436](https://github.com/leanprover/lean-eval-submissions/issues/436))
+**Status:** 15 problems solved (CI-verified via [#446](https://github.com/leanprover/lean-eval-submissions/issues/446))
 
 ### Completed Problems
 
@@ -20,10 +20,12 @@
 | `finite_graph_ramsey_theorem` | ✅ **Pass** | Finite Ramsey theorem for SimpleGraph — proof by induction on vertex count using clique-free set splitting |
 | `instance_hole_example` | ✅ **Pass** | `WidgetCarrier` defined as `Unit` with `Inhabited` instance — compiled and verified by comparator |
 | `list_append_singleton_length` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `simp` |
+| `mulCayley_connected_iff_closure_eq_top` | ✅ **Pass** | Cayley graph connected iff generating set S generates G — forward direction via walk-to-product translation; reverse via Subgroup.closure_induction constructing walks from generators |
 | `multi_hole_helpers_example` | ✅ **Pass** | Multiple holes with helper lemmas in `Submission/Helpers.lean` — compiled and verified by comparator |
 | `pell_solution_convergent` | ✅ **Pass** | Pell equation solution approximates sqrt(d) — bound on |x/y - sqrt(d)| using coprimality, gcd=1 lemma, and Dirichlet's approximation theorem |
 | `posSemidef_map_exp` | ✅ **Pass** | Positive semidefinite matrix exponential — proof via spectral decomposition, Hadamard product, and entrywise limit of partial sums of the exponential series |
 | `sturm_separation` | ✅ **Pass** | Sturm separation theorem for second-order linear ODEs — Wronskian argument and Rolle's theorem; fixed comparator rejection from #218 |
+| `substInv_X_sub_X_sq_eq_catalan` | ✅ **Pass** | Catalan generating function via compositional inversion — proof using formal power series algebra: S−S²=X identity, Catalan identity C²·X+1=C, factorization S=X·C, and coefficient extraction via catalan_eq_centralBinom_div |
 | `two_plus_two` | ✅ **Fixed** | `native_decide` proof failed (landrun sandbox incompatibility) — replaced with `rfl` |
 | `variable_binder_example` | ✅ **Pass** | `rfl` proof that `A.trace = \sum i, A i i` — trace is definitionally the sum of diagonal entries |
 
@@ -39,6 +41,7 @@
 | [#221](https://github.com/leanprover/lean-eval-submissions/issues/221) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **9/9 passed** |
 | [#270](https://github.com/leanprover/lean-eval-submissions/issues/270) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `dirichlet_eigenvalues_eq_nat_sq`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `pell_solution_convergent`, `posSemidef_map_exp`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **12/12 passed** |
 | [#436](https://github.com/leanprover/lean-eval-submissions/issues/436) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `dirichlet_eigenvalues_eq_nat_sq`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `multi_hole_helpers_example`, `pell_solution_convergent`, `posSemidef_map_exp`, `sturm_separation`, `two_plus_two`, `variable_binder_example` | ✅ **13/13 passed** |
+| [#446](https://github.com/leanprover/lean-eval-submissions/issues/446) | `bvp_comparison`, `ci_regenerate_main_check`, `def_hole_example`, `dirichlet_eigenvalues_eq_nat_sq`, `finite_graph_ramsey_theorem`, `instance_hole_example`, `list_append_singleton_length`, `mulCayley_connected_iff_closure_eq_top`, `multi_hole_helpers_example`, `pell_solution_convergent`, `posSemidef_map_exp`, `sturm_separation`, `substInv_X_sub_X_sq_eq_catalan`, `two_plus_two`, `variable_binder_example` | ✅ **15/15 passed** |
 
 ---
 
@@ -164,8 +167,6 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 - `rouche_zero_count_eq`: `failed_submissions/rouche_zero_count_eq/report.md` (20260622T161250Z)
 
 - `brouwer_fixed_point`: `failed_submissions/brouwer_fixed_point/report.md` (20260622T151739Z)
-
-- `substInv_X_sub_X_sq_eq_catalan`: `failed_submissions/substInv_X_sub_X_sq_eq_catalan/report.md` (20260623T094756Z)
 
 - `euler_lagrange_equation`: `failed_submissions/euler_lagrange_equation/report.md` (20260616T150412Z)
 
