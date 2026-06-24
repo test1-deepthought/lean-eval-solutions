@@ -1382,3 +1382,121 @@ The Sturm theorem problem requires a complete formal proof in Lean 4. I have suc
 The main theorem: #{roots of p in (a,b)} = σ(a) - σ(b) requires one additional step: showing that σ drops by exactly 1 at each root of p and is constant between them. This follows from the lemmas and a standard inductive argument over the sorted roots of all Sturm chain entries in (a,b).
 
 The complete proof would induct on the sorted roots of chain entries, using sign_change_at_root at p-root drops and triple_sum_one plus eval_mod_eq_eval at non-p chain entry roots. Each non-p chain root leaves σ unchanged by the triple property. Between roots, σ is constant by continuity and constancy of signs.
+
+---
+## Attempt 20260624T133610Z
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open scoped Classical
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) =>
+    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
+  sturmAux p (derivative p) (p.natDegree + 2)
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
+  signChanges ((sturmChain p).map fun q => q.eval x)
+
+lemma signChanges_eq (xs : List ℝ) : signChanges xs = 
+    ((xs.filter (· ≠ 0)).zip ((xs.filter (· ≠ 0)).tail)).countP (fun q => q.1 * q.2 < 0) := by
+  unfold signChanges; simp [List.countP_eq_length_filter]
+
+lemma signChanges_pair (a b : ℝ) : signChanges [a, b] = 
+    if a = 0 ∨ b = 0 then 0 else if a * b < 0 then 1 else 0 := by
+  rw [signChanges_eq]
+  by_cases ha : a = 0
+  · rw [ha]
+    by_cases hb : b = 0
+    · rw [hb]; simp
+    · simp [hb]
+  by_cases hb : b = 0
+  · rw [hb]; simp [ha]
+  have hfilter : ([a, b].filter (· ≠ 0)) = [a, b] := by simp [ha, hb]
+  have hzip : ([a, b] : List ℝ).zip ([a, b].tail) = [(a, b)] := by simp
+  have hgoal : ([(a, b)].countP (fun q : ℝ × ℝ => q.1 * q.2 < 0)) = (if a * b < 0 then 1 else 0) := by
+    simp
+  rw [hfilter, hzip]
+  rw [hgoal]
+  simp [ha, hb]
+
+lemma signChanges_pair_neg (a b : ℝ) (h : a * b < 0) : signChanges [a, b] = 1 := by
+  rw [signChanges_pair]
+  have ha : a ≠ 0 := by intro h0; rw [h0, zero_mul] at h; linarith
+  have hb : b ≠ 0 := by intro h0; rw [h0, mul_zero] at h; linarith
+  simp [ha, hb, h]
+
+lemma sturmChain_head (p : ℝ[X]) : (sturmChain p).head? = some p := by
+  unfold sturmChain sturmAux
+  split <;> simp
+
+lemma sturmChain_length_pos (p : ℝ[X]) : (sturmChain p).length > 0 := by
+  have h := sturmChain_head p
+  by_contra! hlen
+  have hnil : sturmChain p = [] :=
+    List.eq_nil_of_length_eq_zero (by omega)
+  have : (sturmChain p).head? = none := by simp [hnil]
+  rw [h] at this
+  simp at this
+
+lemma not_isUnit_X_sub_C' (r : ℝ) : ¬ IsUnit (X - C r : ℝ[X]) := by
+  have hdeg : degree (X - C r : ℝ[X]) = 1 := by simp
+  intro h
+  have hdeg0 : degree (X - C r : ℝ[X]) = 0 := Polynomial.degree_eq_zero_of_isUnit h
+  rw [hdeg] at hdeg0
+  have : (1 : WithBot ℕ) ≠ (0 : WithBot ℕ) := by simp
+  exact this hdeg0
+
+lemma squarefree_derivative_eval_ne_zero (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : 
+    (derivative p).eval r ≠ 0 := by
+  by_contra! hderiv
+  have hdiv : (X - C r) ∣ p := by
+    rw [Polynomial.dvd_iff_isRoot]
+    simpa [Polynomial.IsRoot] using hr
+  rcases hdiv with ⟨q, hpq⟩
+  have hp_eq : p = (X - C r) * q := hpq
+  have hderiv_eq : derivative p = q + (X - C r) * derivative q := by
+    rw [hp_eq, Polynomial.derivative_mul]
+    simp
+  have hq_root : q.eval r = 0 := by
+    calc
+      q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+      _ = (derivative p).eval r := by rw [hderiv_eq]
+      _ = 0 := hderiv
+  have hq_div : (X - C r) ∣ q := by
+    rw [Polynomial.dvd_iff_isRoot]
+    simpa [Polynomial.IsRoot] using hq_root
+  rcases hq_div with ⟨q₂, hqq₂⟩
+  have h_sq_div : (X - C r) * (X - C r) ∣ p := by
+    rw [hp_eq, hqq₂]
+    use q₂
+    ring
+  have h_not_unit : ¬ IsUnit (X - C r : ℝ[X]) := not_isUnit_X_sub_C' r
+  have h_contra := hp (X - C r) h_sq_div
+  exact h_not_unit h_contra
+```
+
+
+## Agent Response Context
+
+Sturm's theorem is a major formalization challenge. I was able to prove the foundational lemmas:
+1. **signChanges properties**: Computing sign changes for small lists
+2. **sturmChain properties**: Basic chain properties
+3. **squarefree_derivative_eval_ne_zero**: The key lemma that for squarefree p, p'(r) ≠ 0 at any root r
+
+The remaining work involves:
+- Proving that sigma drops by exactly 1 at each simple root (sigma_drop_at_root)
+- Showing sigma is constant on root-free intervals
+- The final counting argument to connect root count to sigma difference
+
+These are the deep parts of the proof requiring analysis of the Sturm chain's Euclidean algorithm structure and sign analysis using continuity of polynomial evaluation.
