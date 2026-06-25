@@ -5,6 +5,9 @@ open Set
 
 namespace Submission.Helpers
 
+/-- Compute sign changes for `a :: b :: rest` when all entries are nonzero.
+The sign change at the head pair `(a,b)` contributes 1 if `a*b < 0`, and the
+rest is the sign changes of `b :: rest`. -/
 lemma signChanges_cons_cons_nonzero (a b : ℝ) (rest : List ℝ) (ha : a ≠ 0) (hb : b ≠ 0) (hrest : ∀ x ∈ rest, x ≠ 0) :
     signChanges (a :: b :: rest) = (if a * b < 0 then 1 else 0) + signChanges (b :: rest) := by
   unfold signChanges
@@ -15,7 +18,7 @@ lemma signChanges_cons_cons_nonzero (a b : ℝ) (rest : List ℝ) (ha : a ≠ 0)
   rw [hfilter_all, hfilter_rest]
   simp
 
-/-- Over ℝ, a squarefree polynomial is separable (coprime with its derivative). -/
+/-- Over ℝ, a squarefree polynomial is separable (i.e., coprime with its derivative). -/
 lemma squarefree_imp_separable (p : ℝ[X]) (hp : Squarefree p) : Separable p := by
   haveI : CharZero ℝ := by infer_instance
   haveI : PerfectField ℝ := PerfectField.ofCharZero
@@ -35,7 +38,7 @@ lemma eval_derivative_ne_zero_of_squarefree_root (p : ℝ[X]) (hp : Squarefree p
   simp at h
 
 /-- If a polynomial has no root in an open interval, then it has constant sign there
-(either all positive or all negative). -/
+(either all positive or all negative). Uses the Intermediate Value Theorem. -/
 lemma sign_constant_on_Ioo (q : ℝ[X]) (c d : ℝ) (hcd : c < d) (h_no_root : ∀ x ∈ Ioo c d, q.eval x ≠ 0) :
     (∀ x ∈ Ioo c d, q.eval x > 0) ∨ (∀ x ∈ Ioo c d, q.eval x < 0) := by
   have h_cont : Continuous (q.eval : ℝ → ℝ) := Polynomial.continuous q
@@ -86,22 +89,5 @@ lemma sign_constant_on_Ioo (q : ℝ[X]) (c d : ℝ) (hcd : c < d) (h_no_root : �
       by_contra! hpos_y
       exact hpos ⟨y, hy, hpos_y⟩
     exact Ne.lt_of_le hy_nonzero hy_nonpos
-
-/-- The sign change count `sigma(p, x)` is locally constant on intervals where
-no member of the Sturm chain vanishes. -/
-lemma sigma_const_on_interval (p : ℝ[X]) (a b : ℝ) (hab : a < b)
-    (h_no_chain_root : ∀ q ∈ sturmChain p, ∀ x ∈ Ioo a b, q.eval x ≠ 0) :
-    sigma p a = sigma p b := by
-  unfold sigma
-  -- For each q in the chain, q.eval is constant on sign on (a,b)
-  -- We need to show signChanges is the same at a and b
-  apply congrArg signChanges
-  apply List.map_congr
-  intro q hq
-  have hq_nonzero_a : q.eval a ≠ 0 := by
-    -- a is not in Ioo a b, so we can't directly use h_no_chain_root
-    -- But by continuity we can approach a from the right
-    sorry
-  sorry
 
 end Submission.Helpers
