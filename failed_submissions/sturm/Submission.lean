@@ -29,6 +29,10 @@ lemma sigma_drop_at_simple_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr :
   have hpderiv_sign : (∀ x ∈ Ioo (r - δ) (r + δ), (derivative p).eval x > 0) ∨ (∀ x ∈ Ioo (r - δ) (r + δ), (derivative p).eval x < 0) := by
     apply sign_constant_on_Ioo (derivative p) (r - δ) (r + δ) (by nlinarith)
     intro x hx; apply hpderiv_nonzero x; rcases hx with ⟨hxl, hxr⟩; exact ⟨by nlinarith, by nlinarith⟩
+  -- The proof of sigma_drop_at_simple_root requires analyzing the Sturm chain tail.
+  -- At a root r of p, the chain starts [p, p', ...]. p changes sign while p' has constant sign.
+  -- The remaining entries contribute the same signChanges on both sides (by the chain property).
+  -- Full proof requires formalizing the Euclidean algorithm of the Sturm chain.
   sorry
 
 theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
