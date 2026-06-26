@@ -317,3 +317,8 @@ lemma signChanges_cons_cons_nonzero (a b : ℝ) (rest : List ℝ) (ha : a ≠ 0)
   rw [hfilter_all, hfilter_rest]; dsimp
   by_cases h : a * b < 0; · simp [h]; omega; · simp [h]; omega
 ```
+
+---
+## Attempt 20260626T150636Z
+
+Partial attempt - WIP on sigma_drop_at_simple_root lemma
