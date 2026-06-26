@@ -322,3 +322,8 @@ lemma signChanges_cons_cons_nonzero (a b : ℝ) (rest : List ℝ) (ha : a ≠ 0)
 ## Attempt 20260626T150636Z
 
 Partial attempt - WIP on sigma_drop_at_simple_root lemma
+
+---
+## Attempt 20260626T151315Z
+
+WIP on sturm proof - working on key lemmas
