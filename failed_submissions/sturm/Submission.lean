@@ -3,6 +3,7 @@ import Submission.Helpers
 
 open LeanEval.Algebra
 open Polynomial
+open Set
 open scoped Classical
 
 namespace Submission
