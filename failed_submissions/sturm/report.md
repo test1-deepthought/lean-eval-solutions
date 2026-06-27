@@ -618,3 +618,137 @@ lemma nonzero_near (q : ℝ[X]) (r : ℝ) (hq : q.eval r ≠ 0) : ∃ ε > 0, �
   refine ⟨ε, hε, ?_⟩
   intro x hx_dist; apply hball; rw [Metric.mem_ball, Real.dist_eq]; exact hx_dist
 ```
+
+---
+## Attempt 20260627T130013Z
+
+## Problem
+Sturm's theorem: For a squarefree real polynomial p and interval (a,b) with a<b whose endpoints are not roots of p, the number of distinct roots of p in (a,b) equals σ_p(a) - σ_p(b), where σ_p(x) counts sign changes in the Sturm chain evaluated at x.
+
+## Status: INCOMPLETE
+
+## Verified Components (lean4_exec exit_code 0)
+
+The following lemmas have been fully verified with `lean4_exec`:
+
+### signChanges lemmas
+1. `signChanges_nil` — signChanges of empty list is 0
+2. `signChanges_singleton` — signChanges of a singleton is 0
+3. `signChanges_cons_zero` — leading zero doesn't affect signChanges
+4. `signChanges_cons_cons_nonzero` — recurrence for signChanges with two leading nonzeros
+5. `signChanges_filter_eq` — signChanges is invariant under zero removal
+6. `signChanges_splice_zero` — inserting zero doesn't affect signChanges
+7. `signChanges_pair` — signChanges of a pair [a,b] is 1 if product negative
+
+### Polynomial lemmas
+8. `squarefree_imp_separable` — Over ℝ, Squarefree implies Separable (via PerfectField)
+9. `eval_derivative_ne_zero_of_squarefree_root` — At squarefree root, derivative is nonzero (via Separable.aeval_derivative_ne_zero)
+
+## Missing Components
+
+### 1. sigma_const_on_interval
+**Statement**: For interval (a,b) with no p-roots, ∀x,y∈(a,b), σ_p(x) = σ_p(y).
+
+**Strategy**: 
+- Show `sigma p` is `IsLocallyConstant` on ℝ  
+- Each chain member `q` is continuous; the set where `q.eval x ≠ 0` is open
+- For any x₀, find a neighborhood where all nonzero evaluations have constant sign
+- `signChanges` is a discrete-valued locally constant function
+- Since Ioo(a,b) is preconnected (`isPreconnected_Ioo`), a locally constant function on it is constant
+
+**Key Mathlib lemmas needed**:
+- `IsLocallyConstant.apply_eq_of_isPreconnected` (verified)
+- `isPreconnected_Ioo` (verified)
+- `Polynomial.continuous` (verified)
+- `Set.Ioo` properties (verified)
+
+### 2. sigma_drop_at_simple_root
+**Statement**: At a simple root r of p (so p(r)=0, p'(r)≠0), crossing r reduces sigma p by exactly 1.
+
+**Strategy**:
+- For u<r<v with no other roots in (u,v):
+  - p has opposite signs at u and v (by IVT, since p(r)=0, p'(r)≠0)
+  - p' has the same sign at u and v (since p'(r)≠0, continuous, no nearby roots)
+  - For higher entries q_k with q_k(r)≠0: same sign at u and v (continuous)
+  - For q_k with q_k(r)=0 (k≥1): adjacent entries have opposite signs at r by chain property
+    q_{k-1}(r)·q_{k+1}(r) < 0, so the sign pattern (q_{k-1}, q_k, q_{k+1}) changes but
+    contributes same total signChanges on both sides
+  - Net effect: exactly one sign variation is lost when crossing from left to right
+
+**Key Mathlib lemmas needed**:
+- `eval_derivative_ne_zero_of_squarefree_root` (verified above)
+- `Polynomial.continuous` 
+- `Intermediate Value Theorem` for continuous functions on intervals
+- `List.zip` and `signChanges` properties
+
+### 3. Main theorem assembly
+**Strategy**:
+- Let R = {roots of p in (a,b)} sorted: r_1 < r_2 < ... < r_k
+- Let r_0 = a, r_{k+1} = b
+- Between each r_i and r_{i+1}, sigma is constant (Lemma 1)
+- At each root r_i, sigma drops by 1 (Lemma 2)
+- Therefore σ(a) - σ(b) = Σ_{i=1}^k 1 = |R| = card of roots in (a,b)
+
+## Next Steps
+1. Complete `sigma_const_on_interval` using `IsLocallyConstant` + `isPreconnected_Ioo`
+2. Complete `sigma_drop_at_simple_root` with detailed sign analysis
+3. Assemble main theorem with induction over sorted roots
+
+## Saved Files
+- `Submission.lean` — Main theorem skeleton with proof sketch
+- `Submission/Helpers.lean` — 9 verified helper lemmas + proof sketches for missing parts
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open List
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+lemma signChanges_nil : signChanges ([] : List ℝ) = 0 := by
+  unfold signChanges; simp
+
+lemma signChanges_singleton (a : ℝ) : signChanges [a] = 0 := by
+  unfold signChanges
+  by_cases ha : a = 0
+  · subst ha; simp
+  · simp [ha]
+
+lemma signChanges_cons_zero (a : ℝ) (xs : List ℝ) (ha : a = 0) : signChanges (a :: xs) = signChanges xs := by
+  subst ha; unfold signChanges; simp
+
+lemma signChanges_cons_cons_nonzero (a b : ℝ) (xs : List ℝ) (ha : a ≠ 0) (hb : b ≠ 0) :
+    signChanges (a :: b :: xs) = (if a * b < 0 then 1 else 0) + signChanges (b :: xs) := by
+  unfold signChanges
+  simp [ha, hb]
+  by_cases h : a * b < 0
+  · simpa [h, add_comm]
+  · simpa [h]
+
+lemma signChanges_filter_eq (xs : List ℝ) : signChanges xs = signChanges (xs.filter (· ≠ 0)) := by
+  unfold signChanges; simp
+
+lemma signChanges_splice_zero (xs ys : List ℝ) : signChanges (xs ++ [0] ++ ys) = signChanges (xs ++ ys) := by
+  unfold signChanges; simp
+
+lemma signChanges_pair (a b : ℝ) (ha : a ≠ 0) (hb : b ≠ 0) : signChanges [a, b] = if a * b < 0 then 1 else 0 := by
+  calc
+    signChanges [a, b] = (if a * b < 0 then 1 else 0) + signChanges [b] := by
+      simpa using signChanges_cons_cons_nonzero a b [] ha hb
+    _ = (if a * b < 0 then 1 else 0) + 0 := by simp [signChanges_singleton]
+    _ = if a * b < 0 then 1 else 0 := by simp
+
+lemma squarefree_imp_separable (p : ℝ[X]) (hp : Squarefree p) : Separable p :=
+  (PerfectField.separable_iff_squarefree (K := ℝ) (g := p)).mpr hp
+
+lemma eval_derivative_ne_zero_of_squarefree_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : 
+    p.derivative.eval r ≠ 0 := by
+  have hsep : Separable p := squarefree_imp_separable p hp
+  have hx : (aeval r) p = 0 := by simpa using hr
+  have h := hsep.aeval_derivative_ne_zero (x := r) hx
+  simpa using h
+```
