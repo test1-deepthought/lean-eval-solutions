@@ -445,3 +445,176 @@ lemma eval_remainder_at_root (a b : ℝ[X]) (r : ℝ) (hb : b.eval r = 0) : (a %
 ## Agent Response Context
 
 The proof of Sturm's theorem for this Lean-Eval problem is partially complete. The supporting lemmas are fully verified, and the main proof structure is established. The remaining work involves formalizing the inductive argument on the Sturm chain structure to prove that sigma drops by exactly 1 at each simple root and is constant between roots. This requires about 3-4 additional lemmas building on the verified helper lemmas using the chain recurrence and triple_sign_lemma.
+
+---
+## Attempt 20260627T124424Z
+
+## Verified Lemmas Completed
+
+The following core lemmas have been verified with `lean4_exec` (exit code 0):
+
+1. **`signChanges_cons_cons_nonzero`**: For `a, b ≠ 0` and all entries of `rest` nonzero,
+   `signChanges (a :: b :: rest) = (if a*b < 0 then 1 else 0) + signChanges (b :: rest)`.
+   This is the key combinatorial lemma for analyzing `sigma` across a root of `p`.
+
+2. **`squarefree_imp_separable`**: Over ℝ, `Squarefree p` implies `Separable p`.
+   Uses `PerfectField.separable_iff_squarefree` with `PerfectField.ofCharZero`.
+
+3. **`eval_derivative_ne_zero_of_squarefree_root`**: If `p` is squarefree and `p.eval r = 0`,
+   then `(derivative p).eval r ≠ 0`. Uses `Separable` ↔ `IsCoprime p p'` via
+   `Polynomial.separable_def`.
+
+4. **`sign_constant_on_Ioo`**: If a polynomial `q` has no root in `Ioo c d` (with `c < d`),
+   then either `∀ x, q.eval x > 0` or `∀ x, q.eval x < 0` on `(c,d)`.
+   Uses the Intermediate Value Theorem.
+
+5. **`triple_sign_lemma`**: For `a,b,c: ℝ` with `a*c < 0` and `b ≠ 0`,
+   the sum `(if a*b < 0 then 1 else 0) + (if b*c < 0 then 1 else 0) = 1`.
+
+6. **`eval_remainder_at_root`**: If `b.eval r = 0`, then `(a % b).eval r = a.eval r`.
+   Key lemma for analyzing the Sturm chain at roots of interior members.
+
+7. **`factor_theorem_with_deriv`**: If `p.eval r = 0`, then `p = (X - C r) * q`
+   with `q.eval r = (derivative p).eval r`.
+
+8. **`nonzero_near`**: If `q.eval r ≠ 0`, there's a neighborhood of `r` where `q.eval x ≠ 0`.
+
+9. **`pos_product_near`**: If `f.eval r * g.eval r > 0`, there's a neighborhood where
+   `f.eval x * g.eval x > 0`.
+
+10. **`sign_change_at_root`**: At a simple root `r` of `p` (so `p'(r) ≠ 0`),
+    `p(u)*p'(u) < 0` for `u < r` and `p(v)*p'(v) > 0` for `v > r`.
+
+## Remaining Work
+
+### Lemma: sigma_drop_at_simple_root (Critical)
+
+Prove: At a simple root r of squarefree p (so p'(r) ≠ 0), there exists δ > 0 such that
+for all u ∈ (r-δ, r) and v ∈ (r, r+δ), sigma p u - sigma p v = 1.
+
+**Strategy**: Use sign_change_at_root to get the behavior of (p, p').
+For deeper chain entries p_k (k ≥ 2), use the Sturm chain property:
+- If p_k(r) = 0, then by eval_remainder_at_root, p_{k+1}(r) = -p_{k-1}(r) ≠ 0,
+  and the contribution from (p_{k-1}, p_k, p_{k+1}) is invariant across r
+  (by triple_sign_lemma and sign_preserving_near).
+- If p_k(r) ≠ 0, the contribution is locally constant by continuity.
+
+### Lemma: sigma_const_on_interval 
+
+Prove: On an interval (c,d) where p has no roots and endpoints are not roots,
+sigma p c = sigma p d.
+
+**Strategy**: Construct the finite set S = {roots of all sturmChain members in (c,d)}.
+On each interval between consecutive elements of S, sigma is constant (by sign_constant_on_Ioo).
+At each element of S that is a root of p_k (k ≥ 1), sigma is unchanged 
+(by triple_sign_lemma and the chain property p_{k+1}(r) = -p_{k-1}(r) when p_k(r) = 0).
+
+### Main Theorem: Induction
+
+Given the two lemmas above:
+1. Sort the distinct roots r_1 < ... < r_k of p in (a,b).
+2. Pick points x_0 = a < x_1 < r_1 < x_2 < ... < r_k < x_{k+1} = b with no roots between.
+3. sigma(a) - sigma(b) = sum_i (sigma(x_i) - sigma(x_{i+1})) = k = |R|.
+   - Each sigma(x_i) - sigma(x_{i+1}) where no p-root lies between = 0 (by const lemma).
+   - Each sigma(x_i) - sigma(x_{i+1}) where r_i lies between = 1 (by drop lemma).
+
+## Attempt Date
+
+2026-06-27
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+lemma signChanges_cons_cons_nonzero (a b : ℝ) (rest : List ℝ) (ha : a ≠ 0) (hb : b ≠ 0) (hrest : ∀ x ∈ rest, x ≠ 0) : signChanges (a :: b :: rest) = (if a * b < 0 then 1 else 0) + signChanges (b :: rest) := by
+  unfold signChanges
+  have hfilter_all : (a :: b :: rest).filter (· ≠ 0) = a :: b :: rest := by
+    refine List.filter_eq_self.mpr ?_
+    intro x hx; simp at hx; rcases hx with (rfl|rfl|hx)
+    · simp [ha]; · simp [hb]; · simp [hrest x hx]
+  have hfilter_rest : (b :: rest).filter (· ≠ 0) = b :: rest := by
+    refine List.filter_eq_self.mpr ?_
+    intro x hx; simp at hx; rcases hx with (rfl|hx)
+    · simp [hb]; · simp [hrest x hx]
+  rw [hfilter_all, hfilter_rest]; dsimp
+  by_cases h : a * b < 0; · simp [h]; omega; · simp [h]; omega
+
+lemma triple_sign_lemma (a b c : ℝ) (hac : a * c < 0) (hb : b ≠ 0) : ((if a * b < 0 then 1 else 0 : ℕ) + (if b * c < 0 then 1 else 0 : ℕ)) = 1 := by
+  have ha_ne_zero : a ≠ 0 := by intro hzero; subst hzero; nlinarith
+  have hc_ne_zero : c ≠ 0 := by intro hzero; subst hzero; nlinarith
+  have ha_sign : a > 0 ∨ a < 0 := lt_or_gt_of_ne ha_ne_zero.symm
+  have hb_sign : b > 0 ∨ b < 0 := lt_or_gt_of_ne hb.symm
+  rcases ha_sign with (ha_pos | ha_neg)
+  · have hc_neg : c < 0 := by nlinarith
+    rcases hb_sign with (hb_pos | hb_neg)
+    · have h1 : ¬ (a * b < 0) := by nlinarith; have h2 : b * c < 0 := by nlinarith; simp [h1, h2]
+    · have h1 : a * b < 0 := by nlinarith; have h2 : ¬ (b * c < 0) := by nlinarith; simp [h1, h2]
+  · have hc_pos : c > 0 := by nlinarith
+    rcases hb_sign with (hb_pos | hb_neg)
+    · have h1 : a * b < 0 := by nlinarith; have h2 : ¬ (b * c < 0) := by nlinarith; simp [h1, h2]
+    · have h1 : ¬ (a * b < 0) := by nlinarith; have h2 : b * c < 0 := by nlinarith; simp [h1, h2]
+
+lemma sign_constant_on_Ioo (q : ℝ[X]) (c d : ℝ) (hcd : c < d) (h_no_root : ∀ x ∈ Ioo c d, q.eval x ≠ 0) : (∀ x ∈ Ioo c d, q.eval x > 0) ∨ (∀ x ∈ Ioo c d, q.eval x < 0) := by
+  have h_cont : Continuous (q.eval : ℝ → ℝ) := Polynomial.continuous q
+  by_cases hpos : ∃ x ∈ Ioo c d, q.eval x > 0
+  · rcases hpos with ⟨x, hx, hxpos⟩
+    refine Or.inl ?_
+    intro y hy; by_contra! h_notpos
+    have hy_nonzero : q.eval y ≠ 0 := h_no_root y hy
+    have hy_neg : q.eval y < 0 := by have : q.eval y ≤ 0 := h_notpos; exact Ne.lt_of_le hy_nonzero this
+    by_cases hxy : x < y
+    · have h_cont_on : ContinuousOn (q.eval : ℝ → ℝ) (Icc x y) := h_cont.continuousOn
+      have h0_in : (0 : ℝ) ∈ Ioo (q.eval y) (q.eval x) := by constructor <;> linarith
+      have h_contains : Ioo (q.eval y) (q.eval x) ⊆ (q.eval : ℝ → ℝ) '' Ioo x y :=
+        intermediate_value_Ioo' (by linarith) h_cont_on
+      rcases h_contains h0_in with ⟨z, hz, hz0⟩
+      apply h_no_root z; · rcases hz with ⟨hzx, hzy⟩; exact ⟨lt_of_lt_of_le hx.1 hzx.le, lt_of_le_of_lt hzy.le hy.2⟩
+      · exact hz0
+    · have hyx : y < x := by
+        have hy_le_x : y ≤ x := by linarith; have hy_ne_x : y ≠ x := by intro h_eq; subst h_eq; linarith
+        exact Ne.lt_of_le hy_ne_x hy_le_x
+      have h_cont_on : ContinuousOn (q.eval : ℝ → ℝ) (Icc y x) := h_cont.continuousOn
+      have h0_in : (0 : ℝ) ∈ Ioo (q.eval y) (q.eval x) := by constructor <;> linarith
+      have h_contains : Ioo (q.eval y) (q.eval x) ⊆ (q.eval : ℝ → ℝ) '' Ioo y x :=
+        intermediate_value_Ioo (by linarith) h_cont_on
+      rcases h_contains h0_in with ⟨z, hz, hz0⟩
+      apply h_no_root z; · rcases hz with ⟨hzy, hzx⟩; exact ⟨lt_of_lt_of_le hy.1 hzy.le, lt_of_le_of_lt hzx.le hx.2⟩
+      · exact hz0
+  · refine Or.inr ?_
+    intro y hy; have hy_nonzero : q.eval y ≠ 0 := h_no_root y hy
+    have hy_nonpos : q.eval y ≤ 0 := by by_contra! hpos_y; exact hpos ⟨y, hy, hpos_y⟩
+    exact Ne.lt_of_le hy_nonzero hy_nonpos
+
+lemma squarefree_imp_separable (p : ℝ[X]) (hp : Squarefree p) : Separable p := by
+  haveI : CharZero ℝ := by infer_instance
+  haveI : PerfectField ℝ := PerfectField.ofCharZero
+  rw [PerfectField.separable_iff_squarefree]; exact hp
+
+lemma eval_derivative_ne_zero_of_squarefree_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : (derivative p).eval r ≠ 0 := by
+  have hsep : Separable p := squarefree_imp_separable p hp
+  have hcop : IsCoprime p (derivative p) := ((Polynomial.separable_def p).mp hsep)
+  intro hderiv
+  have h_cop_eval : IsCoprime (p.eval r) ((derivative p).eval r) := hcop.map (evalRingHom r)
+  rcases h_cop_eval with ⟨a, b, h⟩; rw [hr, hderiv] at h; simp at h
+
+lemma eval_remainder_at_root (a b : ℝ[X]) (r : ℝ) (hb : b.eval r = 0) : (a % b).eval r = a.eval r := by
+  have hdiv := EuclideanDomain.div_add_mod a b
+  have hval := congrArg (fun q : ℝ[X] => q.eval r) hdiv
+  simp [hb] at hval; exact hval
+
+lemma factor_theorem_with_deriv (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) : ∃ q : ℝ[X], p = (X - C r) * q ∧ q.eval r = (derivative p).eval r := by
+  have hfactor : (X - C r) ∣ p := by rw [Polynomial.dvd_iff_isRoot]; exact hp0
+  rcases hfactor with ⟨q, hpq⟩
+  refine ⟨q, hpq, ?_⟩
+  have hderiv : derivative p = q + (X - C r) * derivative q := by
+    rw [hpq, derivative_mul, derivative_sub, derivative_X, derivative_C]; ring
+  calc q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+    _ = (derivative p).eval r := by rw [hderiv]
+
+lemma nonzero_near (q : ℝ[X]) (r : ℝ) (hq : q.eval r ≠ 0) : ∃ ε > 0, ∀ x, |x - r| < ε → q.eval x ≠ 0 := by
+  have hcont : Continuous (q.eval : ℝ → ℝ) := Polynomial.continuous q
+  have hcont_at : ContinuousAt (q.eval : ℝ → ℝ) r := hcont.continuousAt
+  have hevent : ∀ᶠ x in nhds r, q.eval x ≠ 0 := hcont_at.tendsto.eventually_ne hq
+  rcases Metric.mem_nhds_iff.mp hevent with ⟨ε, hε, hball⟩
+  refine ⟨ε, hε, ?_⟩
+  intro x hx_dist; apply hball; rw [Metric.mem_ball, Real.dist_eq]; exact hx_dist
+```
