@@ -332,3 +332,18 @@ WIP on sturm proof - working on key lemmas
 ## Attempt 20260627T033209Z
 
 WIP on Sturm's theorem proof. Helpers.lean has all verified lemmas (signChanges_cons_cons_nonzero, squarefree_imp_separable, eval_derivative_ne_zero_of_squarefree_root, sign_constant_on_Ioo, nonzero_near, factor_theorem_with_deriv, triple_sign_lemma, eval_remainder_at_root). Main theorem in Submission.lean still needs completion.
+
+---
+## Attempt 20260627T033255Z
+
+## Verified Lemmas Completed
+(record in PROVE frontier state / attached candidate files)
+
+## Current Frontier Lemma
+(not supplied)
+
+## Exact Failed Lean Error
+(none recorded)
+
+## Next Lemma To Prove
+(not supplied)
