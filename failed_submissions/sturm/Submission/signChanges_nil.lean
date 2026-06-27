@@ -1,0 +1,2 @@
+lemma signChanges_nil : signChanges ([] : List ℝ) = 0 := by
+  unfold signChanges; simp
