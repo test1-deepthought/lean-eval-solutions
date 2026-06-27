@@ -327,3 +327,8 @@ Partial attempt - WIP on sigma_drop_at_simple_root lemma
 ## Attempt 20260626T151315Z
 
 WIP on sturm proof - working on key lemmas
+
+---
+## Attempt 20260627T033209Z
+
+WIP on Sturm's theorem proof. Helpers.lean has all verified lemmas (signChanges_cons_cons_nonzero, squarefree_imp_separable, eval_derivative_ne_zero_of_squarefree_root, sign_constant_on_Ioo, nonzero_near, factor_theorem_with_deriv, triple_sign_lemma, eval_remainder_at_root). Main theorem in Submission.lean still needs completion.
