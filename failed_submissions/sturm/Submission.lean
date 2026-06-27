@@ -7,7 +7,6 @@ open Set
 open scoped Classical
 
 namespace Submission
-
 open Helpers
 
 -- sigmaAux for the sturmAux chain
@@ -20,124 +19,75 @@ lemma sigma_eq_sigmaAux (p : ℝ[X]) (x : ℝ) : sigma p x = sigmaAux p (derivat
 -- Helper: product of two continuous functions maintains positivity near a point
 lemma pos_product_near (f g : ℝ[X]) (r : ℝ) (hpos : f.eval r * g.eval r > 0) : 
     ∃ δ > 0, ∀ x, |x - r| < δ → f.eval x * g.eval x > 0 := by
-  have hnonzero : (f * g).eval r ≠ 0 := by
-    rw [eval_mul]; exact ne_of_gt hpos
-  rcases nonzero_near (f * g) r hnonzero with ⟨ε, hε, hprod⟩
-  let δ := ε / 2
-  have hδpos : δ > 0 := by nlinarith
-  refine ⟨δ, hδpos, ?_⟩
+  have hcont_f : Continuous (fun x : ℝ => f.eval x) := f.continuous
+  have hcont_g : Continuous (fun x : ℝ => g.eval x) := g.continuous
+  have hcont_prod : Continuous (fun x : ℝ => f.eval x * g.eval x) := hcont_f.mul hcont_g
+  have hopen : IsOpen (Set.Ioi (0 : ℝ)) := isOpen_Ioi
+  have hpreim_open : IsOpen ((fun x : ℝ => f.eval x * g.eval x)⁻¹' (Set.Ioi 0)) :=
+    hcont_prod.isOpen_preimage (Set.Ioi 0) hopen
+  have hmem : r ∈ (fun x : ℝ => f.eval x * g.eval x)⁻¹' (Set.Ioi 0) := hpos
+  rcases Metric.isOpen_iff.mp hpreim_open r hmem with ⟨δ, hδ, hball⟩
+  refine ⟨δ, hδ, ?_⟩
   intro x hx
-  have hx' : |x - r| < ε := by
-    have : |x - r| < δ := hx; nlinarith
-  have hnonzero' : (f * g).eval x ≠ 0 := hprod x hx'
-  have hpos' : (f * g).eval x > 0 := by
-    rw [eval_mul] at hnonzero'
-    have h_cont : Continuous (f.eval * g.eval : ℝ → ℝ) := by
-      continuity
-    -- Since (f*g).eval r > 0 and (f*g).eval x ≠ 0 for |x-r| < ε, (f*g).eval x > 0
-    -- by continuity and the Intermediate Value Property
-    have hroot_free : ∀ y ∈ Ioo (r - δ) (r + δ), (f * g).eval y ≠ 0 := by
-      intro y hy
-      apply hprod y
-      have : |y - r| < δ := by
-        rcases hy with ⟨hyl, hyr⟩
-        have : y - r > -δ := by linarith
-        have : y - r < δ := by linarith
-        rw [abs_lt]; constructor <;> linarith
-      exact this
-    rcases sign_constant_on_Ioo (f * g) (r - δ) (r + δ) (by nlinarith) hroot_free with (h | h)
-    · apply h x; nlinarith
-    · have : (f * g).eval r > 0 := hpos
-      have : (f * g).eval r < 0 := h r (by nlinarith)
-      linarith
-  exact hpos'
+  have hx_ball : x ∈ Metric.ball r δ := by
+    rw [Metric.mem_ball, Real.dist_eq]; exact hx
+  have hx_mem : x ∈ (fun x : ℝ => f.eval x * g.eval x)⁻¹' (Set.Ioi 0) := hball hx_ball
+  simpa using hx_mem
 
 -- At a simple root r, p(u)*p'(u) < 0 for u left of r and > 0 for v right of r
 lemma sign_change_at_root (p : ℝ[X]) (r : ℝ) (hpderiv : (derivative p).eval r ≠ 0) 
     (hp0 : p.eval r = 0) : ∃ δ > 0, (∀ u, r - δ < u ∧ u < r → p.eval u * (derivative p).eval u < 0) ∧
     (∀ v, r < v ∧ v < r + δ → p.eval v * (derivative p).eval v > 0) := by
-  rcases factor_theorem_with_deriv p r hp0 with ⟨q, hpq, hq⟩
-  have hqr : q.eval r * (derivative p).eval r > 0 := by
-    rw [hq]; nlinarith [sq_pos_of_ne_zero hpderiv]
-  rcases pos_product_near q (derivative p) r hqr with ⟨δ₁, hδ₁pos, hpos⟩
-  have h_ur_neg : ∀ u, r - δ₁ < u ∧ u < r → (u - r) < 0 := by
-    intro u ⟨hu1, hu2⟩; linarith
-  have h_vr_pos : ∀ v, r < v ∧ v < r + δ₁ → (v - r) > 0 := by
-    intro v ⟨hv1, hv2⟩; linarith
-  refine ⟨δ₁, hδ₁pos, ?_, ?_⟩
-  · intro u ⟨hu1, hu2⟩
-    have hpu : p.eval u = (u - r) * q.eval u := by
-      rw [hpq, eval_mul, eval_sub, eval_X, eval_C]; ring
-    have hsign : q.eval u * (derivative p).eval u > 0 := hpos u (by
-      have : |u - r| < δ₁ := by
-        have : u - r < 0 := h_ur_neg u ⟨hu1, hu2⟩
-        have : |u - r| = r - u := abs_of_neg (sub_neg.mpr hu2)
-        rw [this]; nlinarith
-      exact this)
-    have h_neg : (u - r) < 0 := h_ur_neg u ⟨hu1, hu2⟩
-    nlinarith
-  · intro v ⟨hv1, hv2⟩
-    have hpv : p.eval v = (v - r) * q.eval v := by
-      rw [hpq, eval_mul, eval_sub, eval_X, eval_C]; ring
-    have hsign : q.eval v * (derivative p).eval v > 0 := hpos v (by
-      have : |v - r| < δ₁ := by
-        have : v - r > 0 := h_vr_pos v ⟨hv1, hv2⟩
-        have : |v - r| = v - r := abs_of_pos (sub_pos.mpr hv1)
-        rw [this]; nlinarith
-      exact this)
-    have h_pos : (v - r) > 0 := h_vr_pos v ⟨hv1, hv2⟩
-    nlinarith
+  have h_factor : (X - C r) ∣ p := (Polynomial.dvd_iff_isRoot.mpr (by rw [Polynomial.IsRoot]; exact hp0))
+  rcases h_factor with ⟨q, h_eq⟩
+  have h_deriv : derivative p = q + (X - C r) * derivative q := by
+    calc
+      derivative p = derivative ((X - C r) * q) := by rw [h_eq]
+      _ = derivative (X - C r) * q + (X - C r) * derivative q := by rw [Polynomial.derivative_mul]
+      _ = 1 * q + (X - C r) * derivative q := by simp
+      _ = q + (X - C r) * derivative q := by simp
+  have h_q_eval : q.eval r = (derivative p).eval r := by
+    calc q.eval r = (q + (X - C r) * derivative q).eval r := by simp
+      _ = (derivative p).eval r := by rw [h_deriv]
+  have h_g_pos : q.eval r * (derivative p).eval r > 0 := by
+    rw [h_q_eval]; exact mul_self_pos.mpr hpderiv
+  rcases pos_product_near q (derivative p) r h_g_pos with ⟨δ, hδ, hpos⟩
+  refine ⟨δ, hδ, ?_, ?_⟩
+  · intro u ⟨hu_left, hu_right⟩
+    have h_abs : |u - r| < δ := by
+      have : u - r < 0 := sub_neg.mpr hu_right
+      rw [abs_of_neg this]; linarith
+    have h_pos_prod : q.eval u * (derivative p).eval u > 0 := hpos u h_abs
+    have h_p_eval : p.eval u = (u - r) * q.eval u := by
+      rw [h_eq, eval_mul, eval_sub, eval_X, eval_C]; ring
+    calc p.eval u * (derivative p).eval u = ((u - r) * q.eval u) * (derivative p).eval u := by rw [h_p_eval]
+      _ = (u - r) * (q.eval u * (derivative p).eval u) := by ring
+      _ < 0 := by have h_neg : u - r < 0 := sub_neg.mpr hu_right; nlinarith
+  · intro v ⟨hv_left, hv_right⟩
+    have h_abs : |v - r| < δ := by
+      have : v - r > 0 := sub_pos.mpr hv_left
+      rw [abs_of_pos this]; linarith
+    have h_pos_prod : q.eval v * (derivative p).eval v > 0 := hpos v h_abs
+    have h_p_eval : p.eval v = (v - r) * q.eval v := by
+      rw [h_eq, eval_mul, eval_sub, eval_X, eval_C]; ring
+    calc p.eval v * (derivative p).eval v = ((v - r) * q.eval v) * (derivative p).eval v := by rw [h_p_eval]
+      _ = (v - r) * (q.eval v * (derivative p).eval v) := by ring
+      _ > 0 := by have h_pos : v - r > 0 := sub_pos.mpr hv_left; nlinarith
 
 -- Main theorem: Sturm's theorem
 theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
     (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
     ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
       sigma p a - sigma p b := by
-  -- Key observation: For a squarefree polynomial p:
-  -- (1) Between consecutive roots of p, sigma is constant (since p' ≠ 0 at roots of p,
-  --     and other chain entries either maintain sign or contribute the same via triple_sign_lemma)
-  -- (2) At each simple root r of p, sigma drops by exactly 1 (by sign_change_at_root
-  --     and the signChanges_cons_cons_nonzero lemma)
-  -- (3) Therefore, sigma p a - sigma p b = number of distinct roots of p in (a,b)
-  --
-  -- Formal proof by strong induction on the number of distinct roots in (a,b):
   let R := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b))
-  -- Use the fact that R is finite and we can extract its minimal element
-  by_cases hR : R.Nonempty
-  · -- Pick the smallest root r in (a,b)
-    let r := R.min' hR
-    have hrR : r ∈ R := Finset.min'_mem _ _ hR
-    have hr_range : a < r ∧ r < b := by
-      rcases Finset.mem_filter.mp hrR with ⟨hrRoot, hrRange⟩
-      exact hrRange
-    rcases hr_range with ⟨har, hrb⟩
-    have hproot : p.eval r = 0 := by
-      rcases Finset.mem_filter.mp hrR with ⟨hrRoot, hrRange⟩
-      rw [Finset.mem_toFinset] at hrRoot
-      exact hrRoot
-    have hpderiv : (derivative p).eval r ≠ 0 :=
-      eval_derivative_ne_zero_of_squarefree_root p hp r hproot
-    rcases sign_change_at_root p r hpderiv hproot with ⟨δ, hδpos, hleft, hright⟩
-    have hδ_small : r - δ > a ∧ r + δ < b := by
-      have : δ < r - a := sorry
-      sorry
-    sorry
-  · -- R empty: p has no roots in (a,b)
-    -- Need to show sigma p a = sigma p b
-    -- Since p has no roots in (a,b) and is squarefree, p' ≠ 0 everywhere in (a,b)
-    -- and all Sturm chain members maintain constant sign relationships
-    -- so sigma is constant on (a,b)
-    have h_no_root : ∀ x ∈ Ioo a b, p.eval x ≠ 0 := by
-      intro x hx
-      rcases hx with ⟨hax, hxb⟩
-      intro hzero
-      apply hR
-      refine ⟨x, Finset.mem_filter.mpr ⟨?_, hax, hxb⟩⟩
-      rw [Finset.mem_toFinset, Polynomial.mem_roots (by
-        -- p ≠ 0 since it has no roots and is squarefree
-        intro hzero_p
-        apply ha; rw [hzero_p, eval_zero])]
-      exact hzero
-    sorry
+  -- The proof requires two key lemmas that are not yet fully formalized:
+  -- 1. sigma_drop_at_simple_root: At each simple root r of p, sigma drops by exactly 1.
+  --    This requires analyzing the Sturm chain behavior at r, using the triple_sign_lemma
+  --    to show that deeper chain entries have invariant contribution across r.
+  -- 2. sigma_const_on_interval: On intervals with no p-roots, sigma is constant.
+  --    This requires showing that even when interior chain members have roots,
+  --    the total sigma is unchanged (using the chain property and triple_sign_lemma).
+  -- See failed_submissions/sturm/report.md for the full proof strategy.
+  sorry
 
 end Submission
