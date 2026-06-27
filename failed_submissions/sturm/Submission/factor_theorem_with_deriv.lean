@@ -3,5 +3,4 @@ lemma factor_theorem_with_deriv (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) : �
   rcases hfactor with ⟨q, hpq⟩; refine ⟨q, hpq, ?_⟩
   have hderiv : derivative p = q + (X - C r) * derivative q := by
     rw [hpq, derivative_mul, derivative_sub, derivative_X, derivative_C]; ring
-  calc q.eval r = (q + (X - C r) * derivative q).eval r := by simp
-    _ = (derivative p).eval r := by rw [hderiv]
+  calc q.eval r = (q + (X - C r) * derivative q).eval r := by simp; _ = (derivative p).eval r := by rw [hderiv]
