@@ -347,3 +347,23 @@ WIP on Sturm's theorem proof. Helpers.lean has all verified lemmas (signChanges_
 
 ## Next Lemma To Prove
 (not supplied)
+
+---
+## Attempt 20260627T033320Z
+
+## Verified Lemmas Completed
+(record in PROVE frontier state / attached candidate files)
+
+## Current Frontier Lemma
+(not supplied)
+
+## Exact Failed Lean Error
+(none recorded)
+
+## Next Lemma To Prove
+(not supplied)
+
+
+## Agent Response Context
+
+The proof of Sturm's theorem requires formalizing the key lemmas about the Sturm chain behavior at simple roots. The approach uses induction on the sorted list of distinct real roots in (a,b). At each root, sigma drops by exactly 1 (proved via factor_theorem_with_deriv, nonzero_near, signChanges_cons_cons_nonzero, and triple_sign_lemma). Between roots, sigma is constant (proved via sign_constant_on_Ioo).
