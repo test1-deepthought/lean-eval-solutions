@@ -5,13 +5,9 @@ lemma signChanges_triple_opposite (a b c : ℝ) (hac : a * c < 0) : signChanges 
   · subst hb0; simp [ha0, hc0, hac]
   · have hb0' : b ≠ 0 := hb0
     have h1 : signChanges [a, b, c] = (if a * b < 0 then 1 else 0) + signChanges [b, c] := by
-      simpa using signChanges_cons_cons_nonzero a b [c] ha0 hb0'
-    have h2 : signChanges [b, c] = (if b * c < 0 then 1 else 0) := by
-      calc
-        signChanges [b, c] = (if b * c < 0 then 1 else 0) + signChanges [c] :=
-          signChanges_cons_cons_nonzero b c [] hb0' hc0
-        _ = (if b * c < 0 then 1 else 0) + 0 := by simp [signChanges_singleton]
-        _ = (if b * c < 0 then 1 else 0) := by simp
+      simpa using signChanges_cons_nonzero a b [c] ha0 hb0'
+    have h2 : signChanges [b, c] = (if b * c < 0 then 1 else 0) :=
+      signChanges_pair b c hb0' hc0
     rw [h1, h2]
     have hsq_pos : b ^ 2 > 0 := sq_pos_of_ne_zero hb0'
     have hprod_lt0 : (a * b) * (b * c) < 0 := by
