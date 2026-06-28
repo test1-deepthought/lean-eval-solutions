@@ -1,27 +1,18 @@
-import Mathlib
+import ChallengeDeps
+import Submission.Helpers
+
+open LeanEval.Algebra
 open Polynomial
 open scoped Classical
 
-namespace Submission.Helpers
+set_option autoImplicit false
 
-lemma eval_mod_eq_eval_of_root (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) : (f % g).eval r = f.eval r := by
-  have h := EuclideanDomain.mod_add_div f g
-  calc
-    (f % g).eval r = ((f % g) + g * (f / g) - g * (f / g)).eval r := by simp
-    _ = (f - g * (f / g)).eval r := by rw [h]
-    _ = f.eval r - (g * (f / g)).eval r := by simp
-    _ = f.eval r - (g.eval r * ((f / g).eval r)) := by simp
-    _ = f.eval r := by simp [hg]
+namespace Submission
 
-lemma sturm_adjacent_opposite (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) (hf : f.eval r ≠ 0) :
-    f.eval r * (-(f % g)).eval r < 0 := by
-  have h := eval_mod_eq_eval_of_root f g r hg
-  have hneg : (-(f % g)).eval r = -(f.eval r) := by
-    calc
-      (-(f % g)).eval r = -((f % g).eval r) := by simp
-      _ = -(f.eval r) := by rw [h]
-  rw [hneg]
-  have hsq : (f.eval r)^2 > 0 := sq_pos_iff.mpr hf
-  nlinarith
+theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
+    (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
+    ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
+      sigma p a - sigma p b := by
+  sorry
 
-end Submission.Helpers
+end Submission
