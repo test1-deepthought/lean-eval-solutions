@@ -1249,3 +1249,104 @@ lemma eval_derivative_ne_zero_of_squarefree_root (p : ℝ[X]) (hp : Squarefree p
   have h_eval : (a * p + b * derivative p).eval r = 1 := by rw [h, Polynomial.eval_one]
   have h_eval' : (a * p + b * derivative p).eval r = a.eval r *
 ```
+
+---
+## Attempt 20260628T022640Z
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open Set
+open scoped Topology
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) => if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+lemma signChanges_singleton (a : ℝ) : signChanges [a] = 0 := by
+  dsimp [signChanges]; by_cases ha : a = 0; subst ha; simp; simp [ha]
+
+lemma signChanges_cons_nonzero (a b : ℝ) (rest : List ℝ) (ha : a ≠ 0) (hb : b ≠ 0) : 
+    signChanges (a :: b :: rest) = (if a * b < 0 then 1 else 0) + signChanges (b :: rest) := by
+  dsimp [signChanges]
+  have hfilter : (a :: b :: rest).filter (· ≠ 0) = a :: (b :: rest).filter (· ≠ 0) := by simp [ha]
+  have hfilter' : (b :: rest).filter (· ≠ 0) = b :: rest.filter (· ≠ 0) := by simp [hb]
+  rw [hfilter, hfilter']
+  have htail : (a :: b :: rest.filter (· ≠ 0)).tail = b :: rest.filter (· ≠ 0) := by simp
+  rw [htail]; set tail := rest.filter (· ≠ 0) with htail_def
+  have hzip : (a :: b :: tail).zip (b :: tail) = (a, b) :: ((b :: tail).zip tail) := by simp
+  rw [hzip]
+  have hfilter_len : (List.filter (fun (q : ℝ × ℝ) => q.1 * q.2 < 0) ((a, b) :: ((b :: tail).zip tail))).length = 
+    (if a * b < 0 then 1 else 0) + (List.filter (fun (q : ℝ × ℝ) => q.1 * q.2 < 0) ((b :: tail).zip tail)).length := by
+    by_cases h_ab : a * b < 0; simp [h_ab]; omega; simp [h_ab]
+  rw [hfilter_len]; have htail_tail : (b :: tail).tail = tail := by simp; simp [htail_tail]
+
+lemma signChanges_cons_triple (a b c : ℝ) (rest : List ℝ) (ha : a ≠ 0) (hc : c ≠ 0) (h_ac : a * c < 0) :
+    signChanges (a :: b :: c :: rest) = 1 + signChanges (c :: rest) := by
+  by_cases hb0 : b = 0
+  · subst hb0; calc
+      signChanges (a :: 0 :: c :: rest) = signChanges (a :: c :: rest) := by
+        dsimp [signChanges]; simp [ha, hc]
+      _ = (if a * c < 0 then 1 else 0) + signChanges (c :: rest) := signChanges_cons_nonzero a c rest ha hc
+      _ = 1 + signChanges (c :: rest) := by simp [h_ac]
+  · have hb : b ≠ 0 := hb0
+    have h_triple_val : (if a * b < 0 then (1 : ℕ) else 0) + (if b * c < 0 then (1 : ℕ) else 0) = 1 := by
+      have h_sq_pos : b * b > 0 := mul_self_pos.mpr hb; have h_eq : (a * b) * (b * c) = (a * c) * (b * b) := by ring
+      by_cases h_ab : a * b < 0
+      · have h_not_bc : ¬(b * c < 0) := by
+          intro h_bc; have h_pos : (a * b) * (b * c) > 0 := mul_pos_of_neg_of_neg h_ab h_bc
+          rw [h_eq] at h_pos; nlinarith
+        simp [h_ab, h_not_bc]
+      · have h_ab_nonneg : a * b ≥ 0 := not_lt.mp h_ab
+        have h_bc : b * c < 0 := by
+          by_contra! h; have h_nonneg : (a * b) * (b * c) ≥ 0 := mul_nonneg h_ab_nonneg h
+          rw [h_eq] at h_nonneg; nlinarith
+        simp [h_ab, h_bc]
+    calc
+      signChanges (a :: b :: c :: rest) = (if a * b < 0 then 1 else 0) + signChanges (b :: c :: rest) :=
+        signChanges_cons_nonzero a b (c :: rest) ha hb
+      _ = (if a * b < 0 then 1 else 0) + ((if b * c < 0 then 1 else 0) + signChanges (c :: rest)) := by
+        rw [signChanges_cons_nonzero b c rest hb hc]
+      _ = ((if a * b < 0 then 1 else 0) + (if b * c < 0 then 1 else 0)) + signChanges (c :: rest) := by omega
+      _ = 1 + signChanges (c :: rest) := by rw [h_triple_val]
+
+lemma eval_remainder_at_root (a b : ℝ[X]) (r : ℝ) (hb : b.eval r = 0) : (a % b).eval r = a.eval r := by
+  rw [Polynomial.mod_def]
+  by_cases hb0 : b = 0; · subst hb0; simp
+  · have hmonic : Monic (b * C ((leadingCoeff b)⁻¹)) := by
+      have hlc : leadingCoeff b ≠ 0 := leadingCoeff_ne_zero.mpr hb0
+      rw [Monic, leadingCoeff_mul, leadingCoeff_C]; simp [hlc]
+    have hzero : (b * C ((leadingCoeff b)⁻¹)).eval r = 0 := by simp [hb]
+    rw [Polynomial.modByMonic_eq_sub_mul_div a (b * C ((leadingCoeff b)⁻¹))]; simp [hzero]
+
+lemma nonzero_near (q : ℝ[X]) (r : ℝ) (hq : q.eval r ≠ 0) : ∃ ε > 0, ∀ x, |x - r| < ε → q.eval x ≠ 0 := by
+  have hcont : Continuous (fun x : ℝ => q.eval x) := Polynomial.continuous q
+  have h_open : IsOpen {x | q.eval x ≠ 0} := by
+    have : {x | q.eval x ≠ 0} = (fun x : ℝ => q.eval x)⁻¹' ({0} : Set ℝ)ᶜ := by ext x; simp
+    rw [this]; exact IsOpen.preimage hcont (by exact isOpen_compl_singleton)
+  have h_mem : r ∈ {x | q.eval x ≠ 0} := hq
+  have h_nhds : {x | q.eval x ≠ 0} ∈ 𝓝 r := h_open.mem_nhds h_mem
+  rcases Metric.mem_nhds_iff.mp h_nhds with ⟨ε, hε, hball⟩
+  refine ⟨ε, hε, ?_⟩; intro x hx; apply hball; rw [Metric.mem_ball, Real.dist_eq]; exact hx
+
+lemma sign_near (q : ℝ[X]) (r : ℝ) (hq : q.eval r > 0) : ∃ ε > 0, ∀ x, |x - r| < ε → q.eval x > 0 := by
+  have hcont : Continuous (fun x : ℝ => q.eval x) := Polynomial.continuous q
+  have h_open : IsOpen {x | q.eval x > 0} := by
+    have : {x | q.eval x > 0} = (fun x : ℝ => q.eval x)⁻¹' (Set.Ioi 0) := by ext x; simp
+    rw [this]; exact IsOpen.preimage hcont isOpen_Ioi
+  have h_mem : r ∈ {x | q.eval x > 0} := hq
+  have h_nhds : {x | q.eval x > 0} ∈ 𝓝 r := h_open.mem_nhds h_mem
+  rcases Metric.mem_nhds_iff.mp h_nhds with ⟨ε, hε, hball⟩
+  refine ⟨ε, hε, ?_⟩; intro x hx; apply hball; rw [Metric.mem_ball, Real.dist_eq]; exact hx
+
+lemma sign_near_neg (q : ℝ[X]) (r : ℝ) (hq : q.eval r < 0) : ∃ ε > 0, ∀ x, |x - r| < ε → q.eval x < 0 := by
+  have hpos : (-q).eval r > 0 := by simpa using hq
+  have h := sign_near (-q) r hpos; rcases h with ⟨ε, hε, h⟩
+  refine ⟨ε, hε, λ x hx => ?_⟩; have : (-q).eval x > 0 := h x hx; simpa using this
+```
