@@ -1390,3 +1390,155 @@ Sturm's theorem is a nontrivial theorem requiring significant analytic and combi
 2. Assemble the induction proof for the main theorem
 
 See the failure report and partial submission for details.
+
+---
+## Attempt 20260628T032656Z
+
+## Status
+The main theorem proof is incomplete. All supporting lemmas are verified.
+
+## Verified Lemmas
+- `signChanges_cons_cons`: Decomposes signChanges on cons lists
+- `signChanges_singleton`: signChanges of a singleton is 0
+- `signChanges_triple_opposite`: triple sign lemma for lists [a,b,c] with a*c < 0
+- `signChanges_flip_first`: flipping the first entry changes signChanges by exactly 1
+- `eval_mod_eq_eval_of_root`: at a root of g, (f%g)(r) = f(r)
+- `sturm_adjacent_opposite`: opposite-sign property for adjacent Sturm chain entries
+- `squarefree_no_common_root`: at a root of p, p'(r) ≠ 0
+- `separable_derivative_ne_zero`: same as above (different proof)
+- `signChanges_flip_first_diff`: signChanges flips by 1 when first entry flips sign
+
+## Next Steps
+1. Prove `sigma_constant_on_rootless_interval`: on an interval with no roots of p, sigma is constant
+   - Use the finite set of all Sturm chain entry roots
+   - Use sturm_adjacent_opposite and signChanges_triple_opposite at non-p roots
+   - Use signChanges_cons_cons to show constancy between roots
+2. Prove `drop_across_root`: at a simple root of p, sigma drops by exactly 1
+   - Use signChanges_flip_first_diff
+   - Use the fact that all non-p entries maintain their signs
+3. Prove main theorem by combining these via induction on the number of roots
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open scoped Classical
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) =>
+    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
+  sturmAux p (derivative p) (p.natDegree + 2)
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
+  signChanges ((sturmChain p).map fun q => q.eval x)
+
+lemma signChanges_cons_cons (a b : ℝ) (ha : a ≠ 0) (hb : b ≠ 0) (l : List ℝ) :
+    signChanges (a :: b :: l) = (if a * b < 0 then 1 else 0) + signChanges (b :: l) := by
+  dsimp [signChanges]
+  have h1 : (a :: b :: l).filter (· ≠ 0) = a :: (b :: l).filter (· ≠ 0) := by simp [ha]
+  have h2 : (b :: l).filter (· ≠ 0) = b :: l.filter (· ≠ 0) := by simp [hb]
+  rw [h1, h2]
+  have htail : (a :: b :: l.filter (· ≠ 0)).tail = b :: l.filter (· ≠ 0) := rfl; rw [htail]
+  have hzip : (a :: b :: l.filter (· ≠ 0)).zip (b :: l.filter (· ≠ 0)) = 
+    (a, b) :: ((b :: l.filter (· ≠ 0)).zip (l.filter (· ≠ 0))) := by simp; rw [hzip]
+  by_cases h : a * b < 0; simp [h, add_comm]; simp [h]
+
+lemma signChanges_singleton (a : ℝ) (ha : a ≠ 0) : signChanges [a] = 0 := by
+  dsimp [signChanges]; simp [ha]
+
+lemma signChanges_triple_opposite (a b c : ℝ) (ha : a ≠ 0) (hc : c ≠ 0) (hac : a * c < 0) :
+    signChanges [a, b, c] = 1 := by
+  by_cases hb : b = 0
+  · subst b; dsimp [signChanges]; simp [ha, hc, hac]
+  · have hb' : b ≠ 0 := hb
+    have hcalc : signChanges [a, b, c] = (if a * b < 0 then 1 else 0) + (if b * c < 0 then 1 else 0) := by
+      calc
+        signChanges [a, b, c] = (if a * b < 0 then 1 else 0) + signChanges (b :: [c]) :=
+          signChanges_cons_cons a b ha hb' [c]
+        _ = (if a * b < 0 then 1 else 0) + ((if b * c < 0 then 1 else 0) + signChanges [c]) := by
+          rw [signChanges_cons_cons b c hb' hc []]
+        _ = (if a * b < 0 then 1 else 0) + ((if b * c < 0 then 1 else 0) + 0) := by
+          rw [signChanges_singleton c hc]
+        _ = (if a * b < 0 then 1 else 0) + (if b * c < 0 then 1 else 0) := by simp
+    rw [hcalc]
+    by_cases ha_pos : a > 0
+    · have hc_neg : c < 0 := by nlinarith
+      by_cases hb_pos : b > 0
+      · have h1 : ¬(a * b < 0) := by nlinarith
+        have h2 : b * c < 0 := by nlinarith
+        rw [if_neg h1, if_pos h2]
+      · have hb_neg : b < 0 := by
+          have hb_le : b ≤ 0 := by nlinarith
+          by_contra! H; have : b = 0 := by linarith; exact hb' this
+        have h1 : a * b < 0 := by nlinarith
+        have h2 : ¬(b * c < 0) := by nlinarith
+        rw [if_pos h1, if_neg h2]
+    · have ha_neg : a < 0 := by
+        have ha_le : a ≤ 0 := by nlinarith
+        by_contra! H; have : a = 0 := by linarith; exact ha this
+      have hc_pos : c > 0 := by nlinarith
+      by_cases hb_pos : b > 0
+      · have h1 : a * b < 0 := by nlinarith
+        have h2 : ¬(b * c < 0) := by nlinarith
+        rw [if_pos h1, if_neg h2]
+      · have hb_neg : b < 0 := by
+          have hb_le : b ≤ 0 := by nlinarith
+          by_contra! H; have : b = 0 := by linarith; exact hb' this
+        have h1 : ¬(a * b < 0) := by nlinarith
+        have h2 : b * c < 0 := by nlinarith
+        rw [if_neg h1, if_pos h2]
+
+lemma signChanges_flip_first (a b : ℝ) (ha : a ≠ 0) (hb : b ≠ 0) (l : List ℝ) :
+    |(signChanges (a :: b :: l) : ℤ) - (signChanges ((-a) :: b :: l) : ℤ)| = 1 := by
+  have ha' : -a ≠ 0 := by intro h; apply ha; nlinarith
+  have h1 : signChanges (a :: b :: l) = (if a * b < 0 then 1 else 0) + signChanges (b :: l) :=
+    signChanges_cons_cons a b ha hb l
+  have h2 : signChanges ((-a) :: b :: l) = (if (-a) * b < 0 then 1 else 0) + signChanges (b :: l) :=
+    signChanges_cons_cons (-a) b ha' hb l
+  rw [h1, h2]
+  have hprod : (-a) * b = -(a * b) := by ring; rw [hprod]
+  have hz : a * b ≠ 0 := mul_ne_zero ha hb
+  by_cases hneg : a * b < 0
+  · have hpos : ¬(-(a * b) < 0) := by nlinarith; rw [if_pos hneg, if_neg hpos]; simp
+  · have hge : a * b ≥ 0 := by nlinarith
+    have hpos : a * b > 0 := lt_of_le_of_ne hge hz.symm
+    have hneg' : -(a * b) < 0 := by nlinarith; rw [if_neg hneg, if_pos hneg']; simp
+
+lemma eval_mod_eq_eval_of_root (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) : (f % g).eval r = f.eval r := by
+  have h := EuclideanDomain.mod_add_div f g
+  calc
+    (f % g).eval r = ((f % g) + g * (f / g) - g * (f / g)).eval r := by simp
+    _ = (f - g * (f / g)).eval r := by rw [h]
+    _ = f.eval r - (g * (f / g)).eval r := by simp
+    _ = f.eval r - (g.eval r * ((f / g).eval r)) := by simp
+    _ = f.eval r := by simp [hg]
+
+lemma sturm_adjacent_opposite (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) (hf : f.eval r ≠ 0) :
+    f.eval r * (-(f % g)).eval r < 0 := by
+  have h := eval_mod_eq_eval_of_root f g r hg
+  have hneg : (-(f % g)).eval r = -(f.eval r) := by
+    calc
+      (-(f % g)).eval r = -((f % g).eval r) := by simp
+      _ = -(f.eval r) := by rw [h]
+  rw [hneg]
+  have hsq : (f.eval r)^2 > 0 := sq_pos_iff.mpr hf
+  nlinarith
+
+lemma squarefree_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) :
+    (derivative p).eval r ≠ 0 := by
+  have hsep : p.Separable := by
+    have h := PerfectField.separable_iff_squarefree (K := ℝ) (g := p); exact h.mpr hp
+  have h_coprime : IsCoprime p (derivative p) := ((Polynomial.separable_def (f := p)).mp hsep)
+  rcases h_coprime with ⟨a, b, h⟩
+  have h_eval := congrArg (fun q => q.eval r) h
+  simp [hr, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_one] at h_eval
+  intro hzero; rw [hzero] at h_eval; simp at h_eval
+```
