@@ -4,13 +4,11 @@ lemma signChanges_cons_triple (a b c : ℝ) (rest : List ℝ) (ha : a ≠ 0) (hc
   · subst hb0; calc
       signChanges (a :: 0 :: c :: rest) = signChanges (a :: c :: rest) := by
         dsimp [signChanges]; simp [ha, hc]
-      _ = (if a * c < 0 then 1 else 0) + signChanges (c :: rest) :=
-        signChanges_cons_nonzero a c rest ha hc
+      _ = (if a * c < 0 then 1 else 0) + signChanges (c :: rest) := signChanges_cons_nonzero a c rest ha hc
       _ = 1 + signChanges (c :: rest) := by simp [h_ac]
   · have hb : b ≠ 0 := hb0
     have h_triple_val : (if a * b < 0 then (1 : ℕ) else 0) + (if b * c < 0 then (1 : ℕ) else 0) = 1 := by
-      have h_sq_pos : b * b > 0 := mul_self_pos.mpr hb
-      have h_eq : (a * b) * (b * c) = (a * c) * (b * b) := by ring
+      have h_sq_pos : b * b > 0 := mul_self_pos.mpr hb; have h_eq : (a * b) * (b * c) = (a * c) * (b * b) := by ring
       by_cases h_ab : a * b < 0
       · have h_not_bc : ¬(b * c < 0) := by
           intro h_bc; have h_pos : (a * b) * (b * c) > 0 := mul_pos_of_neg_of_neg h_ab h_bc
