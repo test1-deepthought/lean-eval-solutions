@@ -15,8 +15,7 @@ lemma eval_mod_eq_eval_of_root (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) : (f
     _ = f.eval r - (g.eval r * ((f / g).eval r)) := by simp
     _ = f.eval r := by simp [hg]
 
-lemma sturm_adjacent_opposite (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) (hf : f.eval r ≠ 0) :
-    f.eval r * (-(f % g)).eval r < 0 := by
+lemma sturm_adjacent_opposite (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) (hf : f.eval r ≠ 0) : f.eval r * (-(f % g)).eval r < 0 := by
   have h := eval_mod_eq_eval_of_root f g r hg
   have hneg : (-(f % g)).eval r = -(f.eval r) := by
     calc
