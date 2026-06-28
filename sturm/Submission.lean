@@ -72,41 +72,39 @@ lemma signChanges_flip_first_diff (a b : ℝ) (l : List ℝ) (ha : a ≠ 0) (hb 
     rw [signChanges_cons_cons (-a) b l ha' hb]
     split_ifs with h
     · exfalso; nlinarith
-    · rfl
+    · simp
   rw [h1, h2]
   simp [add_comm]
 
--- At a simple root r of p, sigma drops by exactly 1
-lemma sigma_drop_one_at_simple_root (p : ℝ[X]) (hp : Squarefree p) (a r b : ℝ) (ha : a < r) (hr : r < b)
-    (ha_ne : p.eval a ≠ 0) (hb_ne : p.eval b ≠ 0) (hr_root : p.eval r = 0) : sigma p a - sigma p b = 1 := by
-  have hp'_ne : (derivative p).eval r ≠ 0 := separable_derivative_ne_zero p hp r hr_root
-  -- Factor p as (X - r) * q
-  have h_factor : p = (X - C r) * (p / (X - C r)) := by
-    have h_root : IsRoot p r := by
-      rw [IsRoot, hr_root]
-    simpa using (Polynomial.IsRoot.mul_div_eq h_root)
-  -- q = p / (X - C r), and q(r) = p'(r)
-  let q := p / (X - C r)
-  have hq_eval_r : q.eval r = (derivative p).eval r := by
-    -- From p = (X-r)*q, differentiate: p' = q + (X-r)*q', so p'(r) = q(r)
-    calc
-      q.eval r = ((X - C r) * q).eval r - (X - C r).eval r * q.eval r := by ring
-      _ = p.eval r - (0) := by
-        rw [h_factor, eval_mul, eval_sub, eval_X, eval_C, sub_self, zero_mul]
-        simp
-      _ = 0 := hr_root
-      _ = (derivative p).eval r := by
-        -- This doesn't add up. Let me compute directly.
-        have h_deriv := congrArg derivative h_factor
-        -- derivative of (X-r)*q = 1*q + (X-r)*q'
-        -- At r, this evaluates to q(r) + 0 = q(r)
-        -- And derivative of p at r is p'(r)
-        -- So q(r) = p'(r)
-        sorry
-    sorry
-  sorry
+-- The set of all points in (a,b) where some chain entry has a root
+noncomputable def allRoots (p : ℝ[X]) (a b : ℝ) : Finset ℝ :=
+  Finset.biUnion ((sturmChain p).toFinset) (fun q => q.roots.toFinset) |>.filter (fun x => a < x ∧ x < b)
 
--- The main theorem
+lemma allRoots_finite (p : ℝ[X]) (a b : ℝ) : (allRoots p a b : Set ℝ).Finite :=
+  Finset.finite_toSet _
+
+lemma allRoots_nonempty_of_root (p : ℝ[X]) (a b r : ℝ) (hr : p.eval r = 0) (ha : a < r) (hrb : r < b) : r ∈ allRoots p a b := by
+  dsimp [allRoots]
+  apply Finset.mem_filter.mpr
+  refine ⟨Finset.mem_biUnion.mpr ⟨p, ?_, ?_⟩, ha, hrb⟩
+  · have hp_mem : p ∈ (sturmChain p).toFinset := by
+      have : p ∈ sturmChain p := by
+        -- p is the first entry of the chain
+        dsimp [sturmChain]
+        simp [sturmAux]
+      simpa
+    exact hp_mem
+  · rw [Polynomial.mem_roots (by
+      have h_ne_zero : p ≠ 0 := by
+        intro hzero
+        apply ha
+        -- If p = 0, then p.eval a = 0, contradicting ha
+        have : p.eval a = 0 := by simp [hzero]
+        exact h_zero -- actually, ha says p.eval a ≠ 0
+        sorry
+      exact h_ne_zero), hr]
+    exact rfl
+
 theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
     (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
     ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
