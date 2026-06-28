@@ -1,7 +1,7 @@
 # sturm — Current State
 
-**Last updated:** 20260628T115822Z
-**Total attempts:** 13
+**Last updated:** 20260628T141408Z
+**Total attempts:** 15
 **Status:** PARTIALLY VERIFIED
 
 ## Target Theorem
@@ -10,43 +10,46 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 ## Verified Lemmas
 
-**33 lemmas verified across all attempts**
+**36 lemmas verified across all attempts**
 
 | # | Lemma | SHA256 | Attempts |
 |---|-------|--------|----------|
 | 1 | `-------` | `------` | --------- |
 | 2 | `Lemma_196` | `0b0af530a7e8` | ? |
 | 3 | `Lemma_2557` | `ab3705b2e28e` | ? |
-| 4 | `Lemma_6271` | `f1ed9fda782c` | ? |
-| 5 | `Lemma_8055` | `38df291f909e` | ? |
-| 6 | `Lemma_8120` | `571b733a8a15` | ? |
-| 7 | `eval_derivative_ne_zero_of_squarefree_root` | `eval_derivative_ne_zero_of_squarefree_root.lean` | At a squarefree root, $p'(r) \neq 0$ |
-| 8 | `eval_mod_eq_eval_of_root` | `11d2695a21fc` | ? |
-| 9 | `eval_remainder_at_root` | `eval_remainder_at_root.lean` | $(a \% b).\text{eval}\, r = a.\text{eval}\, r$ when $b(r)=0$ |
-| 10 | `factor_theorem_with_deriv` | `factor_theorem_with_deriv.lean` | $p = (X-r) \cdot q$ with $q(r) = p'(r)$ |
-| 11 | `hp_ne_zero` | `524e116fba7c` | ? |
-| 12 | `next_chain_entry_eval` | `next_chain_entry_eval.lean` | $(-(a \% b)).\text{eval}\, r = -a.\text{eval}\, r$ when $b(r)=0$ |
-| 13 | `nonzero_near` | `nonzero_near.lean` | If $q(r) \neq 0$, there's a $\delta$-neighborhood where $q(x) \neq 0$ |
-| 14 | `signChanges_cons_cons` | `6d3716938a52` | ? |
-| 15 | `signChanges_cons_cons_nonzero` | `signChanges_cons_cons_nonzero.lean` | Recurrence: $a \neq 0, b \neq 0 \implies \text{signChanges}(a::b::\text{rest}) = [ab<0] + \text{signChanges}(b::\text{rest})$ |
-| 16 | `signChanges_cons_nonzero` | `5eb9d4145d19` | ? |
-| 17 | `signChanges_cons_triple` | `020071b9ef24` | ? |
-| 18 | `signChanges_cons_zero` | `signChanges_cons_zero.lean` | Leading zero removed without affecting count |
-| 19 | `signChanges_filter_eq` | `signChanges_filter_eq.lean` | Invariant under zero removal |
-| 20 | `signChanges_flip_first` | `1294366b0016` | ? |
-| 21 | `signChanges_nil` | `signChanges_nil.lean` | `signChanges [] = 0` |
-| 22 | `signChanges_pair` | `signChanges_pair.lean` | `signChanges [a,b] = 1` iff $ab < 0$ |
-| 23 | `signChanges_singleton` | `signChanges_singleton.lean` | `signChanges [a] = 0` |
-| 24 | `signChanges_splice_zero` | `signChanges_splice_zero.lean` | Inserting zero doesn't change count |
-| 25 | `signChanges_triple_opposite` | `signChanges_triple_opposite.lean` | $\text{signChanges}[a,b,c] = 1$ when $a\cdot c < 0$ |
-| 26 | `sign_constant_ac` | `a693798c3e25` | ? |
-| 27 | `sign_constant_on_Ioo` | `sign_constant_on_Ioo.lean` | If $q$ has no root in $(c,d)$, sign is constant there (via IVT) |
-| 28 | `sign_near` | `089470b69bfc` | ? |
-| 29 | `sign_near_neg` | `06987b56cf7d` | ? |
-| 30 | `squarefree_imp_separable` | `squarefree_imp_separable.lean` | Over $\mathbb{R}$, `Squarefree` $\implies$ `Separable` (via `PerfectField`) |
-| 31 | `squarefree_no_common_root` | `3a1e7f3f7a9f` | ? |
-| 32 | `sturm_adjacent_opposite` | `d33018619834` | ? |
-| 33 | `triple_sign_lemma` | `triple_sign_lemma.lean` | For $a \cdot c < 0, b \neq 0$: $[ab<0] + [bc<0] = 1$ |
+| 4 | `Lemma_3915` | `a8117b26ace8` | ? |
+| 5 | `Lemma_6271` | `f1ed9fda782c` | ? |
+| 6 | `Lemma_8055` | `38df291f909e` | ? |
+| 7 | `Lemma_8120` | `571b733a8a15` | ? |
+| 8 | `eval_derivative_ne_zero_of_squarefree_root` | `eval_derivative_ne_zero_of_squarefree_root.lean` | At a squarefree root, $p'(r) \neq 0$ |
+| 9 | `eval_mod_eq_eval_of_root` | `11d2695a21fc` | ? |
+| 10 | `eval_remainder_at_root` | `eval_remainder_at_root.lean` | $(a \% b).\text{eval}\, r = a.\text{eval}\, r$ when $b(r)=0$ |
+| 11 | `factor_theorem_with_deriv` | `factor_theorem_with_deriv.lean` | $p = (X-r) \cdot q$ with $q(r) = p'(r)$ |
+| 12 | `filter_id_of_all_nonzero` | `a8114fd7947c` | ? |
+| 13 | `first_flip_opposite` | `f17d08d5331c` | ? |
+| 14 | `hp_ne_zero` | `524e116fba7c` | ? |
+| 15 | `next_chain_entry_eval` | `next_chain_entry_eval.lean` | $(-(a \% b)).\text{eval}\, r = -a.\text{eval}\, r$ when $b(r)=0$ |
+| 16 | `nonzero_near` | `nonzero_near.lean` | If $q(r) \neq 0$, there's a $\delta$-neighborhood where $q(x) \neq 0$ |
+| 17 | `signChanges_cons_cons` | `6d3716938a52` | ? |
+| 18 | `signChanges_cons_cons_nonzero` | `signChanges_cons_cons_nonzero.lean` | Recurrence: $a \neq 0, b \neq 0 \implies \text{signChanges}(a::b::\text{rest}) = [ab<0] + \text{signChanges}(b::\text{rest})$ |
+| 19 | `signChanges_cons_nonzero` | `5eb9d4145d19` | ? |
+| 20 | `signChanges_cons_triple` | `020071b9ef24` | ? |
+| 21 | `signChanges_cons_zero` | `signChanges_cons_zero.lean` | Leading zero removed without affecting count |
+| 22 | `signChanges_filter_eq` | `signChanges_filter_eq.lean` | Invariant under zero removal |
+| 23 | `signChanges_flip_first` | `1294366b0016` | ? |
+| 24 | `signChanges_nil` | `signChanges_nil.lean` | `signChanges [] = 0` |
+| 25 | `signChanges_pair` | `signChanges_pair.lean` | `signChanges [a,b] = 1` iff $ab < 0$ |
+| 26 | `signChanges_singleton` | `signChanges_singleton.lean` | `signChanges [a] = 0` |
+| 27 | `signChanges_splice_zero` | `signChanges_splice_zero.lean` | Inserting zero doesn't change count |
+| 28 | `signChanges_triple_opposite` | `signChanges_triple_opposite.lean` | $\text{signChanges}[a,b,c] = 1$ when $a\cdot c < 0$ |
+| 29 | `sign_constant_ac` | `a693798c3e25` | ? |
+| 30 | `sign_constant_on_Ioo` | `sign_constant_on_Ioo.lean` | If $q$ has no root in $(c,d)$, sign is constant there (via IVT) |
+| 31 | `sign_near` | `089470b69bfc` | ? |
+| 32 | `sign_near_neg` | `06987b56cf7d` | ? |
+| 33 | `squarefree_imp_separable` | `squarefree_imp_separable.lean` | Over $\mathbb{R}$, `Squarefree` $\implies$ `Separable` (via `PerfectField`) |
+| 34 | `squarefree_no_common_root` | `3a1e7f3f7a9f` | ? |
+| 35 | `sturm_adjacent_opposite` | `d33018619834` | ? |
+| 36 | `triple_sign_lemma` | `triple_sign_lemma.lean` | For $a \cdot c < 0, b \neq 0$: $[ab<0] + [bc<0] = 1$ |
 
 ## Unproven Components
 
@@ -64,6 +67,7 @@ All frontier lemmas verified — main theorem assembly remains.
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
+|---|-----------|-------|----------|--------|
 | 1 | 20260628T022441Z | `(unknown)` | agent-provided report | saved |
 | 3 | 20260628T022640Z | `(unknown)` | agent-provided report | saved |
 | 5 | 20260628T024341Z | `(unknown)` | agent-provided report | blocked |
@@ -71,6 +75,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 9 | 20260628T041414Z | `(unknown)` | agent-provided report | saved |
 | 11 | 20260628T100936Z | `(unknown)` | agent-provided report | saved |
 | 13 | 20260628T115822Z | `(unknown)` | agent-provided report | saved |
+| 15 | 20260628T141408Z | `(unknown)` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
