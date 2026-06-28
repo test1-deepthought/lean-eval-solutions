@@ -76,73 +76,67 @@ lemma signChanges_flip_first_diff (a b : ℝ) (l : List ℝ) (ha : a ≠ 0) (hb 
   rw [h1, h2]
   simp [add_comm]
 
--- Set of all points in (a,b) where some entry of the chain (including p) has a root
+-- Set of all points in (a,b) where some entry of the sturm chain has a root
 noncomputable def allRoots (p : ℝ[X]) (a b : ℝ) : Finset ℝ :=
   Finset.biUnion ((sturmChain p).toFinset) (fun q => q.roots.toFinset) |>.filter (fun x => a < x ∧ x < b)
 
--- The main theorem
+lemma allRoots_finite (p : ℝ[X]) (a b : ℝ) : (allRoots p a b : Set ℝ).Finite := by
+  apply Finset.finite_toSet
+
+lemma sigma_constant_on_open_interval (p : ℝ[X]) (x y : ℝ) (hxy : x < y)
+    (h_no_root : ∀ q ∈ sturmChain p, ∀ z, x < z → z < y → q.eval z ≠ 0) : sigma p x = sigma p y := by
+  unfold sigma
+  -- Each chain entry q has q.eval x * q.eval y > 0 (same sign) by sign_constant_no_root
+  -- So signChanges of the evaluated lists is equal
+  -- We'll use induction on the length of the chain
+  induction' hchain : sturmChain p with q chain' ih generalizing x y
+  · simp
+  · have hq : q ∈ sturmChain p := by
+      simpa [hchain] using List.mem_cons_self q chain'
+    have hq_no_root : ∀ z, x < z → z < y → q.eval z ≠ 0 :=
+      h_no_root q hq
+    have hq_same_sign : q.eval x * q.eval y > 0 :=
+      sign_constant_no_root q x y hxy (by
+        intro z hz1 hz2
+        by_cases hzx : z = x
+        · subst hzx; exact hq_no_root z (by linarith) (by linarith)
+        by_cases hzy : z = y
+        · subst hzy; exact hq_no_root z (by linarith) (by linarith)
+        have : x < z ∧ z < y := by
+          constructor <;> linarith
+        exact hq_no_root z this.1 this.2)
+    have ih' := ih x y hxy (fun q' hq' => h_no_root q' (by
+      -- q' ∈ chain' → q' ∈ sturmChain p
+      have : q' ∈ sturmChain p := by
+        simpa [hchain] using List.mem_cons_of_mem q hq'
+      exact this))
+    sorry
+
 theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
     (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
     ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
       sigma p a - sigma p b := by
-  let rootsSet := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b))
-  -- Prove by strong induction on |rootsSet|
-  revert a b hab ha hb
-  refine Finset.strongInductionOn rootsSet ?_
-  intro R IH a b hab ha hb hR
-  by_cases h_empty : R = ∅
-  · subst h_empty
-    -- Need sigma(a) = sigma(b) when there are no roots of p in (a,b)
-    -- We'll use the fact that sigma is constant between roots, and the triple lemma
-    -- for non-p chain entry roots
-    -- Let S be the set of all non-p chain entry roots in (a,b)
-    let S := allRoots p a b
-    -- Use strong induction on |S|
-    revert a b hab ha hb
-    refine Finset.strongInductionOn S ?_
-    intro S' IH_S a b hab ha hb hS' 
-    by_cases hS_empty : S' = ∅
-    · subst hS_empty
-      -- No chain entry has a root in (a,b), so all have constant sign
-      -- Therefore sigma(a) = sigma(b)
-      unfold sigma
-      -- For each chain entry q, q(a)*q(b) > 0
-      have h_sign : ∀ q ∈ sturmChain p, q.eval a * q.eval b > 0 := by
-        intro q hq
-        apply sign_constant_no_root q a b hab
-        intro x hx_a hx_b
-        -- No chain entry has a root in [a,b]
-        have : q.eval x ≠ 0 := by
-          intro hzero
-          have hx_mem : x ∈ allRoots p a b := by
-            dsimp [allRoots]
-            apply Finset.mem_filter.mpr
-            refine ⟨Finset.mem_biUnion.mpr ⟨q, ?_, ?_⟩, hx_a, hx_b⟩
-            · simpa using hq
-            · simpa [Polynomial.mem_roots (by
-                have hq_ne_zero : q ≠ 0 := by
-                  intro hzero_q
-                  have : (0 : ℝ[X]) ∈ sturmChain p := by
-                    simpa [hzero_q] using hq
-                  -- This would mean the zero polynomial is in the chain, which is possible
-                  -- but 0 has no roots, so this shouldn't be an issue
-                  sorry
-                exact hq_ne_zero)] using hzero
-          rw [hS'] at hx_mem
-          exact Finset.not_mem_empty _ hx_mem
-        exact this
-      sorry
-    · -- S' is nonempty, pick the smallest root r
-      have h_nonempty : S'.Nonempty := Finset.nonempty_iff_ne_empty.mpr hS_empty
-      let r := S'.min' h_nonempty
-      have hr_mem : r ∈ S' := Finset.min'_mem _ _ h_nonempty
-      have hr_S' : r ∈ allRoots p a b := by
-        rw [hS']; exact hr_mem
-      -- r is a root of some non-p chain entry (since allRoots excludes p? Actually it includes all)
-      -- By the triple lemma, sigma doesn't change at r
-      -- Use induction on |S'\{r}|
-      sorry
-  · -- R nonempty: handle the inductive step with the smallest root of p
+  let P := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b))
+  let A := allRoots p a b ∪ {a, b}
+  have hA_fin : (A : Set ℝ).Finite := by
+    apply Finset.finite_toSet
+  -- Sort the points
+  let sortedA := A.sort (· ≤ ·)
+  have h_sortedA : sortedA.Nodup := Finset.nodup_sort _
+  have h_sortedA_len : sortedA.length ≥ 2 := by
+    have ha_mem : a ∈ A := by
+      apply Finset.mem_union_right
+      simp
+    have hb_mem : b ∈ A := by
+      apply Finset.mem_union_right
+      simp
+    have ha_pos : a ∈ sortedA := by
+      simpa [sortedA] using Finset.mem_sort _ ha_mem
+    have hb_pos : b ∈ sortedA := by
+      simpa [sortedA] using Finset.mem_sort _ hb_mem
+    have hne : a ≠ b := by linarith
+    have : a ≠ b := hne
     sorry
+  sorry
 
 end Submission
