@@ -1350,3 +1350,43 @@ lemma sign_near_neg (q : ℝ[X]) (r : ℝ) (hq : q.eval r < 0) : ∃ ε > 0, ∀
   have h := sign_near (-q) r hpos; rcases h with ⟨ε, hε, h⟩
   refine ⟨ε, hε, λ x hx => ?_⟩; have : (-q).eval x > 0 := h x hx; simpa using this
 ```
+
+---
+## Attempt 20260628T024341Z
+
+## Status: PARTIALLY VERIFIED
+
+## Verified Lemmas (all compile with lean4_probe/lean4_exec)
+
+### Combinatorics
+- `triple_sign_lemma`: For a,b,c ∈ ℝ with a*c<0 and b≠0, exactly one of a*b<0 or b*c<0 holds.
+- `signChanges_cons_cons`: For a,c≠0, signChanges(a::c::rest) = (if a*c<0 then 1 else 0) + signChanges(c::rest).
+- `signChanges_cons_triple`: For a,c≠0 and a*c<0, signChanges(a::b::c::rest) = 1 + signChanges(c::rest).
+
+### Polynomial
+- `eval_remainder_at_root`: If b(r)=0, then (a%b)(r) = a(r).
+- `squarefree_imp_separable`: Over ℝ, Squarefree ⇒ Separable.
+- `eval_derivative_ne_zero_of_squarefree_root`: At a root of squarefree p, p'(r)≠0.
+- `factor_theorem_with_deriv`: p = (X-r)*q with q(r) = p'(r).
+- `sign_near`: If f(r)≠0 and f is continuous, f(x)*f(r)>0 near r.
+- `sturmAux_opposite_sign` / `sturm_chain_adjacent_opposite`: If p_k(r)=0 for k≥1 in the Sturm chain, then p_{k-1}(r) = -p_{k+1}(r).
+
+## Missing (needed for full proof)
+
+### `sigma_drop_at_simple_root`
+For squarefree p with root r, show sigma(p,u)-sigma(p,v)=1 for u&lt;r&lt;v sufficiently close.
+Strategy: Use factor theorem + sign_near + signChanges_cons_triple.
+
+### Main theorem induction
+Use strong induction on the number of roots of p in (a,b). Partition at each root and apply sigma_drop_at_simple_root.
+
+## All Verified Code
+See failed_submissions/sturm/ for the partial Submission.lean and all verified lemmas.
+
+## Agent Response Context
+
+Sturm's theorem is a nontrivial theorem requiring significant analytic and combinatorial work. I've verified all the core lemmas needed for the proof. The remaining work is:
+1. Prove `sigma_drop_at_simple_root` (the critical analytic lemma)
+2. Assemble the induction proof for the main theorem
+
+See the failure report and partial submission for details.
