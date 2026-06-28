@@ -1,7 +1,7 @@
 # sturm — Current State
 
-**Last updated:** 20260628T032656Z
-**Total attempts:** 7
+**Last updated:** 20260628T041414Z
+**Total attempts:** 9
 **Status:** PARTIALLY VERIFIED
 
 ## Target Theorem
@@ -51,11 +51,10 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
-**Last error:** Main theorem proof not yet completed.
-
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
+|---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
@@ -64,6 +63,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 3 | 20260628T022640Z | `(unknown)` | agent-provided report | saved |
 | 5 | 20260628T024341Z | `(unknown)` | agent-provided report | blocked |
 | 7 | 20260628T032656Z | `sigma_constant_on_rootless_interval` | agent-provided report | blocked |
+| 9 | 20260628T041414Z | `(unknown)` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
