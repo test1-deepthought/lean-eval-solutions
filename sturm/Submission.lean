@@ -76,67 +76,93 @@ lemma signChanges_flip_first_diff (a b : ℝ) (l : List ℝ) (ha : a ≠ 0) (hb 
   rw [h1, h2]
   simp [add_comm]
 
--- Set of all points in (a,b) where some entry of the sturm chain has a root
-noncomputable def allRoots (p : ℝ[X]) (a b : ℝ) : Finset ℝ :=
-  Finset.biUnion ((sturmChain p).toFinset) (fun q => q.roots.toFinset) |>.filter (fun x => a < x ∧ x < b)
-
-lemma allRoots_finite (p : ℝ[X]) (a b : ℝ) : (allRoots p a b : Set ℝ).Finite := by
-  apply Finset.finite_toSet
-
-lemma sigma_constant_on_open_interval (p : ℝ[X]) (x y : ℝ) (hxy : x < y)
-    (h_no_root : ∀ q ∈ sturmChain p, ∀ z, x < z → z < y → q.eval z ≠ 0) : sigma p x = sigma p y := by
-  unfold sigma
-  -- Each chain entry q has q.eval x * q.eval y > 0 (same sign) by sign_constant_no_root
-  -- So signChanges of the evaluated lists is equal
-  -- We'll use induction on the length of the chain
-  induction' hchain : sturmChain p with q chain' ih generalizing x y
-  · simp
-  · have hq : q ∈ sturmChain p := by
-      simpa [hchain] using List.mem_cons_self q chain'
-    have hq_no_root : ∀ z, x < z → z < y → q.eval z ≠ 0 :=
-      h_no_root q hq
-    have hq_same_sign : q.eval x * q.eval y > 0 :=
-      sign_constant_no_root q x y hxy (by
-        intro z hz1 hz2
-        by_cases hzx : z = x
-        · subst hzx; exact hq_no_root z (by linarith) (by linarith)
-        by_cases hzy : z = y
-        · subst hzy; exact hq_no_root z (by linarith) (by linarith)
-        have : x < z ∧ z < y := by
-          constructor <;> linarith
-        exact hq_no_root z this.1 this.2)
-    have ih' := ih x y hxy (fun q' hq' => h_no_root q' (by
-      -- q' ∈ chain' → q' ∈ sturmChain p
-      have : q' ∈ sturmChain p := by
-        simpa [hchain] using List.mem_cons_of_mem q hq'
-      exact this))
-    sorry
-
+-- The main theorem: number of roots of p in (a,b) equals sigma(a) - sigma(b)
 theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
     (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
     ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
       sigma p a - sigma p b := by
-  let P := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b))
-  let A := allRoots p a b ∪ {a, b}
-  have hA_fin : (A : Set ℝ).Finite := by
-    apply Finset.finite_toSet
-  -- Sort the points
-  let sortedA := A.sort (· ≤ ·)
-  have h_sortedA : sortedA.Nodup := Finset.nodup_sort _
-  have h_sortedA_len : sortedA.length ≥ 2 := by
-    have ha_mem : a ∈ A := by
-      apply Finset.mem_union_right
-      simp
-    have hb_mem : b ∈ A := by
-      apply Finset.mem_union_right
-      simp
-    have ha_pos : a ∈ sortedA := by
-      simpa [sortedA] using Finset.mem_sort _ ha_mem
-    have hb_pos : b ∈ sortedA := by
-      simpa [sortedA] using Finset.mem_sort _ hb_mem
-    have hne : a ≠ b := by linarith
-    have : a ≠ b := hne
+  -- Let R = roots of p in (a,b)
+  let R := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b))
+  -- We'll prove this by strong induction on |R|
+  revert a b hab ha hb
+  refine Finset.strongInductionOn R ?_
+  intro R IH a b hab ha hb hR
+  by_cases h_empty : R = ∅
+  · -- Case 1: No roots of p in (a,b). Need sigma(a) = sigma(b)
+    subst h_empty
+    -- Use the fact that non-p chain entry roots don't affect sigma
+    -- and the triple lemma
+    -- Let S = all chain entry roots (including p) in (a,b)
+    -- If S = ∅, all signs constant, sigma(a) = sigma(b)
+    -- If S ≠ ∅, use induction on |S|
+    -- Actually, since p has no roots, S only has non-p roots
+    -- Process them one by one, using the fact that sigma doesn't change at each
     sorry
-  sorry
+  · -- Case 2: There is at least one root of p in (a,b)
+    have h_nonempty : R.Nonempty := Finset.nonempty_iff_ne_empty.mpr h_empty
+    let r := R.min' h_nonempty
+    have hr_mem : r ∈ R := Finset.min'_mem _ _ h_nonempty
+    have hr_root : p.eval r = 0 := by
+      rw [hR] at hr_mem
+      rcases Finset.mem_filter.mp hr_mem with ⟨hmem, hbounds⟩
+      have hmem_roots : r ∈ p.roots := by simpa using hmem
+      rw [Polynomial.mem_roots (by
+        have h_ne_zero : p ≠ 0 := by
+          intro hzero
+          apply ha
+          simp [hzero]
+        exact h_ne_zero)] at hmem_roots
+      exact hmem_roots
+    have hr_a : a < r := by
+      rw [hR] at hr_mem
+      rcases Finset.mem_filter.mp hr_mem with ⟨_, ⟨hleft, _⟩⟩
+      exact hleft
+    have hr_b : r < b := by
+      rw [hR] at hr_mem
+      rcases Finset.mem_filter.mp hr_mem with ⟨_, ⟨_, hright⟩⟩
+      exact hright
+    -- Let R' = R \ {r}
+    let R' := R.erase r
+    have hR'card : R'.card < R.card := Finset.card_erase_lt_of_mem hr_mem
+    -- Find a point c ∈ (r, b) with no roots of p in (r, c), to apply IH
+    -- For that, find the next root after r, or use b if none
+    let nextRoots := R.filter (λ x => r < x)
+    by_cases h_next_empty : nextRoots = ∅
+    · -- No more roots after r, use c = (r + b)/2
+      let c := (r + b) / 2
+      have hc_r : r < c := by nlinarith
+      have hc_b : c < b := by nlinarith
+      have hc_ne : p.eval c ≠ 0 := by
+        intro hzero
+        have hc_mem : c ∈ R := by
+          rw [hR]
+          apply Finset.mem_filter.mpr
+          refine ⟨?_, hc_r, hc_b⟩
+          -- c is a root of p
+          -- Use the factorization p(c) = 0
+          -- But we need c ∈ p.roots
+          have : c ∈ p.roots := by
+            rw [Polynomial.mem_roots (by
+              have h_ne_zero : p ≠ 0 := by
+                intro hzero_p
+                apply ha
+                simp [hzero_p]
+              exact h_ne_zero), hzero]
+            exact rfl
+          exact this
+        -- But c > r and there are no more roots, so c ∉ R. Contradiction.
+        have : c ∉ R := by
+          intro hcR
+          have : c ∈ nextRoots := by
+            apply Finset.mem_filter.mpr
+            exact ⟨hcR, hc_r⟩
+          rw [h_next_empty] at this
+          exact Finset.not_mem_empty _ this
+        exact this hc_mem
+      -- Now we have: root r in (a,c), no other roots in (a,c), and R' has |R|-1 roots in (c,b)
+      -- Need to show: sigma(a) - sigma(c) = 1 and sigma(c) - sigma(b) = |R'|
+      sorry
+    · let next := nextRoots.min' (Finset.nonempty_iff_ne_empty.mpr h_next_empty)
+      sorry
 
 end Submission
