@@ -2,6 +2,8 @@ import Mathlib
 open Polynomial
 open scoped Classical
 
+set_option autoImplicit false
+
 namespace Submission.Helpers
 
 lemma eval_mod_eq_eval_of_root (f g : ℝ[X]) (r : ℝ) (hg : g.eval r = 0) : (f % g).eval r = f.eval r := by
