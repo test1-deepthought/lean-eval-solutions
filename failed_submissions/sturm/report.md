@@ -1542,3 +1542,26 @@ lemma squarefree_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr :
   simp [hr, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_one] at h_eval
   intro hzero; rw [hzero] at h_eval; simp at h_eval
 ```
+
+---
+## Attempt 20260628T041414Z
+
+## Saved Incomplete: Sturm Theorem
+
+### Status
+- **Core lemmas (14)**: All verified via lean4_exec
+  - signChanges_nil, signChanges_singleton, signChanges_cons_cons_nonzero, signChanges_splice_zero, signChanges_pair, triple_sign_lemma, signChanges_triple_opposite, signChanges_flip_first_diff, eval_remainder_at_root, squarefree_imp_separable, eval_derivative_ne_zero_of_squarefree_root, factor_theorem_with_deriv, nonzero_near, sign_constant_on_Ioo
+- **sigma_drop_at_simple_root**: Partially proven (factor theorem part done, sign analysis ~70% complete, tail invariance remaining)
+- **Main theorem (sturm)**: Not yet started
+
+### Remaining Work
+1. Complete `sigma_drop_at_simple_root` - need to prove tail signChanges are equal at u and v (use continuity + triple lemma for entries with roots at r)
+2. Write main theorem proof using partition at all Sturm chain entry roots + induction on number of p-roots
+3. Verify both files compile together with `lake build`
+
+### Key Insight for Remaining Proof
+The tail signChanges are equal because each tail entry q satisfies either:
+- q(r) ≠ 0: then q has constant sign near r (by continuity), so contributes same at u and v
+- q(r) = 0: then adjacent entries have opposite signs at r (by chain property + eval_remainder_at_root), and by triple_sign_lemma the sum of contributions from the two affected pairs is invariant
+
+This can be proved by induction on the chain length or by constructing a finite set of roots and using sign_constant_on_Ioo for each entry.
