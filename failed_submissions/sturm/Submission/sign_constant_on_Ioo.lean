@@ -28,5 +28,6 @@ lemma sign_constant_on_Ioo (q : ℝ[X]) (c d : ℝ) (hcd : c < d) (h_no_root : �
       · exact hz0
   · refine Or.inr ?_
     intro y hy; have hy_nonzero : q.eval y ≠ 0 := h_no_root y hy
-    have hy_nonpos : q.eval y ≤ 0 := by by_contra! hpos_y; exact hpos ⟨y, hy, hpos_y⟩
+    have hy_nonpos : q.eval y ≤ 0 := by
+      by_contra! hpos_y; exact hpos ⟨y, hy, hpos_y⟩
     exact Ne.lt_of_le hy_nonzero hy_nonpos
