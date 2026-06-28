@@ -14,23 +14,25 @@ lemma hasDerivAt_sin_mul (ω x : ℝ) : HasDerivAt (fun x' : ℝ => sin (ω * x'
 lemma hasDerivAt_cos_mul (ω x : ℝ) : HasDerivAt (fun x' : ℝ => cos (ω * x')) (-ω * sin (ω * x)) x := by
   have h : HasDerivAt (fun x' : ℝ => ω * x') ω x := by
     simpa using (HasDerivAt.const_mul ω (hasDerivAt_id x))
-  have hcos := (Real.hasDerivAt_cos (ω * x)).comp x h
-  simpa [mul_comm, mul_left_comm, mul_assoc] using hcos
+  have hcos : HasDerivAt cos (-sin (ω * x)) (ω * x) := Real.hasDerivAt_cos (ω * x)
+  have hcomp : HasDerivAt (fun x' : ℝ => cos (ω * x')) (-sin (ω * x) * ω) x :=
+    HasDerivAt.comp x hcos h
+  simpa [mul_comm, mul_left_comm, mul_assoc] using hcomp
 
 lemma aux_deriv_F (y : ℝ → ℝ) (lam ω : ℝ) (hωsq : ω^2 = lam) (hωpos : ω > 0) (x : ℝ) 
     (hx_deriv_y : HasDerivAt y (deriv y x) x)
     (hx_deriv_deriv : HasDerivAt (deriv y) (-(lam * y x)) x) : 
     HasDerivAt (fun x' : ℝ => y x' * sin (ω * x') + (deriv y x' / ω) * cos (ω * x')) 0 x := by
-  have h_ysin : HasDerivAt (fun x' : ℝ => y x' * sin (ω * x')) 
+  have h_ysin : HasDerivAt (y * fun x' : ℝ => sin (ω * x')) 
       ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) x :=
     HasDerivAt.mul hx_deriv_y (hasDerivAt_sin_mul ω x)
-  have h_term2 : HasDerivAt (fun x' : ℝ => (deriv y x' / ω) * cos (ω * x')) 
+  have h_term2 : HasDerivAt ((fun x' : ℝ => deriv y x' / ω) * fun x' : ℝ => cos (ω * x')) 
       (-(lam * y x) / ω * cos (ω * x) + (deriv y x / ω) * (-ω * sin (ω * x))) x := by
     have h_deriv_div : HasDerivAt (fun x' : ℝ => deriv y x' / ω) (-(lam * y x) / ω) x := by
       simpa [div_eq_mul_inv, mul_comm] using (HasDerivAt.const_mul (1/ω) hx_deriv_deriv)
     have h_cos := hasDerivAt_cos_mul ω x
     exact HasDerivAt.mul h_deriv_div h_cos
-  have h_total : HasDerivAt (fun x' : ℝ => y x' * sin (ω * x') + (deriv y x' / ω) * cos (ω * x'))
+  have h_total : HasDerivAt (y * (fun x' : ℝ => sin (ω * x')) + (fun x' : ℝ => deriv y x' / ω) * (fun x' : ℝ => cos (ω * x')))
       (((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
        (-(lam * y x) / ω * cos (ω * x) + (deriv y x / ω) * (-ω * sin (ω * x)))) x :=
     HasDerivAt.add h_ysin h_term2
@@ -45,7 +47,7 @@ lemma aux_deriv_F (y : ℝ → ℝ) (lam ω : ℝ) (hωsq : ω^2 = lam) (hωpos 
       _ = y x * cos (ω * x) * (ω - ω) := by field_simp [hω_ne]
       _ = y x * cos (ω * x) * 0 := by ring
       _ = 0 := by ring
-  have h_simplify : ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
+  have h_expr_eq_zero : ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
     (-(lam * y x) / ω * cos (ω * x) + (deriv y x / ω) * (-ω * sin (ω * x))) = 0 := by
     calc
       ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
@@ -56,41 +58,30 @@ lemma aux_deriv_F (y : ℝ → ℝ) (lam ω : ℝ) (hωsq : ω^2 = lam) (hωpos 
       _ = 0 := by simp
   have h_total' : HasDerivAt (fun x' : ℝ => y x' * sin (ω * x') + (deriv y x' / ω) * cos (ω * x'))
       (((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
-       (-(lam * y x) / ω * cos (ω * x) + -(deriv y x / ω * (ω * sin (ω * x))))) x := by
-    have h_eq : ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
-      (-(lam * y x) / ω * cos (ω * x) + (deriv y x / ω) * (-ω * sin (ω * x))) =
-      ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
-      (-(lam * y x) / ω * cos (ω * x) + -(deriv y x / ω * (ω * sin (ω * x)))) := by ring
-    simpa [h_eq] using h_total
-  have h_simplify' : ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
-    (-(lam * y x) / ω * cos (ω * x) + -(deriv y x / ω * (ω * sin (ω * x)))) = 0 := by
-    calc
-      ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
-      (-(lam * y x) / ω * cos (ω * x) + -(deriv y x / ω * (ω * sin (ω * x))))
-          = ((deriv y x) * sin (ω * x) + y x * (ω * cos (ω * x))) + 
-            (-(lam * y x) / ω * cos (ω * x) + (deriv y x / ω) * (-ω * sin (ω * x))) := by ring
-      _ = 0 := h_simplify
-  simpa [h_simplify'] using h_total'
+       (-(lam * y x) / ω * cos (ω * x) + (deriv y x / ω) * (-ω * sin (ω * x)))) x := by
+    simpa [Pi.add_def, Pi.mul_def] using h_total
+  rw [h_expr_eq_zero] at h_total'
+  exact h_total'
 
 lemma aux_deriv_G (y : ℝ → ℝ) (lam ω : ℝ) (hωsq : ω^2 = lam) (hωpos : ω > 0) (x : ℝ) 
     (hx_deriv_y : HasDerivAt y (deriv y x) x)
     (hx_deriv_deriv : HasDerivAt (deriv y) (-(lam * y x)) x) : 
     HasDerivAt (fun x' : ℝ => y x' * cos (ω * x') - (deriv y x' / ω) * sin (ω * x')) 0 x := by
-  have h_ycos : HasDerivAt (fun x' : ℝ => y x' * cos (ω * x')) 
+  have h_ycos : HasDerivAt (y * fun x' : ℝ => cos (ω * x')) 
       ((deriv y x) * cos (ω * x) + y x * (-ω * sin (ω * x))) x :=
     HasDerivAt.mul hx_deriv_y (hasDerivAt_cos_mul ω x)
-  have h_term2 : HasDerivAt (fun x' : ℝ => (deriv y x' / ω) * sin (ω * x')) 
+  have h_term2 : HasDerivAt ((fun x' : ℝ => deriv y x' / ω) * fun x' : ℝ => sin (ω * x')) 
       (-(lam * y x) / ω * sin (ω * x) + (deriv y x / ω) * (ω * cos (ω * x))) x := by
     have h_deriv_div : HasDerivAt (fun x' : ℝ => deriv y x' / ω) (-(lam * y x) / ω) x := by
       simpa [div_eq_mul_inv, mul_comm] using (HasDerivAt.const_mul (1/ω) hx_deriv_deriv)
     have h_sin := hasDerivAt_sin_mul ω x
     exact HasDerivAt.mul h_deriv_div h_sin
-  have h_sub_raw : HasDerivAt (fun x' : ℝ => y x' * cos (ω * x') - (deriv y x' / ω) * sin (ω * x'))
+  have h_sub_raw : HasDerivAt (y * (fun x' : ℝ => cos (ω * x')) - (fun x' : ℝ => deriv y x' / ω) * (fun x' : ℝ => sin (ω * x')))
       (((deriv y x) * cos (ω * x) + y x * (-ω * sin (ω * x))) - 
        (-(lam * y x) / ω * sin (ω * x) + (deriv y x / ω) * (ω * cos (ω * x)))) x :=
     HasDerivAt.sub h_ycos h_term2
   have hω_ne : ω ≠ 0 := by linarith
-  have h_simplify : ((deriv y x) * cos (ω * x) + y x * (-ω * sin (ω * x))) - 
+  have h_expr_eq_zero : ((deriv y x) * cos (ω * x) + y x * (-ω * sin (ω * x))) - 
     (-(lam * y x) / ω * sin (ω * x) + (deriv y x / ω) * (ω * cos (ω * x))) = 0 := by
     calc
       ((deriv y x) * cos (ω * x) + y x * (-ω * sin (ω * x))) - 
@@ -106,14 +97,12 @@ lemma aux_deriv_G (y : ℝ → ℝ) (lam ω : ℝ) (hωsq : ω^2 = lam) (hωpos 
       _ = y x * sin (ω * x) * (-ω + ω) := by field_simp [hω_ne]
       _ = y x * sin (ω * x) * 0 := by ring
       _ = 0 := by ring
-  have h_sub_deriv_eq : ((deriv y x) * cos (ω * x) + y x * (-ω * sin (ω * x))) - 
-    (-(lam * y x) / ω * sin (ω * x) + (deriv y x / ω) * (ω * cos (ω * x))) = 
-    (deriv y x) * cos (ω * x) + -(y x * (ω * sin (ω * x))) -
-    (-(lam * y x) / ω * sin (ω * x) + (deriv y x / ω) * (ω * cos (ω * x))) := by ring
-  have h_simplify' : (deriv y x) * cos (ω * x) + -(y x * (ω * sin (ω * x))) -
-    (-(lam * y x) / ω * sin (ω * x) + (deriv y x / ω) * (ω * cos (ω * x))) = 0 := by
-    rw [← h_sub_deriv_eq, h_simplify]
-  simpa [h_simplify'] using h_sub_raw
+  have h_sub_raw' : HasDerivAt (fun x' : ℝ => y x' * cos (ω * x') - (deriv y x' / ω) * sin (ω * x'))
+      (((deriv y x) * cos (ω * x) + y x * (-ω * sin (ω * x))) - 
+       (-(lam * y x) / ω * sin (ω * x) + (deriv y x / ω) * (ω * cos (ω * x)))) x := by
+    simpa [Pi.add_def, Pi.mul_def, Pi.sub_def] using h_sub_raw
+  rw [h_expr_eq_zero] at h_sub_raw'
+  exact h_sub_raw'
 
 theorem dirichlet_eigenvalues_eq_nat_sq (lam : ℝ) :
     (∃ (y : ℝ → ℝ) (J : Set ℝ),
@@ -257,60 +246,64 @@ theorem dirichlet_eigenvalues_eq_nat_sq (lam : ℝ) :
         _ = ((n : ℕ) : ℝ)^2 := by simp [hn]
     · have hle : lam ≤ 0 := by linarith
       
-      have hg_nonneg_deriv : ∀ x ∈ Set.Ioo (0 : ℝ) Real.pi, 0 ≤ deriv (fun t : ℝ => y t * deriv y t) x := by
+      have hg_nonneg_deriv : ∀ x ∈ Set.Ioo (0 : ℝ) Real.pi, 0 ≤ deriv (y * deriv y) x := by
         intro x hx
         have hxJ : x ∈ J := hJsub (Set.mem_Icc.mpr ⟨hx.1.le, hx.2.le⟩)
         have hyx : HasDerivAt y (deriv y x) x := hy x hxJ
         have hy'x : HasDerivAt (deriv y) (-(lam * y x)) x := hy' x hxJ
-        have hg_deriv : HasDerivAt (fun t : ℝ => y t * deriv y t) ((deriv y x)^2 + y x * (-(lam * y x))) x := by
+        have hg_deriv : HasDerivAt (y * deriv y) ((deriv y x)^2 + y x * (-(lam * y x))) x := by
           have h := HasDerivAt.mul hyx hy'x
-          simpa [sq] using h
-        have hg_deriv_val : deriv (fun t : ℝ => y t * deriv y t) x = (deriv y x)^2 - lam * (y x)^2 := by
+          simpa [sq, Pi.mul_def] using h
+        have hg_deriv_val : deriv (y * deriv y) x = (deriv y x)^2 - lam * (y x)^2 := by
           have := hg_deriv.deriv; rw [this]; ring
         rw [hg_deriv_val]
         nlinarith [sq_nonneg (deriv y x), sq_nonneg (y x)]
       
-      have hg_cont : ContinuousOn (fun t : ℝ => y t * deriv y t) (Set.Icc (0 : ℝ) Real.pi) := by
+      have hg_cont : ContinuousOn (y * deriv y) (Set.Icc (0 : ℝ) Real.pi) := by
         intro z hz
         have hzJ : z ∈ J := hJsub hz
         have hyz : HasDerivAt y (deriv y z) z := hy z hzJ
         have hy'z : HasDerivAt (deriv y) (-(lam * y z)) z := hy' z hzJ
-        exact (ContinuousAt.mul hyz.continuousAt hy'z.continuousAt).continuousWithinAt
+        have hg_deriv : HasDerivAt (y * deriv y) ((deriv y z)^2 + y z * (-(lam * y z))) z := by
+          have h := HasDerivAt.mul hyz hy'z
+          simpa [sq, Pi.mul_def] using h
+        exact hg_deriv.continuousAt.continuousWithinAt
       
-      have hg_diff : DifferentiableOn ℝ (fun t : ℝ => y t * deriv y t) (Set.Ioo (0 : ℝ) Real.pi) := by
+      have hg_diff : DifferentiableOn ℝ (y * deriv y) (Set.Ioo (0 : ℝ) Real.pi) := by
         intro z hz
         have hzJ : z ∈ J := hJsub (Set.mem_Icc.mpr ⟨hz.1.le, hz.2.le⟩)
         have hyz : HasDerivAt y (deriv y z) z := hy z hzJ
         have hy'z : HasDerivAt (deriv y) (-(lam * y z)) z := hy' z hzJ
-        have hg_deriv : HasDerivAt (fun t : ℝ => y t * deriv y t) ((deriv y z)^2 + y z * (-(lam * y z))) z := by
+        have hg_deriv : HasDerivAt (y * deriv y) ((deriv y z)^2 + y z * (-(lam * y z))) z := by
           have h := HasDerivAt.mul hyz hy'z
-          simpa [sq] using h
+          simpa [sq, Pi.mul_def] using h
         exact hg_deriv.differentiableAt.differentiableWithinAt
       
-      have hg_mono : MonotoneOn (fun t : ℝ => y t * deriv y t) (Set.Icc (0 : ℝ) Real.pi) := by
+      have hg_mono : MonotoneOn (y * deriv y) (Set.Icc (0 : ℝ) Real.pi) := by
         apply monotoneOn_of_deriv_nonneg (convex_Icc 0 Real.pi) hg_cont
         · rw [interior_Icc]; exact hg_diff
         · intro x hx; rw [interior_Icc] at hx; exact hg_nonneg_deriv x hx
       
-      have hg0_val : y 0 * deriv y 0 = 0 := by simp [hy0]
-      have hgpi_val : y Real.pi * deriv y Real.pi = 0 := by simp [hypi]
+      have hg0_val : (y * deriv y) (0 : ℝ) = 0 := by simp [hy0]
+      have hgpi_val : (y * deriv y) Real.pi = 0 := by simp [hypi]
       
-      have hg_eq0 : ∀ x ∈ Set.Icc (0 : ℝ) Real.pi, y x * deriv y x = 0 := by
+      have hg_eq0 : ∀ x ∈ Set.Icc (0 : ℝ) Real.pi, (y * deriv y) x = 0 := by
         intro x hx
         have hx0_mem : (0 : ℝ) ∈ Set.Icc (0 : ℝ) Real.pi := Set.left_mem_Icc.mpr (by nlinarith [Real.pi_pos])
         have hxpi_mem : Real.pi ∈ Set.Icc (0 : ℝ) Real.pi := Set.right_mem_Icc.mpr (by nlinarith [Real.pi_pos])
         have hx0_le_x : (0 : ℝ) ≤ x := hx.1
         have hx_le_pi : x ≤ Real.pi := hx.2
-        have hlow : (fun t : ℝ => y t * deriv y t) (0 : ℝ) ≤ (fun t : ℝ => y t * deriv y t) x :=
+        have hlow : (y * deriv y) (0 : ℝ) ≤ (y * deriv y) x :=
           hg_mono hx0_mem hx hx0_le_x
-        have hhigh : (fun t : ℝ => y t * deriv y t) x ≤ (fun t : ℝ => y t * deriv y t) Real.pi :=
+        have hhigh : (y * deriv y) x ≤ (y * deriv y) Real.pi :=
           hg_mono hx hxpi_mem hx_le_pi
-        have hlow' : 0 ≤ y x * deriv y x := by simpa [hg0_val] using hlow
-        have hhigh' : y x * deriv y x ≤ 0 := by simpa [hgpi_val] using hhigh
+        have hlow' : 0 ≤ (y * deriv y) x := by simpa [hg0_val] using hlow
+        have hhigh' : (y * deriv y) x ≤ 0 := by simpa [hgpi_val] using hhigh
         nlinarith
       
       have hy'_x0 : deriv y x0 = 0 := by
-        have hprod : y x0 * deriv y x0 = 0 := hg_eq0 x0 hx0Icc
+        have hprod : (y * deriv y) x0 = 0 := hg_eq0 x0 hx0Icc
+        dsimp at hprod
         exact mul_eq_zero.mp hprod |>.resolve_left hx0nonz
       
       by_cases hlam_zero : lam = 0
@@ -377,25 +370,20 @@ theorem dirichlet_eigenvalues_eq_nat_sq (lam : ℝ) :
           intro x hx
           have hyx : HasDerivAt y (deriv y x) x := hy x hx
           have hy'x : HasDerivAt (deriv y) (-(lam * y x)) x := hy' x hx
-          have h_deriv_sq1 : HasDerivAt (fun t : ℝ => (deriv y t)^2) (2 * (deriv y x) * (-(lam * y x))) x := by
+          have h_deriv_sq1 : HasDerivAt ((deriv y)^2) (2 * (deriv y x) * (-(lam * y x))) x := by
             have htemp := HasDerivAt.mul hy'x hy'x
-            have h_eq : 2 * (deriv y x) * (-(lam * y x)) = (-(lam * y x * deriv y x) + -(deriv y x * (lam * y x))) := by ring
-            have htemp' : HasDerivAt (fun t : ℝ => (deriv y t)^2) (-(lam * y x * deriv y x) + -(deriv y x * (lam * y x))) x := by
-              simpa [sq] using htemp
-            simpa [h_eq] using htemp'
-          have h_deriv_sq2 : HasDerivAt (fun t : ℝ => lam * (y t)^2) (lam * (2 * y x * (deriv y x))) x := by
-            have h_sq : HasDerivAt (fun t : ℝ => (y t)^2) (2 * y x * (deriv y x)) x := by
+            have h_val_eq : -(lam * y x * deriv y x) + -(deriv y x * (lam * y x)) = 2 * (deriv y x) * (-(lam * y x)) := by ring
+            simpa [sq, h_val_eq, Pi.mul_def] using htemp
+          have h_deriv_sq2 : HasDerivAt (lam • (y^2)) (lam • (2 * y x * (deriv y x))) x :=
+            HasDerivAt.const_smul lam (by
               have htemp := HasDerivAt.mul hyx hyx
-              have h_eq : 2 * y x * (deriv y x) = (deriv y x * y x + y x * deriv y x) := by ring
-              have htemp' : HasDerivAt (fun t : ℝ => (y t)^2) (deriv y x * y x + y x * deriv y x) x := by
-                simpa [sq] using htemp
-              simpa [h_eq] using htemp'
-            simpa [mul_comm, mul_left_comm, mul_assoc] using (HasDerivAt.const_mul lam h_sq)
-          have hE : HasDerivAt E (2 * (deriv y x) * (-(lam * y x)) + lam * (2 * y x * (deriv y x))) x :=
+              have h_val_eq : (deriv y x) * y x + y x * (deriv y x) = 2 * y x * (deriv y x) := by ring
+              simpa [sq, h_val_eq, Pi.mul_def] using htemp)
+          have hE_algebra : HasDerivAt ((deriv y)^2 + lam • (y^2))
+            (2 * (deriv y x) * (-(lam * y x)) + lam • (2 * y x * (deriv y x))) x :=
             HasDerivAt.add h_deriv_sq1 h_deriv_sq2
-          have h_simplify : -(2 * (deriv y x) * (lam * y x)) + lam * (2 * y x * (deriv y x)) = 0 := by ring
-          have h_eq : 2 * (deriv y x) * (-(lam * y x)) + lam * (2 * y x * (deriv y x)) = -(2 * (deriv y x) * (lam * y x)) + lam * (2 * y x * (deriv y x)) := by ring
-          simpa [h_eq, h_simplify] using hE
+          have h_val_simp : -(2 * deriv y x * (lam * y x)) + lam * (2 * y x * deriv y x) = 0 := by ring
+          simpa [h_val_simp, E, Pi.add_def, Pi.smul_def, smul_eq_mul] using hE_algebra
         
         have hE_const : ∀ x ∈ C, E x = E 0 := by
           have hE_diff : DifferentiableOn ℝ E C := by
@@ -453,7 +441,8 @@ theorem dirichlet_eigenvalues_eq_nat_sq (lam : ℝ) :
           apply h_sq_pos.ne.symm
           simpa [hzero]
         
-        have hprod_zero : y x0 * deriv y x0 = 0 := hg_eq0 x0 hx0Icc
+        have hprod_zero : (y * deriv y) x0 = 0 := hg_eq0 x0 hx0Icc
+        dsimp at hprod_zero
         have hy'_x0_zero : deriv y x0 = 0 := mul_eq_zero.mp hprod_zero |>.resolve_left hx0nonz
         
         exact absurd hy'_x0_zero hy'_x0_nonzero
