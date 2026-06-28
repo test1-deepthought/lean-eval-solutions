@@ -13,20 +13,18 @@ lemma sign_constant_on_Ioo (q : ℝ[X]) (c d : ℝ) (hcd : c < d) (h_no_root : �
       have h_contains : Ioo (q.eval y) (q.eval x) ⊆ (q.eval : ℝ → ℝ) '' Ioo x y :=
         intermediate_value_Ioo' (by linarith) h_cont_on
       rcases h_contains h0_in with ⟨z, hz, hz0⟩
-      apply h_no_root z
-      · rcases hz with ⟨hzx, hzy⟩; exact ⟨lt_of_lt_of_le hx.1 hzx.le, lt_of_le_of_lt hzy.le hy.2⟩
+      apply h_no_root z; · rcases hz with ⟨hzx, hzy⟩; exact ⟨lt_of_lt_of_le hx.1 hzx.le, lt_of_le_of_lt hzy.le hy.2⟩
       · exact hz0
-    · have hyx : y < x := by
+    · have hy_ne_x : y ≠ x := by intro h_eq; subst h_eq; linarith
+      have hyx : y < x := by
         have hy_le_x : y ≤ x := by linarith
-        have hy_ne_x : y ≠ x := by intro h_eq; subst h_eq; linarith
         exact Ne.lt_of_le hy_ne_x hy_le_x
       have h_cont_on : ContinuousOn (q.eval : ℝ → ℝ) (Icc y x) := h_cont.continuousOn
       have h0_in : (0 : ℝ) ∈ Ioo (q.eval y) (q.eval x) := by constructor <;> linarith
       have h_contains : Ioo (q.eval y) (q.eval x) ⊆ (q.eval : ℝ → ℝ) '' Ioo y x :=
         intermediate_value_Ioo (by linarith) h_cont_on
       rcases h_contains h0_in with ⟨z, hz, hz0⟩
-      apply h_no_root z
-      · rcases hz with ⟨hzy, hzx⟩; exact ⟨lt_of_lt_of_le hy.1 hzy.le, lt_of_le_of_lt hzx.le hx.2⟩
+      apply h_no_root z; · rcases hz with ⟨hzy, hzx⟩; exact ⟨lt_of_lt_of_le hy.1 hzy.le, lt_of_le_of_lt hzx.le hx.2⟩
       · exact hz0
   · refine Or.inr ?_
     intro y hy; have hy_nonzero : q.eval y ≠ 0 := h_no_root y hy
