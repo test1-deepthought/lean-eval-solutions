@@ -1,7 +1,7 @@
 # sturm — Current State
 
-**Last updated:** 20260628T022640Z
-**Total attempts:** 3
+**Last updated:** 20260628T024341Z
+**Total attempts:** 5
 **Status:** PARTIALLY VERIFIED
 
 ## Target Theorem
@@ -45,13 +45,17 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
+**Last error:** Main theorem sturm not yet proved. All core lemmas for signChanges combinatorics, Sturm chain opposite-sign property, eval_derivative_ne_zero_of_squarefree_root, sign_near, and factor_theorem_with_deriv are verified. Missing: sigma_drop_at_simple_root lemma (sigma drops by 1 at simple root) and the 
+
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
+|---|-----------|-------|----------|--------|
 | 1 | 20260628T022441Z | `(unknown)` | agent-provided report | saved |
 | 3 | 20260628T022640Z | `(unknown)` | agent-provided report | saved |
+| 5 | 20260628T024341Z | `(unknown)` | agent-provided report | blocked |
 
 ## Recommended Next Steps
 
