@@ -2169,3 +2169,171 @@ The following gaps prevent completion:
 
 ### Key Insight for Completion
 The crucial lemma missing is: at a simple root r of a squarefree p, the Sturm chain after the first two entries (p, p') is either zero at r and changes sign, or nonzero at r and has the same sign on both sides. In either case, only the (p, p') pair contributes to the change in sigma, and the total change is exactly 1.
+
+---
+## Attempt 20260702T052654Z
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open Set
+open Metric
+open scoped Topology
+
+set_option autoImplicit false
+
+noncomputable section
+
+namespace Sturm
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) =>
+    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
+  sturmAux p (derivative p) (p.natDegree + 2)
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
+  signChanges ((sturmChain p).map fun q => q.eval x)
+
+lemma sqfree_imp_sep (p : ℝ[X]) (hp : Squarefree p) : Separable p :=
+  (PerfectField.separable_iff_squarefree (g := p)).mpr hp
+
+lemma deriv_ne_zero_at_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : (derivative p).eval r ≠ 0 := by
+  have hsep : Separable p := sqfree_imp_sep p hp
+  have h0 : p.eval₂ (RingHom.id ℝ) r = 0 := by simpa using hr
+  have h := hsep.eval₂_derivative_ne_zero (RingHom.id ℝ) h0
+  simpa using h
+
+lemma deriv_eq_poly_deriv (p : ℝ[X]) (x : ℝ) : deriv (fun x' : ℝ => p.eval x') x = (derivative p).eval x := by
+  have h := Polynomial.hasDerivAt p x
+  exact h.deriv
+
+lemma exist_interval_deriv_pos (p : ℝ[X]) (r : ℝ) (hpos : (derivative p).eval r > 0) :
+    ∃ ε > 0, ∀ x, r - ε < x ∧ x < r + ε → (derivative p).eval x > 0 := by
+  have hcont : ContinuousAt (fun x : ℝ => (derivative p).eval x) r :=
+    (Polynomial.continuous (derivative p)).continuousAt
+  have h_mem : {y : ℝ | y > 0} ∈ 𝓝 ((derivative p).eval r) := isOpen_Ioi.mem_nhds hpos
+  rcases Metric.mem_nhds_iff.mp (hcont h_mem) with ⟨ε, hε, hball⟩
+  refine ⟨ε, hε, ?_⟩
+  intro x ⟨hx1, hx2⟩
+  have hx_mem : x ∈ Metric.ball r ε := by
+    rw [Metric.mem_ball, dist_eq_norm, Real.norm_eq_abs, abs_lt]
+    constructor <;> nlinarith
+  exact hball hx_mem
+
+lemma opposite_signs (x y : ℝ) : x * y < 0 ↔ (x < 0 ∧ 0 < y) ∨ (0 < x ∧ y < 0) := by
+  constructor
+  · intro h
+    have hx0 : x ≠ 0 := by intro hx0; rw [hx0, zero_mul] at h; linarith
+    have hy0 : y ≠ 0 := by intro hy0; rw [hy0, mul_zero] at h; linarith
+    by_cases hx : x < 0
+    · have hypos : 0 < y := by by_contra! H; nlinarith
+      exact Or.inl ⟨hx, hypos⟩
+    · have hxpos : 0 < x := by
+        by_contra! H
+        have hx_ge_0 : 0 ≤ x := by linarith
+        have hx_le_0 : x ≤ 0 := by linarith
+        have hx_eq0 : x = 0 := by nlinarith
+        exact hx0 hx_eq0
+      have hyneg : y < 0 := by by_contra! H; nlinarith
+      exact Or.inr ⟨hxpos, hyneg⟩
+  · intro h
+    rcases h with (⟨hx, hy⟩ | ⟨hx, hy⟩)
+    · nlinarith
+    · nlinarith
+
+lemma sign_opposite_pos_deriv (p : ℝ[X]) (r : ℝ) (hr : p.eval r = 0) (hpos : (derivative p).eval r > 0) :
+    ∃ ε > 0, ∀ δ, 0 < δ → δ < ε → p.eval (r - δ) * p.eval (r + δ) < 0 := by
+  rcases exist_interval_deriv_pos p r hpos with ⟨ε, hε, hpos_near⟩
+  refine ⟨ε, hε, ?_⟩
+  intro δ hδ hδ_lt
+  have hδ_ne : δ ≠ 0 := by linarith
+  have hleft : r - δ ∈ Ioo (r - ε) (r + ε) := by constructor <;> nlinarith
+  have hright : r + δ ∈ Ioo (r - ε) (r + ε) := by constructor <;> nlinarith
+  have hp'_left_pos : (derivative p).eval (r - δ) > 0 := hpos_near (r - δ) hleft
+  have hp'_right_pos : (derivative p).eval (r + δ) > 0 := hpos_near (r + δ) hright
+  rcases exists_deriv_eq_slope (fun x : ℝ => p.eval x) (a := r - δ) (b := r) (by nlinarith)
+    (Polynomial.continuous p).continuousOn (Polynomial.differentiableOn p) with ⟨c, hc, hc_eq⟩
+  have hc_interval : c ∈ Ioo (r - ε) (r + ε) := by
+    rcases hc with ⟨hc1, hc2⟩; constructor <;> nlinarith
+  have hc_pos : (derivative p).eval c > 0 := hpos_near c hc_interval
+  have h_sub_eq : r - (r - δ) = δ := by ring
+  rw [h_sub_eq] at hc_eq
+  rw [deriv_eq_poly_deriv p c] at hc_eq
+  have h_eq1 : p.eval r - p.eval (r - δ) = (derivative p).eval c * δ := by
+    calc
+      p.eval r - p.eval (r - δ) = ((p.eval r - p.eval (r - δ)) / δ) * δ := by field_simp [hδ_ne]
+      _ = (derivative p).eval c * δ := by rw [hc_eq]
+  have hp_left_neg : p.eval (r - δ) < 0 := by
+    rw [hr] at h_eq1; nlinarith
+  rcases exists_deriv_eq_slope (fun x : ℝ => p.eval x) (a := r) (b := r + δ) (by nlinarith)
+    (Polynomial.continuous p).continuousOn (Polynomial.differentiableOn p) with ⟨d, hd, hd_eq⟩
+  have hd_interval : d ∈ Ioo (r - ε) (r + ε) := by
+    rcases hd with ⟨hd1, hd2⟩; constructor <;> nlinarith
+  have hd_pos : (derivative p).eval d > 0 := hpos_near d hd_interval
+  have h_sub_eq2 : (r + δ) - r = δ := by ring
+  rw [h_sub_eq2] at hd_eq
+  rw [deriv_eq_poly_deriv p d] at hd_eq
+  have h_eq2 : p.eval (r + δ) - p.eval r = (derivative p).eval d * δ := by
+    calc
+      p.eval (r + δ) - p.eval r = ((p.eval (r + δ) - p.eval r) / δ) * δ := by field_simp [hδ_ne]
+      _ = (derivative p).eval d * δ := by rw [hd_eq]
+  have hp_right_pos : p.eval (r + δ) > 0 := by
+    rw [hr] at h_eq2; nlinarith
+  nlinarith
+
+lemma sign_opposite_at_simple_root (p : ℝ[X]) (r : ℝ) (hr : p.eval r = 0) (hderiv : (derivative p).eval r ≠ 0) :
+    ∃ ε > 0, ∀ δ, 0 < δ → δ < ε → p.eval (r - δ) * p.eval (r + δ) < 0 := by
+  by_cases hpos : (derivative p).eval r > 0
+  · exact sign_opposite_pos_deriv p r hr hpos
+  · have hneg : (derivative p).eval r < 0 := by
+      have h_cases := lt_or_gt_of_ne (Ne.symm hderiv)
+      rcases h_cases with (h | h)
+      · exfalso; exact hpos h
+      · exact h
+    have h_neg_deriv : (derivative (-p)).eval r ≠ 0 := by
+      simpa [derivative_neg] using hderiv
+    have h_neg_root : (-p).eval r = 0 := by simp [hr]
+    have h_neg_pos : (derivative (-p)).eval r > 0 := by
+      have : (derivative (-p)).eval r = -((derivative p).eval r) := by simp [derivative_neg]
+      rw [this]; linarith
+    rcases sign_opposite_pos_deriv (-p) r h_neg_root h_neg_pos with ⟨ε, hε, h⟩
+    refine ⟨ε, hε, ?_⟩
+    intro δ hδ hδ_lt
+    have h' := h δ hδ hδ_lt
+    simp at h'
+    nlinarith
+
+end Sturm
+```
+
+
+## Agent Response Context
+
+## Sturm's Theorem Formalization - Summary
+
+### Progress Made
+
+I successfully formalized and verified the following lemmas for Sturm's theorem in Lean 4:
+
+1. **`sqfree_imp_sep`**: Squarefree polynomials over ℝ are separable (coprime with derivative)
+2. **`deriv_ne_zero_at_root`**: At any root of a squarefree polynomial, the derivative is nonzero
+3. **`sign_opposite_at_simple_root`**: At a simple root of p, the values on either side have opposite signs (proved using MVT and continuity)
+4. **Supporting lemmas**: Continuity, MVT, sign analysis, derivative chain rule
+
+### Remaining Work
+
+The main theorem `sturm` requires completing an induction proof that:
+1. **Sigma drops by 1 at each simple root**: When p crosses a root, the sign variation count in the Sturm chain decreases by exactly 1
+2. **Sigma is constant between roots**: On intervals where p has no roots, all chain entries maintain their signs
+3. **Induction**: Apply these facts to the sorted roots of p in (a,b)
+
+The partial proof has been saved to `failed_submissions/sturm/` for future work.
