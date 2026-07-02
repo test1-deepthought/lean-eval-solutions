@@ -2357,3 +2357,37 @@ The partial proof has been saved to `failed_submissions/sturm/` for future work.
 
 ## Next Steps
 Complete the induction proof using the verified lemmas.
+
+---
+## Attempt 20260702T072158Z
+
+## Completed
+- `sturmAux`, `sturmChain`, `signChanges`, `sigma` definitions (from ChallengeDeps)
+- `deriv_ne_zero_at_root`: squarefree → derivative nonzero at roots
+- `signChanges_cons_nz`: decomposition lemma for signChanges
+- `eval_rem_eq_of_eval_zero`: remainder vanishes at roots
+- `isolated_root`: nonzero polynomials have isolated roots
+- `triple_preserved`: the triple distribution lemma
+- `signChanges_singleton`: signChanges of singleton is 0
+
+## Partially completed
+- `sturm_aux_eq`: proves signChanges of Sturm chain is invariant under r-δ/r+δ shifts for points where the first entry is nonzero (critical lemma). Proof attempts have various compilation issues.
+- `sigma_drop_at_root`: σ(p, r-δ) = σ(p, r+δ) + 1 at a simple root. Depends on sturm_aux_eq.
+
+## Not yet completed
+- `sigma_const_no_root`: constancy of σ on root-free intervals
+- `sturm` main theorem: induction on sorted roots
+
+## Key technical challenges
+1. The `hab_near` lemma in Case 1 of `sturm_aux_eq` (proving a·b keeps sign when a and b individually keep sign) required a more careful approach using the product `(a·b)*(a(r)·b(r))`.
+2. The `sturm_aux_eq` induction requires handling b(r) = 0 case, which uses the triple lemma and tail invariance.
+3. The `sigma_drop_at_root` proof required combining continuity arguments for p, p' with tail invariance.
+
+## Next steps
+1. Fix remaining compilation errors in `sturm_aux_eq` (signChanges_singleton and hab_near issues)
+2. Prove `sigma_const_no_root` using local constancy of sigma and connectedness of (c,d)
+3. Prove main theorem by induction on sorted roots using `sigma_drop_at_root` and `sigma_const_no_root`
+
+## Agent Response Context
+
+The Sturm theorem formalization is partially complete. The key lemmas about Sturm chain properties have been established, but the final assembly into the main theorem requires completing `sigma_drop_at_root` (the analytic core) and `sigma_const_no_root` (connectedness argument), followed by the root-counting induction.
