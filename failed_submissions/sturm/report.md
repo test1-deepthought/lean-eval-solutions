@@ -2453,3 +2453,169 @@ lemma sign_neighborhood (q : ℝ[X]) (r : ℝ) (hq : q.eval r ≠ 0) : ∃ ε > 
     have hx_val : q.eval x ∈ Set.Ioo (q.eval r * 2) (0 : ℝ) := hball hx_mem
     have hx_neg : q.eval x < 0 := hx_val.2; nlinarith
 ```
+
+---
+## Attempt 20260702T105326Z
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib
+open Polynomial
+open Set
+open List
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) =>
+    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
+  sturmAux p (derivative p) (p.natDegree + 2)
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
+  signChanges ((sturmChain p).map fun q => q.eval x)
+
+noncomputable def sgnZ (x : ℝ) : ℤ := if x > 0 then (1 : ℤ) else (-1 : ℤ)
+
+lemma sgnZ_mul_neg_one_iff (x y : ℝ) (hx : x ≠ 0) (hy : y ≠ 0) : (sgnZ x * sgnZ y = (-1 : ℤ)) ↔ (x * y < 0) := by
+  by_cases hxpos : x > 0
+  · by_cases hypos : y > 0
+    · unfold sgnZ; simp [hxpos, hypos]; nlinarith
+    · have hy_not_pos : ¬(y > 0) := hypos
+      have hyneg : y < 0 := by by_contra! hge; exact hy (by nlinarith)
+      unfold sgnZ; simp [hxpos, hy_not_pos, hyneg]; nlinarith
+  · have hx_not_pos : ¬(x > 0) := hxpos
+    have hxneg : x < 0 := by by_contra! hge; exact hx (by nlinarith)
+    by_cases hypos : y > 0
+    · unfold sgnZ; simp [hx_not_pos, hxneg, hypos]; nlinarith
+    · have hy_not_pos : ¬(y > 0) := hypos
+      have hyneg : y < 0 := by by_contra! hge; exact hy (by nlinarith)
+      unfold sgnZ; simp [hx_not_pos, hy_not_pos, hxneg, hyneg]; nlinarith
+
+noncomputable def nonZeroSigns (xs : List ℝ) : List ℤ :=
+  (xs.filter (· ≠ 0)).map (fun x => if x > 0 then (1 : ℤ) else (-1 : ℤ))
+
+def computeSignChanges (signs : List ℤ) : ℕ :=
+  ((signs.zip signs.tail).filter (fun (a, b) => a * b = (-1 : ℤ))).length
+
+lemma count_adj_opposite_eq (A : List ℝ) (hA : ∀ x ∈ A, x ≠ 0) : 
+    ((A.zip A.tail).filter (fun q : ℝ × ℝ => q.1 * q.2 < 0)).length = 
+    (((A.map sgnZ).zip (A.map sgnZ).tail).filter (fun (a, b) => a * b = (-1 : ℤ))).length := by
+  induction A with
+  | nil => rfl
+  | cons x xs ih =>
+    have hx : x ≠ 0 := hA x (by simp)
+    have hxs : ∀ x' ∈ xs, x' ≠ 0 := λ x' hx' => hA x' (by simp [hx'])
+    match xs with
+    | [] => simp
+    | y :: ys =>
+      have hy : y ≠ 0 := hxs y (by simp)
+      have h_all : ∀ z ∈ y :: ys, z ≠ 0 := by
+        intro z hz; simp at hz; rcases hz with (rfl | hz')
+        · exact hy
+        · exact hxs z (by simp [hz'])
+      simp
+      by_cases hxy : x * y < 0
+      · have h_sgn : sgnZ x * sgnZ y = (-1 : ℤ) := ((sgnZ_mul_neg_one_iff x y hx hy).mpr hxy)
+        simp [hxy, h_sgn]
+        simpa using ih h_all
+      · have h_not_sgn : ¬(sgnZ x * sgnZ y = (-1 : ℤ)) := by
+          rw [sgnZ_mul_neg_one_iff x y hx hy]; exact hxy
+        simp [hxy, h_not_sgn]
+        simpa using ih h_all
+
+lemma signChanges_eq_compute (xs : List ℝ) : signChanges xs = computeSignChanges (nonZeroSigns xs) := by
+  unfold signChanges nonZeroSigns computeSignChanges
+  let A := xs.filter (· ≠ 0)
+  have hA : ∀ x ∈ A, x ≠ 0 := by
+    intro x hx; have h := (mem_filter.mp hx).2; simpa using h
+  exact count_adj_opposite_eq A hA
+
+lemma nonZeroSigns_map_eq (f g : α → ℝ) (l : List α) (h : ∀ a ∈ l, f a * g a > 0) : 
+    nonZeroSigns (l.map f) = nonZeroSigns (l.map g) := by
+  induction l with
+  | nil => rfl
+  | cons a l ih =>
+    have ha : f a * g a > 0 := h a (by simp)
+    have ha_f_nonzero : f a ≠ 0 := by
+      intro hzero; have : f a * g a = 0 := by
+        calc
+          f a * g a = 0 * g a := by rw [hzero]
+          _ = 0 := by simp
+      linarith
+    have ha_g_nonzero : g a ≠ 0 := by
+      intro hzero; have : f a * g a = 0 := by
+        calc
+          f a * g a = f a * 0 := by rw [hzero]
+          _ = 0 := by simp
+      linarith
+    have h_rest : ∀ a' ∈ l, f a' * g a' > 0 := λ a' ha' => h a' (by simp [ha'])
+    have h_ih := ih h_rest
+    unfold nonZeroSigns
+    simp [ha_f_nonzero, ha_g_nonzero]
+    have h_head : (if f a > 0 then (1 : ℤ) else (-1 : ℤ)) = (if g a > 0 then (1 : ℤ) else (-1 : ℤ)) := by
+      by_cases hpos : f a > 0
+      · have hpos_g : g a > 0 := by by_contra! hng; have : f a * g a ≤ 0 := by nlinarith; nlinarith
+        simp [hpos, hpos_g]
+      · have hneg : f a < 0 := by by_contra! hge; have : f a = 0 := by nlinarith; exact ha_f_nonzero this
+        have hneg_g : g a < 0 := by by_contra! hge; have : f a * g a ≤ 0 := by nlinarith; nlinarith
+        simp [hpos, hneg, hneg_g]
+    simp [h_head, h_ih]
+
+lemma signChanges_map_eq_of_forall_mul_pos {α : Type} (f g : α → ℝ) (l : List α) (h : ∀ a ∈ l, f a * g a > 0) : 
+    signChanges (l.map f) = signChanges (l.map g) := by
+  calc
+    signChanges (l.map f) = computeSignChanges (nonZeroSigns (l.map f)) := by rw [signChanges_eq_compute]
+    _ = computeSignChanges (nonZeroSigns (l.map g)) := by rw [nonZeroSigns_map_eq f g l h]
+    _ = signChanges (l.map g) := by rw [signChanges_eq_compute]
+
+lemma same_sign_if_no_root (q : ℝ[X]) {a b : ℝ} (hab : a ≤ b) (h : ∀ x ∈ Icc a b, q.eval x ≠ 0) :
+    q.eval a * q.eval b > 0 := by
+  by_cases ha_pos : q.eval a > 0
+  · have hb_pos : q.eval b > 0 := by
+      by_contra! hb_nonpos
+      have hcont : ContinuousOn (fun (x : ℝ) => q.eval x) (Icc a b) :=
+        (Polynomial.continuous q).continuousOn
+      have h0 : (0 : ℝ) ∈ Icc (q.eval b) (q.eval a) := ⟨hb_nonpos, ha_pos.le⟩
+      have h_ivt := intermediate_value_Icc' hab hcont h0
+      rcases h_ivt with ⟨x, hx, hx0⟩
+      exact h x hx hx0
+    nlinarith
+  · by_cases ha0 : q.eval a = 0
+    · exfalso; exact h a (left_mem_Icc.mpr hab) ha0
+    · have ha_nonpos : q.eval a ≤ 0 := by linarith
+      have ha_neg : q.eval a < 0 := by
+        by_contra! hge; have : q.eval a = 0 := by nlinarith; exact ha0 this
+      have hb_neg : q.eval b < 0 := by
+        by_contra! hb_nonneg
+        have hcont : ContinuousOn (fun (x : ℝ) => q.eval x) (Icc a b) :=
+          (Polynomial.continuous q).continuousOn
+        have h0 : (0 : ℝ) ∈ Icc (q.eval a) (q.eval b) := ⟨ha_neg.le, hb_nonneg⟩
+        have h_ivt := intermediate_value_Icc hab hcont h0
+        rcases h_ivt with ⟨x, hx, hx0⟩
+        exact h x hx hx0
+      nlinarith
+
+lemma sigma_constant_no_chain_root (p : ℝ[X]) {a b : ℝ} (hab : a ≤ b)
+    (h_no_root : ∀ q ∈ sturmChain p, ∀ x ∈ Icc a b, q.eval x ≠ 0) : sigma p a = sigma p b := by
+  unfold sigma
+  have h_same_sign : ∀ q ∈ sturmChain p, q.eval a * q.eval b > 0 := by
+    intro q hq; exact same_sign_if_no_root q hab (h_no_root q hq)
+  exact signChanges_map_eq_of_forall_mul_pos (fun q : ℝ[X] => q.eval a) (fun q => q.eval b) (sturmChain p) h_same_sign
+
+lemma deriv_ne_zero_at_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : (derivative p).eval r ≠ 0 := by
+  have hsep : Polynomial.Separable p := (PerfectField.separable_iff_squarefree (g := p)).mpr hp
+  have h := hsep.eval₂_derivative_ne_zero (RingHom.id ℝ) (by simpa using hr)
+  simpa using h
+
+lemma eval_mod_eq_eval_at_root (a b : ℝ[X]) (r : ℝ) (hb : b.eval r = 0) : (a % b).eval r = a.eval r := by
+  have h := EuclideanDomain.mod_add_div a b
+  apply_fun (fun p => p.eval r) at h
+  simp [eval_add, eval_mul, hb] at h
+  exact h
+```
