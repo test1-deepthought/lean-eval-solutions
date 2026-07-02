@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260702T231846Z
+**Last updated:** 20260702T232229Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -87,7 +87,6 @@ All frontier lemmas verified — main theorem assembly remains.
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
-|---|-----------|-------|----------|--------|
 | 1 | 20260628T022441Z | `(unknown)` | agent-provided report | saved |
 | 3 | 20260628T022640Z | `(unknown)` | agent-provided report | saved |
 | 5 | 20260628T024341Z | `(unknown)` | agent-provided report | blocked |
@@ -103,6 +102,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 22 | 20260702T080648Z | `Complete chain_polys_nonzero_at_root: prove that for a squarefree polynomial p, all Sturm chain entries except p itself are nonzero at roots of p. Then use this to complete sigma_drop_one and the main theorem.` | failed: Incomplete proof of Sturm's theorem. Key lemmas proven: root_simple (p'(r)≠0 at  | blocked |
 | 22 | 20260702T105326Z | `(unknown)` | agent-provided report | saved |
 | 22 | 20260702T231846Z | `(unknown)` | agent-provided report | saved |
+| 22 | 20260702T232229Z | `(unknown)` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
