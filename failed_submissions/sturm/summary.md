@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260702T072158Z
+**Last updated:** 20260702T080648Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -10,7 +10,7 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 ## Verified Lemmas
 
-**46 lemmas verified across all attempts**
+**48 lemmas verified across all attempts**
 
 | # | Lemma | SHA256 | Attempts |
 |---|-------|--------|----------|
@@ -37,29 +37,31 @@ See `Submission.lean` in the repository root or the latest attempt below.
 | 21 | `next_chain_entry_eval` | `next_chain_entry_eval.lean` | $(-(a \% b)).\text{eval}\, r = -a.\text{eval}\, r$ when $b(r)=0$ |
 | 22 | `nonzero_near` | `nonzero_near.lean` | If $q(r) \neq 0$, there's a $\delta$-neighborhood where $q(x) \neq 0$ |
 | 23 | `opposite_signs` | `a45689a99e23` | ? |
-| 24 | `signChanges_cons_cons` | `6d3716938a52` | ? |
-| 25 | `signChanges_cons_cons_nonzero` | `signChanges_cons_cons_nonzero.lean` | Recurrence: $a \neq 0, b \neq 0 \implies \text{signChanges}(a::b::\text{rest}) = [ab<0] + \text{signChanges}(b::\text{rest})$ |
-| 26 | `signChanges_cons_nonzero` | `5eb9d4145d19` | ? |
-| 27 | `signChanges_cons_triple` | `020071b9ef24` | ? |
-| 28 | `signChanges_cons_zero` | `signChanges_cons_zero.lean` | Leading zero removed without affecting count |
-| 29 | `signChanges_filter_eq` | `signChanges_filter_eq.lean` | Invariant under zero removal |
-| 30 | `signChanges_flip_first` | `1294366b0016` | ? |
-| 31 | `signChanges_nil` | `signChanges_nil.lean` | `signChanges [] = 0` |
-| 32 | `signChanges_pair` | `signChanges_pair.lean` | `signChanges [a,b] = 1` iff $ab < 0$ |
-| 33 | `signChanges_singleton` | `signChanges_singleton.lean` | `signChanges [a] = 0` |
-| 34 | `signChanges_splice_zero` | `signChanges_splice_zero.lean` | Inserting zero doesn't change count |
-| 35 | `signChanges_triple_opposite` | `signChanges_triple_opposite.lean` | $\text{signChanges}[a,b,c] = 1$ when $a\cdot c < 0$ |
-| 36 | `sign_constant_ac` | `a693798c3e25` | ? |
-| 37 | `sign_constant_on_Ioo` | `sign_constant_on_Ioo.lean` | If $q$ has no root in $(c,d)$, sign is constant there (via IVT) |
-| 38 | `sign_near` | `089470b69bfc` | ? |
-| 39 | `sign_near_neg` | `06987b56cf7d` | ? |
-| 40 | `sign_opposite_at_simple_root` | `b0465aa1281a` | ? |
-| 41 | `sign_opposite_pos_deriv` | `67dcf4f2e86b` | ? |
-| 42 | `sqfree_imp_sep` | `8750f4f0dede` | ? |
-| 43 | `squarefree_imp_separable` | `squarefree_imp_separable.lean` | Over $\mathbb{R}$, `Squarefree` $\implies$ `Separable` (via `PerfectField`) |
-| 44 | `squarefree_no_common_root` | `3a1e7f3f7a9f` | ? |
-| 45 | `sturm_adjacent_opposite` | `d33018619834` | ? |
-| 46 | `triple_sign_lemma` | `triple_sign_lemma.lean` | For $a \cdot c < 0, b \neq 0$: $[ab<0] + [bc<0] = 1$ |
+| 24 | `root_simple` | `2d2b8d732f21` | ? |
+| 25 | `signChanges_cons_cons` | `6d3716938a52` | ? |
+| 26 | `signChanges_cons_cons_nonzero` | `signChanges_cons_cons_nonzero.lean` | Recurrence: $a \neq 0, b \neq 0 \implies \text{signChanges}(a::b::\text{rest}) = [ab<0] + \text{signChanges}(b::\text{rest})$ |
+| 27 | `signChanges_cons_nonzero` | `5eb9d4145d19` | ? |
+| 28 | `signChanges_cons_triple` | `020071b9ef24` | ? |
+| 29 | `signChanges_cons_zero` | `signChanges_cons_zero.lean` | Leading zero removed without affecting count |
+| 30 | `signChanges_filter_eq` | `signChanges_filter_eq.lean` | Invariant under zero removal |
+| 31 | `signChanges_flip_first` | `1294366b0016` | ? |
+| 32 | `signChanges_nil` | `signChanges_nil.lean` | `signChanges [] = 0` |
+| 33 | `signChanges_pair` | `signChanges_pair.lean` | `signChanges [a,b] = 1` iff $ab < 0$ |
+| 34 | `signChanges_singleton` | `signChanges_singleton.lean` | `signChanges [a] = 0` |
+| 35 | `signChanges_splice_zero` | `signChanges_splice_zero.lean` | Inserting zero doesn't change count |
+| 36 | `signChanges_triple_opposite` | `signChanges_triple_opposite.lean` | $\text{signChanges}[a,b,c] = 1$ when $a\cdot c < 0$ |
+| 37 | `sign_constant_ac` | `a693798c3e25` | ? |
+| 38 | `sign_constant_on_Ioo` | `sign_constant_on_Ioo.lean` | If $q$ has no root in $(c,d)$, sign is constant there (via IVT) |
+| 39 | `sign_near` | `089470b69bfc` | ? |
+| 40 | `sign_near_neg` | `06987b56cf7d` | ? |
+| 41 | `sign_neighborhood` | `1358ff536dfa` | ? |
+| 42 | `sign_opposite_at_simple_root` | `b0465aa1281a` | ? |
+| 43 | `sign_opposite_pos_deriv` | `67dcf4f2e86b` | ? |
+| 44 | `sqfree_imp_sep` | `8750f4f0dede` | ? |
+| 45 | `squarefree_imp_separable` | `squarefree_imp_separable.lean` | Over $\mathbb{R}$, `Squarefree` $\implies$ `Separable` (via `PerfectField`) |
+| 46 | `squarefree_no_common_root` | `3a1e7f3f7a9f` | ? |
+| 47 | `sturm_adjacent_opposite` | `d33018619834` | ? |
+| 48 | `triple_sign_lemma` | `triple_sign_lemma.lean` | For $a \cdot c < 0, b \neq 0$: $[ab<0] + [bc<0] = 1$ |
 
 ## Unproven Components
 
@@ -67,10 +69,11 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
+**Last error:** Incomplete proof of Sturm's theorem. Key lemmas proven: root_simple (p'(r)≠0 at simple root for squarefree p), sign_neighborhood (sign preservation near non-zero point). Remaining: chain_polys_nonzero_at_root (other chain polynomials nonzero at roots of p), sigma_drop_one (sigma drops by 1 at each r
+
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
-|---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
@@ -91,6 +94,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 19 | 20260702T052654Z | `(unknown)` | agent-provided report | saved |
 | 21 | 20260702T053716Z | `sigma_drop_at_root and sigma_const_no_root` | agent-provided report | saved |
 | 22 | 20260702T072158Z | `(unknown)` | agent-provided report | saved |
+| 22 | 20260702T080648Z | `Complete chain_polys_nonzero_at_root: prove that for a squarefree polynomial p, all Sturm chain entries except p itself are nonzero at roots of p. Then use this to complete sigma_drop_one and the main theorem.` | failed: Incomplete proof of Sturm's theorem. Key lemmas proven: root_simple (p'(r)≠0 at  | blocked |
 
 ## Recommended Next Steps
 
