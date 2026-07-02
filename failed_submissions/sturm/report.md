@@ -2391,3 +2391,65 @@ Complete the induction proof using the verified lemmas.
 ## Agent Response Context
 
 The Sturm theorem formalization is partially complete. The key lemmas about Sturm chain properties have been established, but the final assembly into the main theorem requires completing `sigma_drop_at_root` (the analytic core) and `sigma_const_no_root` (connectedness argument), followed by the root-counting induction.
+
+---
+## Attempt 20260702T080648Z | mode: fix
+
+## Verified Lemmas
+| # | Lemma | File |
+|---|-------|------|
+| 1 | `root_simple` | `Submission/root_simple.lean` |
+| 2 | `sign_neighborhood` | `Submission/sign_neighborhood.lean` |
+
+## Unproven Components
+(no frontier state available)
+**Current lemma:** `Complete chain_polys_nonzero_at_root: prove that for a squarefree polynomial p, all Sturm chain entries except p itself are nonzero at roots of p. Then use this to complete sigma_drop_one and the main theorem.`
+**Error:** Incomplete proof of Sturm's theorem. Key lemmas proven: root_simple (p'(r)≠0 at simple root for squarefree p), sign_neighborhood (sign preservation near non-zero point). Remaining: chain_polys_nonzero_at_root (other chain polynomials nonzero at roots of p), sigma_drop_one (sigma drops by 1 at each r
+
+## Exact Failed Lean Error
+Incomplete proof of Sturm's theorem. Key lemmas proven: root_simple (p'(r)≠0 at simple root for squarefree p), sign_neighborhood (sign preservation near non-zero point). Remaining: chain_polys_nonzero_at_root (other chain polynomials nonzero at roots of p), sigma_drop_one (sigma drops by 1 at each root), and the main theorem by induction on roots.
+
+## Next Lemma To Prove
+Complete chain_polys_nonzero_at_root: prove that for a squarefree polynomial p, all Sturm chain entries except p itself are nonzero at roots of p. Then use this to complete sigma_drop_one and the main theorem.
+
+## Strategy Note
+(no frontier state — strategy unknown)
+
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+lemma root_simple (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : (derivative p).eval r ≠ 0 := by
+  have hsep : Separable p := by
+    have hpf : PerfectField ℝ := by infer_instance
+    exact ((PerfectField.separable_iff_squarefree (K := ℝ) (g := p)).mpr hp)
+  rcases hsep with ⟨a, b, h⟩
+  by_contra! hderiv
+  have h1 : (a * p + b * derivative p).eval r = 1 := by
+    calc (a * p + b * derivative p).eval r = (1 : ℝ[X]).eval r := by simpa [h]
+    _ = 1 := by simp
+  have h0 : (a * p + b * derivative p).eval r = 0 := by
+    simp [hr, hderiv, Polynomial.eval_add, Polynomial.eval_mul]
+  linarith
+
+lemma sign_neighborhood (q : ℝ[X]) (r : ℝ) (hq : q.eval r ≠ 0) : ∃ ε > 0, ∀ x, |x - r| < ε → q.eval x * q.eval r > 0 := by
+  have hcont : ContinuousAt (q.eval : ℝ → ℝ) r := (Polynomial.continuous q).continuousAt
+  have hpos : q.eval r > 0 ∨ q.eval r < 0 := lt_or_gt_of_ne hq.symm
+  rcases hpos with (hpos | hneg)
+  · have h_open : Set.Ioo (0 : ℝ) (q.eval r * 2) ∈ 𝓝 (q.eval r) := by
+      apply IsOpen.mem_nhds isOpen_Ioo; constructor <;> nlinarith
+    have h_pre : (q.eval ⁻¹' Set.Ioo (0 : ℝ) (q.eval r * 2)) ∈ 𝓝 r := hcont.tendsto h_open
+    rcases Metric.mem_nhds_iff.mp h_pre with ⟨ε, hε, hball⟩
+    refine ⟨ε, hε, ?_⟩
+    intro x hx; have hx_mem : x ∈ Metric.ball r ε := Metric.mem_ball.mpr hx
+    have hx_val : q.eval x ∈ Set.Ioo (0 : ℝ) (q.eval r * 2) := hball hx_mem
+    have hx_pos : q.eval x > 0 := hx_val.1; nlinarith
+  · have h_open : Set.Ioo (q.eval r * 2) (0 : ℝ) ∈ 𝓝 (q.eval r) := by
+      apply IsOpen.mem_nhds isOpen_Ioo; constructor <;> nlinarith
+    have h_pre : (q.eval ⁻¹' Set.Ioo (q.eval r * 2) (0 : ℝ)) ∈ 𝓝 r := hcont.tendsto h_open
+    rcases Metric.mem_nhds_iff.mp h_pre with ⟨ε, hε, hball⟩
+    refine ⟨ε, hε, ?_⟩
+    intro x hx; have hx_mem : x ∈ Metric.ball r ε := Metric.mem_ball.mpr hx
+    have hx_val : q.eval x ∈ Set.Ioo (q.eval r * 2) (0 : ℝ) := hball hx_mem
+    have hx_neg : q.eval x < 0 := hx_val.2; nlinarith
+```
