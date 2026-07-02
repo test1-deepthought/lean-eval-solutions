@@ -1,7 +1,7 @@
 # sturm — Current State
 
-**Last updated:** 20260702T052654Z
-**Total attempts:** 19
+**Last updated:** 20260702T053716Z
+**Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
 ## Target Theorem
@@ -90,6 +90,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 15 | 20260628T141408Z | `(unknown)` | agent-provided report | saved |
 | 17 | 20260702T050818Z | `(unknown)` | agent-provided report | saved |
 | 19 | 20260702T052654Z | `(unknown)` | agent-provided report | saved |
+| 21 | 20260702T053716Z | `sigma_drop_at_root and sigma_const_no_root` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
