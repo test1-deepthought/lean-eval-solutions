@@ -2337,3 +2337,23 @@ The main theorem `sturm` requires completing an induction proof that:
 3. **Induction**: Apply these facts to the sorted roots of p in (a,b)
 
 The partial proof has been saved to `failed_submissions/sturm/` for future work.
+
+---
+## Attempt 20260702T053716Z
+
+## Completed (all verified)
+1. sqfree_imp_sep - Squarefree implies Separable over ℝ
+2. deriv_ne_zero_at_root - Derivative nonzero at roots
+3. deriv_eq_poly_deriv - Analytic derivative equals polynomial derivative
+4. exist_interval_deriv_pos - p' > 0 near a point where p' > 0
+5. opposite_signs - Sign characterization of x*y < 0
+6. sign_opposite_pos_deriv - p changes sign at root with p' > 0 (MVT proof)
+7. sign_opposite_at_simple_root - p changes sign at any simple root
+
+## Workflow
+- prove_problem stage=statement_skeleton: accepted
+- prove_problem stage=frontier_plan: registered
+- Workers spawned for: sigma_drop_at_root, sigma_const_no_root
+
+## Next Steps
+Complete the induction proof using the verified lemmas.
