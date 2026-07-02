@@ -12,11 +12,12 @@ lemma sign_opposite_at_simple_root (p : ℝ[X]) (r : ℝ) (hr : p.eval r = 0) (h
     have h_neg_root : (-p).eval r = 0 := by simp [hr]
     have h_neg_pos : (derivative (-p)).eval r > 0 := by
       have : (derivative (-p)).eval r = -((derivative p).eval r) := by simp [derivative_neg]
-      rw [this]
-      linarith
+      rw [this]; linarith
     rcases sign_opposite_pos_deriv (-p) r h_neg_root h_neg_pos with ⟨ε, hε, h⟩
     refine ⟨ε, hε, ?_⟩
     intro δ hδ hδ_lt
     have h' := h δ hδ hδ_lt
     simp at h'
     nlinarith
+
+end Sturm
