@@ -2619,3 +2619,48 @@ lemma eval_mod_eq_eval_at_root (a b : ℝ[X]) (r : ℝ) (hb : b.eval r = 0) : (a
   simp [eval_add, eval_mul, hb] at h
   exact h
 ```
+
+---
+## Attempt 20260702T231846Z
+
+## Problem
+Prove Sturm's theorem: For a squarefree real polynomial p and interval (a,b) with a<b and p(a)≠0, p(b)≠0, the number of distinct real roots of p in (a,b) equals sigma(p,a) - sigma(p,b), where sigma is the sign-variation function of the Sturm chain.
+
+## Progress Made
+
+### Verified Lemmas (7 lemmas)
+1. **signChanges_nil**: signChanges([]) = 0
+2. **signChanges_singleton**: signChanges([x]) = 0
+3. **signChanges_pair**: signChanges([x,y]) = if x*y<0 then 1 else 0
+4. **signChanges_triple_opposite_ends**: If a*c<0 and b≠0, then signChanges([a,b,c]) = 1
+5. **sturmAux_recurse**: sturmAux a b (n+1) = a :: sturmAux b (-(a%b)) n (when b≠0)
+6. **sturmChain_ne_nil**: The Sturm chain is nonempty
+7. **deriv_nz_at_root**: For squarefree p, p.derivative.eval r ≠ 0 at any root r of p
+
+### Mathematical Insight
+The proof requires:
+1. The Sturm chain for a squarefree polynomial terminates with a nonzero constant (gcd(p,p')=1)
+2. Consecutive entries share no common root
+3. At a root of p (simple since squarefree), sigma drops by exactly 1 
+4. At a root of any other chain entry, sigma is unchanged
+5. Therefore sigma(a) - sigma(b) = #{roots of p in (a,b)}
+
+The key lemma signChanges_triple_opposite_ends captures the property that at a root of an interior chain entry (where neighboring entries have opposite signs by the chain relation), the sign variation count is unchanged.
+
+### Remaining Work
+The main theorem (sigma in Submission.lean) still needs:
+- A proof that sigma is locally constant at points that are not roots of p
+- A proof that sigma drops by exactly 1 at each root of p
+- A global argument (induction on roots or finite-set argument) linking sigma(a)-sigma(b) to the root count
+
+### Approach Used
+- Classical analysis approach using derivatives and sign changes
+- Key mathlib lemmas: `eventually_nhdsWithin_sign_eq_of_deriv_pos/neg` for sign change at simple roots
+- `PerfectField.separable_iff_squarefree` for equivalence of separability and squarefreeness over ℝ
+- `Polynomial.Separable.eval₂_derivative_ne_zero` for derivative non-vanishing at roots
+
+## Verified Lean 4 Code From This Attempt
+
+```lean4
+import Mathlib\nopen Polynomial\nopen scoped Classical\n\nnamespace LeanEval.Algebra\n\n-- All verified lemmas\nlemma signChanges_nil : signChanges ([] : List ℝ) = 0 := by\n  unfold signChanges; simp\n\nlemma signChanges_singleton (x : ℝ) : signChanges [x] = 0 := by\n  unfold signChanges; dsimp\n  classical\n  by_cases hx : x = 0\n  · subst x; simp\n  · simp [hx]\n\nlemma signChanges_pair (x y : ℝ) : signChanges [x, y] = if x * y < 0 then 1 else 0 := by\n  unfold signChanges; dsimp\n  classical\n  by_cases hx0 : x = 0\n  · subst x\n    by_cases hy0 : y = 0\n    · subst y; simp\n    · simp [hy0]\n  · by_cases hy0 : y = 0\n    · subst y; simp [hx0]\n    · by_cases h : x * y < 0\n      · simp [hx0, hy0, h]\n      · simp [hx0, hy0, h]\n\nlemma signChanges_triple_opposite_ends {a b c : ℝ} (hac : a * c < 0) (hb : b ≠ 0) : signChanges [a, b, c] = 1 := by\n  have ha : a ≠ 0 := by\n    intro hzero; subst a; have : 0 * c < 0 := hac; simp at this\n  have hc : c ≠ 0 := by\n    intro hzero; subst c; have : a * 0 < 0 := hac; simp at this\n  unfold signChanges; dsimp; classical\n  simp [ha, hb, hc]\n  have h_sq_pos : b ^ 2 > 0 := sq_pos_iff.mpr hb\n  have h_prod_lt_zero : (a * b) * (b * c) < 0 := by\n    calc\n      (a * b) * (b * c) = (a * c) * (b ^ 2) := by ring\n      _ < 0 * (b ^ 2) := mul_lt_mul_of_pos_right hac h_sq_pos\n      _ = 0 := by simp\n  have h_neg_one : (a * b < 0 ∧ ¬ (b * c < 0)) ∨ (¬ (a * b < 0) ∧ b * c < 0) := by\n    by_cases hab : a * b < 0\n    · have hbc_nonneg : ¬ (b * c < 0) := by\n        intro hbc\n        have : (a * b) * (b * c) > 0 := mul_pos_of_neg_of_neg hab hbc\n        linarith\n      exact Or.inl ⟨hab, hbc_nonneg⟩\n    · have hbc_neg : b * c < 0 := by\n        have hab_nonneg : 0 ≤ a * b := not_lt.mp hab\n        by_contra! H\n        have H' : 0 ≤ b * c := H\n        have : (a * b) * (b * c) ≥ 0 := mul_nonneg hab_nonneg H'\n        linarith\n      exact Or.inr ⟨hab, hbc_neg⟩\n  rcases h_neg_one with (⟨hab, hbc⟩ | ⟨hab, hbc⟩)\n  · simp [hab, hbc]\n  · simp [hab, hbc]\n\nlemma sturmAux_recurse (a b : ℝ[X]) (n : ℕ) (hb : b ≠ 0) : \n    sturmAux a b (n+1) = a :: sturmAux b (-(a % b)) n := by\n  simp [sturmAux, hb]\n\nlemma sturmAux_ne_nil (a b : ℝ[X]) (n : ℕ) : sturmAux a b n ≠ [] := by\n  induction' n with k ih generalizing a b\n  · simp [sturmAux]\n  · simp [sturmAux]; split <;> simp [ih]\n\nlemma sturmChain_ne_nil (p : ℝ[X]) : sturmChain p ≠ [] :=\n  sturmAux_ne_nil p (derivative p) (p.natDegree + 2)\n\nlemma deriv_nz_at_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hpr : p.eval r = 0) : p.derivative.eval r ≠ 0 := by\n  have hp_sep : p.Separable := (PerfectField.separable_iff_squarefree.mpr hp)\n  exact hp_sep.eval₂_derivative_ne_zero (RingHom.id ℝ) hpr\n\nend LeanEval.Algebra
+```
