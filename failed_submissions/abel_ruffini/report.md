@@ -15,3 +15,22 @@ Incomplete proof: degree-1 case is proven. Missing: Eisenstein irreducibility fo
 
 ## Next Lemma To Prove
 Complete Eisenstein irreducibility proof for X^5 - 4X + 2 over ℚ using Polynomial.irreducible_of_eisenstein_criterion
+
+---
+## Attempt 20260703T025021Z | mode: new
+
+## Verified Lemmas
+(record in PROVE frontier state / attached candidate files)
+
+## Unproven Components
+(no frontier state available)
+**Error:** Demo only — Abel-Ruffini theorem requires deep Galois theory proof not completed in this meta-demonstration
+
+## Exact Failed Lean Error
+Demo only — Abel-Ruffini theorem requires deep Galois theory proof not completed in this meta-demonstration
+
+## Next Lemma To Prove
+(not supplied)
+
+## Strategy Note
+(no frontier state — strategy unknown)
