@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260703T041937Z
+**Last updated:** 20260703T123545Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -79,10 +79,15 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
+**Last error:** The proof of Sturm's theorem is incomplete. Key results achieved:
+1. Proven triple_signChanges_one: the core combinatorial lemma showing that for any a≠0 and any b, signChanges([a,b,-a])=1
+2. This lemma is essential for analyzing sign changes at roots of the Sturm chain.
+Remaining work:
+- Complete t
+
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
-|---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 | 1 | 20260628T022441Z | `(unknown)` | agent-provided report | saved |
@@ -103,6 +108,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 22 | 20260702T232229Z | `(unknown)` | agent-provided report | saved |
 | 22 | 20260702T232424Z | `(unknown)` | agent-provided report | saved |
 | 22 | 20260703T041937Z | `(unknown)` | agent-provided report | saved |
+| 22 | 20260703T123545Z | `Complete the coprimeness proof and the sigma-drop lemma` | agent-provided report | blocked |
 
 ## Recommended Next Steps
 
