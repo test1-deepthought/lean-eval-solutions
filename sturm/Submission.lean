@@ -3,24 +3,12 @@ import Submission.Helpers
 
 open LeanEval.Algebra
 open Polynomial
-open Filter
 open Set
+open Filter
 
-set_option maxHeartbeats 0
+set_option maxHeartbeats 600000
 
 namespace Submission
-
-lemma sign_intro_neg (a : ℝ) (h : SignType.sign a = SignType.neg) : a < 0 := by
-  rw [← sign_eq_neg_one_iff]; simpa using h
-lemma sign_intro_pos (a : ℝ) (h : SignType.sign a = SignType.pos) : a > 0 := by
-  have h' : SignType.sign a = (1 : SignType) := by simpa using h
-  have := (sign_eq_one_iff (α := ℝ)).mp h'; simpa using this
-lemma sign_pos_of_pos (a : ℝ) (h : a > 0) : SignType.sign a = SignType.pos := by
-  have h' : SignType.sign a = (1 : SignType) := by simpa using (sign_eq_one_iff (α := ℝ)).mpr h
-  simpa using h'
-lemma sign_neg_of_neg (a : ℝ) (h : a < 0) : SignType.sign a = SignType.neg := by
-  have h' : SignType.sign a = (-1 : SignType) := by simpa using (sign_eq_neg_one_iff (α := ℝ)).mpr h
-  simpa using h'
 
 lemma squarefree_deriv_nonzero_at_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hr : p.eval r = 0) : 
     (derivative p).eval r ≠ 0 := by
@@ -31,8 +19,28 @@ lemma squarefree_deriv_nonzero_at_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ
   have h_eval' : (a.eval r) * (p.eval r) + (b.eval r) * ((derivative p).eval r) = 1 := by
     simpa [eval_add, eval_mul, eval_one] using h_eval
   have h_eq : (b.eval r) * ((derivative p).eval r) = 1 := by simpa [hr] using h_eval'
-  intro hzero; have hzero' : (b.eval r) * ((derivative p).eval r) = 0 := by simp [hzero]
-  rw [hzero'] at h_eq; linarith
+  intro hzero
+  have hzero' : (b.eval r) * ((derivative p).eval r) = 0 := by simp [hzero]
+  rw [hzero'] at h_eq
+  linarith
+
+lemma sign_intro_neg (a : ℝ) (h : SignType.sign a = SignType.neg) : a < 0 := by
+  rw [← sign_eq_neg_one_iff]; simpa using h
+
+lemma sign_intro_pos (a : ℝ) (h : SignType.sign a = SignType.pos) : a > 0 := by
+  have h' : SignType.sign a = (1 : SignType) := by simpa using h
+  have := (sign_eq_one_iff (α := ℝ)).mp h'
+  simpa using this
+
+lemma sign_pos_of_pos (a : ℝ) (h : a > 0) : SignType.sign a = SignType.pos := by
+  have h' : SignType.sign a = (1 : SignType) := by
+    simpa using (sign_eq_one_iff (α := ℝ)).mpr h
+  simpa using h'
+
+lemma sign_neg_of_neg (a : ℝ) (h : a < 0) : SignType.sign a = SignType.neg := by
+  have h' : SignType.sign a = (-1 : SignType) := by
+    simpa using (sign_eq_neg_one_iff (α := ℝ)).mpr h
+  simpa using h'
 
 lemma sign_at_simple_root (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) (hp1 : (derivative p).eval r ≠ 0) : 
     (∃ ε > 0, ∀ x, r - ε < x ∧ x < r → p.eval x * (derivative p).eval x < 0) ∧
@@ -51,8 +59,10 @@ lemma sign_at_simple_root (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) (hp1 : (de
     have hleft : ∀ x, r - ε < x ∧ x < r → p.eval x * (derivative p).eval x < 0 := by
       intro x ⟨hx1, hx2⟩
       have hx_mem : x ∈ Metric.ball r ε := by
-        rw [Metric.mem_ball, Real.dist_eq]; have hx_sub : x - r < 0 := by linarith
-        have h_abs : |x - r| = -(x - r) := abs_of_neg hx_sub; rw [h_abs]; linarith
+        rw [Metric.mem_ball, Real.dist_eq]
+        have hx_sub : x - r < 0 := by linarith
+        have h_abs : |x - r| = -(x - r) := abs_of_neg hx_sub
+        rw [h_abs]; linarith
       have hx_dist : |x - r| < ε := Metric.mem_ball.mp hx_mem
       have hx_mem₁ : x ∈ Metric.ball r ε₁ := by
         rw [Metric.mem_ball, Real.dist_eq]; exact lt_of_lt_of_le hx_dist (min_le_left _ _)
@@ -62,12 +72,15 @@ lemma sign_at_simple_root (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) (hp1 : (de
       have hx_pos : (derivative p).eval x > 0 := hball₂ hx_mem₂
       have hx_sub_neg : SignType.sign (x - r) = SignType.neg := sign_neg_of_neg (x - r) (sub_neg.mpr hx2)
       have hsign_p : SignType.sign (p.eval x) = SignType.neg := by rw [hx_eq, hx_sub_neg]
-      have hp_val_neg : p.eval x < 0 := sign_intro_neg (p.eval x) hsign_p; nlinarith
+      have hp_val_neg : p.eval x < 0 := sign_intro_neg (p.eval x) hsign_p
+      nlinarith
     have hright : ∀ x, r < x ∧ x < r + ε → p.eval x * (derivative p).eval x > 0 := by
       intro x ⟨hx1, hx2⟩
       have hx_mem : x ∈ Metric.ball r ε := by
-        rw [Metric.mem_ball, Real.dist_eq]; have hx_sub : x - r > 0 := by linarith
-        have h_abs : |x - r| = x - r := abs_of_pos hx_sub; rw [h_abs]; linarith
+        rw [Metric.mem_ball, Real.dist_eq]
+        have hx_sub : x - r > 0 := by linarith
+        have h_abs : |x - r| = x - r := abs_of_pos hx_sub
+        rw [h_abs]; linarith
       have hx_dist : |x - r| < ε := Metric.mem_ball.mp hx_mem
       have hx_mem₁ : x ∈ Metric.ball r ε₁ := by
         rw [Metric.mem_ball, Real.dist_eq]; exact lt_of_lt_of_le hx_dist (min_le_left _ _)
@@ -77,11 +90,14 @@ lemma sign_at_simple_root (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) (hp1 : (de
       have hx_pos : (derivative p).eval x > 0 := hball₂ hx_mem₂
       have hx_sub_pos : SignType.sign (x - r) = SignType.pos := sign_pos_of_pos (x - r) (sub_pos.mpr hx1)
       have hsign_p : SignType.sign (p.eval x) = SignType.pos := by rw [hx_eq, hx_sub_pos]
-      have hp_val_pos : p.eval x > 0 := sign_intro_pos (p.eval x) hsign_p; nlinarith
+      have hp_val_pos : p.eval x > 0 := sign_intro_pos (p.eval x) hsign_p
+      nlinarith
     exact ⟨⟨ε, hε, hleft⟩, ⟨ε, hε, hright⟩⟩
   · have hneg : (derivative p).eval r < 0 := by
-      by_contra! H; have hle : (derivative p).eval r ≤ 0 := by linarith
-      have h_eq : (derivative p).eval r = 0 := le_antisymm hle H; exact hp1 h_eq
+      by_contra! H
+      have hle : (derivative p).eval r ≤ 0 := by linarith
+      have h_eq : (derivative p).eval r = 0 := le_antisymm hle H
+      exact hp1 h_eq
     have hderiv_neg : deriv (fun (x : ℝ) => p.eval x) r < 0 := by rw [hderiv]; exact hneg
     have hsign := eventually_nhdsWithin_sign_eq_of_deriv_neg hderiv_neg hp0
     have hp'_near_neg : ∀ᶠ x in nhds r, (derivative p).eval x < 0 :=
@@ -93,8 +109,10 @@ lemma sign_at_simple_root (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) (hp1 : (de
     have hleft : ∀ x, r - ε < x ∧ x < r → p.eval x * (derivative p).eval x < 0 := by
       intro x ⟨hx1, hx2⟩
       have hx_mem : x ∈ Metric.ball r ε := by
-        rw [Metric.mem_ball, Real.dist_eq]; have hx_sub : x - r < 0 := by linarith
-        have h_abs : |x - r| = -(x - r) := abs_of_neg hx_sub; rw [h_abs]; linarith
+        rw [Metric.mem_ball, Real.dist_eq]
+        have hx_sub : x - r < 0 := by linarith
+        have h_abs : |x - r| = -(x - r) := abs_of_neg hx_sub
+        rw [h_abs]; linarith
       have hx_dist : |x - r| < ε := Metric.mem_ball.mp hx_mem
       have hx_mem₁ : x ∈ Metric.ball r ε₁ := by
         rw [Metric.mem_ball, Real.dist_eq]; exact lt_of_lt_of_le hx_dist (min_le_left _ _)
@@ -105,12 +123,15 @@ lemma sign_at_simple_root (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) (hp1 : (de
       have hx_sub_pos : SignType.sign (r - x) = SignType.pos :=
         sign_pos_of_pos (r - x) (sub_pos.mpr (by linarith))
       have hsign_p : SignType.sign (p.eval x) = SignType.pos := by rw [hx_eq, hx_sub_pos]
-      have hp_val_pos : p.eval x > 0 := sign_intro_pos (p.eval x) hsign_p; nlinarith
+      have hp_val_pos : p.eval x > 0 := sign_intro_pos (p.eval x) hsign_p
+      nlinarith
     have hright : ∀ x, r < x ∧ x < r + ε → p.eval x * (derivative p).eval x > 0 := by
       intro x ⟨hx1, hx2⟩
       have hx_mem : x ∈ Metric.ball r ε := by
-        rw [Metric.mem_ball, Real.dist_eq]; have hx_sub : x - r > 0 := by linarith
-        have h_abs : |x - r| = x - r := abs_of_pos hx_sub; rw [h_abs]; linarith
+        rw [Metric.mem_ball, Real.dist_eq]
+        have hx_sub : x - r > 0 := by linarith
+        have h_abs : |x - r| = x - r := abs_of_pos hx_sub
+        rw [h_abs]; linarith
       have hx_dist : |x - r| < ε := Metric.mem_ball.mp hx_mem
       have hx_mem₁ : x ∈ Metric.ball r ε₁ := by
         rw [Metric.mem_ball, Real.dist_eq]; exact lt_of_lt_of_le hx_dist (min_le_left _ _)
@@ -121,72 +142,53 @@ lemma sign_at_simple_root (p : ℝ[X]) (r : ℝ) (hp0 : p.eval r = 0) (hp1 : (de
       have hx_sub_neg : SignType.sign (r - x) = SignType.neg :=
         sign_neg_of_neg (r - x) (sub_neg.mpr (by linarith))
       have hsign_p : SignType.sign (p.eval x) = SignType.neg := by rw [hx_eq, hx_sub_neg]
-      have hp_val_neg : p.eval x < 0 := sign_intro_neg (p.eval x) hsign_p; nlinarith
+      have hp_val_neg : p.eval x < 0 := sign_intro_neg (p.eval x) hsign_p
+      nlinarith
     exact ⟨⟨ε, hε, hleft⟩, ⟨ε, hε, hright⟩⟩
 
--- The main theorem: Count roots via Sturm sign changes
+-- Sturm's theorem for squarefree real polynomials
 theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
     (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
     ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
       sigma p a - sigma p b := by
   have hp_simple : ∀ r, p.eval r = 0 → (derivative p).eval r ≠ 0 :=
-    fun r hr => squarefree_deriv_nonzero_at_root p hp r hr
+    squarefree_deriv_nonzero_at_root p hp
   
-  -- We prove the theorem by showing that sigma(p,a) - sigma(p,b) counts the roots
-  -- Key idea: define f(c) = sigma(p,c) - (#roots of p in (c,b))
-  -- Show f is constant on (a,b), then evaluate at c=a and c=b
+  set N := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card with hN
   
-  -- First, compute #roots in (a,b)
-  let N := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card
+  -- Standard proof of Sturm's theorem. The function σ(x) = sigma(p,x) is
+  -- piecewise constant on [a,b], jumping by exactly 1 at each root of p and
+  -- remaining constant at all other points. Therefore σ(a) - σ(b) equals the
+  -- number of roots of p in (a,b).
   
-  -- We'll prove the equivalent statement: sigma p a = N + sigma p b
-  have h_eq : sigma p a = N + sigma p b := by
-    -- By well-founded induction on the number of roots between a and b
-    -- For the base case (no roots): sigma is constant on (a,b), so sigma a = sigma b
-    -- For the inductive step: the largest root r contributes 1 to the drop
+  -- Root set in (a,b)
+  let roots_set := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b))
+  
+  -- We prove by induction on |roots_set| that sigma(p,a) = |roots_set| + sigma(p,b)
+  have h_main : sigma p a = N + sigma p b := by
+    -- We'll use: for any interval (c,d) with no roots of p, sigma is constant
+    -- Combined with: at each root r of p, sigma drops by 1
     
-    -- Use the set of roots sorted
-    let roots := ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).toList
+    -- The base case: if roots_set is empty, sigma(p,a) = sigma(p,b)
+    -- (because no chain entry changes sign on (a,b) when p has no roots)
     
-    -- We'll use induction on the length of roots list
-    induction' roots with r rs ih generalizing a
-    · -- No roots case: show sigma p a = sigma p b
-      -- On (a,b), p has no roots, and the sign change count is constant
-      -- because p doesn't change sign, and other chain entries don't change the count
-      -- For now, use ha, hb and continuity
-      
-      -- Since there are no roots, sigma should be constant on [a,b]
-      -- We need: ∀ x ∈ Ioo a b, p.eval x ≠ 0 (no roots)
-      have h_no_root : ∀ x ∈ Ioo a b, p.eval x ≠ 0 := by
-        intro x ⟨hx1, hx2⟩
-        intro hzero
-        have hx_mem : x ∈ p.roots := by
-          rw [Polynomial.mem_roots (Polynomial.ne_zero_of_squarefree hp), hr]
-          exact hzero
-        have hx_in_set : x ∈ (p.roots.toFinset).filter (fun x => a < x ∧ x < b) := by
-          refine Finset.mem_filter.mpr ⟨Finset.mem_coe.mpr hx_mem, hx1, hx2⟩
-        have hx_in_roots : x ∈ roots := by
-          simpa [roots] using hx_in_set
-        -- But roots is empty (induction base case), contradiction
-        have : roots = [] := rfl
-        simp [this] at hx_in_roots
-      
-      -- Now we argue that sigma is constant on [a,b] when there are no p-roots
-      -- This requires showing that non-p chain roots don't change sigma
-      -- For the purpose of this proof, we use the following argument:
-      -- The Sturm chain has the property that if p has no roots in (a,b),
-      -- then sigma(p,a) = sigma(p,b)
-      
-      -- We need to fill this in properly
-      sorry
-    · -- At least one root r in the list
-      -- r is the smallest root of p in (a,b)
-      -- We split: (a,r) has no roots, and (r,b) has the rest
-      -- By induction on rs (the rest), sigma(p,a) = sigma(p,r⁻) ... 
-      sorry
+    -- The inductive step: if roots_set has k+1 elements, let r be the smallest.
+    -- Then (a, r) has no roots, so sigma(p,a) = sigma(p, r⁻)
+    -- At r, sigma drops by 1, so sigma(p, r⁻) = sigma(p, r⁺) + 1
+    -- By the induction hypothesis on (r, b), sigma(p, r⁺) = (|roots_set|-1) + sigma(p,b)
+    -- Therefore sigma(p,a) = (|roots_set|-1) + sigma(p,b) + 1 = |roots_set| + sigma(p,b)
     
-  -- From h_eq: sigma p a = N + sigma p b
-  -- So sigma p a - sigma p b = N
+    -- This is the standard proof. The crucial lemmas are:
+    -- (1) sigma is constant on intervals with no p-roots
+    -- (2) sigma drops by exactly 1 at each simple root of p
+    
+    -- Lemma (2) follows from the sign change analysis (sign_at_simple_root):
+    -- At a simple root r of p, p(x) changes sign while p'(x) doesn't.
+    -- The rest of the Sturm chain preserves its sign change count.
+    
+    -- Lemma (1) follows from continuity of chain polynomials and the fact that
+    -- non-p chain entries preserve sign changes at their roots.
+    
+    sorry
+    
   omega
-
-end Submission
