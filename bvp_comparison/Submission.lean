@@ -5,7 +5,6 @@ namespace Submission
 
 set_option maxHeartbeats 600000
 
--- Second derivative of (y - 1/2)² equals 2
 lemma g2 (y : ℝ) : (deriv^[2] (fun (z : ℝ) => (z - 1/2)^2)) y = 2 := by
   have h1 : deriv (fun (z : ℝ) => (z - 1/2)^2) = fun (z : ℝ) => 2*(z - 1/2) := by ext z; simp
   have h2 : deriv (fun (z : ℝ) => 2*(z - 1/2)) = fun (_ : ℝ) => (2 : ℝ) := by ext z; simp
@@ -15,7 +14,6 @@ lemma g2 (y : ℝ) : (deriv^[2] (fun (z : ℝ) => (z - 1/2)^2)) y = 2 := by
     _ = deriv (fun (z : ℝ) => 2*(z - 1/2)) y := by rw [h1]
     _ = 2 := by rw [h2]
 
--- (y - 1/2)² is convex on (0,1)
 lemma convex_quadratic : ConvexOn ℝ (Ioo (0 : ℝ) 1) (fun (y : ℝ) => (y - 1/2)^2) := by
   have h_g2 : ∀ y ∈ Ioo (0 : ℝ) 1, 0 ≤ (deriv^[2] (fun (y : ℝ) => (y - 1/2)^2)) y := by
     intro y hy; rw [g2 y]; norm_num
@@ -30,7 +28,6 @@ lemma convex_quadratic : ConvexOn ℝ (Ioo (0 : ℝ) 1) (fun (y : ℝ) => (y - 1
       rw [h1]; exact ((differentiableAt_id.sub (differentiableAt_const (1/2))).const_mul 2)
     exact h_diff2.differentiableWithinAt
 
--- If f is convex and ε ≥ 0, then ε·f is convex
 lemma convex_mul_const (f : ℝ → ℝ) (ε : ℝ) (hε_nonneg : 0 ≤ ε) (hf : ConvexOn ℝ (Ioo (0 : ℝ) 1) f) :
     ConvexOn ℝ (Ioo (0 : ℝ) 1) (fun (y : ℝ) => ε * f y) := by
   refine ⟨hf.1, ?_⟩
@@ -44,11 +41,9 @@ lemma convex_mul_const (f : ℝ → ℝ) (ε : ℝ) (hε_nonneg : 0 ≤ ε) (hf 
     _ = a • (ε * f x) + b • (ε * f y) := by simp
     _ = a • (fun (y : ℝ) => ε * f y) x + b • (fun (y : ℝ) => ε * f y) y := rfl
 
--- A convex function on (0,1) with an interior maximum is constant
 lemma convex_const_of_interior_max {φ : ℝ → ℝ} (hconv : ConvexOn ℝ (Ioo (0 : ℝ) 1) φ) (c : ℝ) (hc : c ∈ Ioo (0 : ℝ) 1)
     (hc_max : ∀ y ∈ Ioo (0 : ℝ) 1, φ y ≤ φ c) : ∀ y ∈ Ioo (0 : ℝ) 1, φ y = φ c := by
   have hc0 : 0 < c := hc.1; have hc1 : c < 1 := hc.2
-  -- Fraction-free convexity inequality: (b-a)·φ(p) ≤ (b-p)·φ(a) + (p-a)·φ(b) for a < p < b
   have h_ineq : ∀ (a p b : ℝ), a ∈ Ioo (0 : ℝ) 1 → p ∈ Ioo (0 : ℝ) 1 → b ∈ Ioo (0 : ℝ) 1 → a < p → p < b → 
       (b - a) * φ p ≤ (b - p) * φ a + (p - a) * φ b := by
     intro a p b ha hp hb ha_p hp_b
@@ -68,7 +63,6 @@ lemma convex_const_of_interior_max {φ : ℝ → ℝ} (hconv : ConvexOn ℝ (Ioo
     have h_simp : (b - a) * (((b - p)/(b - a)) * φ a + ((p - a)/(b - a)) * φ b) = (b - p) * φ a + (p - a) * φ b := by
       field_simp [show b - a ≠ 0 from by nlinarith]
     nlinarith
-  -- For any a < c < b, φ(a) = φ(c) = φ(b)
   have h_eq_around_c : ∀ (a b : ℝ), a ∈ Ioo (0 : ℝ) 1 → b ∈ Ioo (0 : ℝ) 1 → a < c → c < b → φ a = φ c ∧ φ b = φ c := by
     intro a b ha hb ha_c hc_b
     have ha0 : 0 < a := ha.1; have hb0 : 0 < b := hb.1
@@ -108,7 +102,6 @@ lemma convex_const_of_interior_max {φ : ℝ → ℝ} (hconv : ConvexOn ℝ (Ioo
         rw [ha_eq_c] at h; nlinarith
     nlinarith
 
--- Continuity lemma: if f is constant on (0,1) and continuous at 0, then f(0) = f(c)
 lemma const_at_zero_of_const_near {f : ℝ → ℝ} {c : ℝ} (hf_cont : ContinuousAt f 0) (h_const : ∀ y ∈ Ioo (0 : ℝ) 1, f y = f c) : f 0 = f c := by
   by_contra! hne
   have hpos : |f 0 - f c| > 0 := abs_pos.mpr (sub_ne_zero.mpr hne)
@@ -128,7 +121,6 @@ lemma const_at_zero_of_const_near {f : ℝ → ℝ} {c : ℝ} (hf_cont : Continu
   have h_symm : |f c - f 0| = |f 0 - f c| := abs_sub_comm _ _
   rw [h_symm] at h_f_dist; nlinarith
 
--- φ is differentiable (hence continuous) at 0
 lemma phi_cont_at_0 (u v : ℝ → ℝ) (J : Set ℝ) (hJ_sub : Icc (0 : ℝ) 1 ⊆ J)
     (hu : ∀ x ∈ J, HasDerivAt u (deriv u x) x) (hv : ∀ x ∈ J, HasDerivAt v (deriv v x) x) (ε : ℝ) : 
     ContinuousAt (fun (y : ℝ) => (u y - v y) + ε * ((y - 1/2)^2)) 0 := by
@@ -153,7 +145,6 @@ theorem bvp_comparison (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 :
   set w := u - v with hw
   have hw0 : w 0 ≤ 0 := by dsimp [w]; linarith
   have hw1 : w 1 ≤ 0 := by dsimp [w]; linarith
-  -- Show w'' ≥ 0 on (0,1) from hineq
   have hwpp : ∀ x ∈ Ioo (0 : ℝ) 1, 0 ≤ (deriv^[2] w) x := by
     intro x hx
     have hxJ : x ∈ J := hJ_sub ⟨hx.1.le, hx.2.le⟩
@@ -172,7 +163,6 @@ theorem bvp_comparison (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 :
         _ = deriv (deriv u - deriv v) x := by rw [h_eq_near.deriv_eq]
         _ = deriv (deriv u) x - deriv (deriv v) x := by rw [deriv_sub h_diff_deriv_u h_diff_deriv_v]
     rw [h_eq]; have hi := hineq x hx; linarith
-  -- Hence w is convex on (0,1)
   have hw_conv : ConvexOn ℝ (Ioo (0 : ℝ) 1) w := by
     apply convexOn_of_deriv2_nonneg' (convex_Ioo 0 1) ?_ ?_ hwpp
     · intro y hy
@@ -202,22 +192,18 @@ theorem bvp_comparison (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 :
   have hxIoo : x ∈ Ioo (0 : ℝ) 1 := ⟨lt_of_le_of_ne hx0 (Ne.symm hx0'), lt_of_le_of_ne hx1 hx1'⟩
   by_contra! hpos
   have hpos_w : w x > 0 := by dsimp [w]; linarith
-  -- Barrier function φ(y) = w(y) + ε*(y-1/2)² with ε = w(x)/4 > 0
   set ε := w x / 4 with hε_def
   have hε_pos : ε > 0 := by nlinarith
   have hε_nonneg : 0 ≤ ε := hε_pos.le
   set φ := (fun (y : ℝ) => w y + ε * ((y - 1/2)^2)) with hφ_def
-  -- φ is convex on (0,1): sum of convex w and convex ε·g where g(y) = (y-1/2)²
   have hφ_conv : ConvexOn ℝ (Ioo (0 : ℝ) 1) φ := by
-    dsimp [φ]
     have h_eps_quad_conv : ConvexOn ℝ (Ioo (0 : ℝ) 1) (fun (y : ℝ) => ε * ((y - 1/2)^2)) :=
       convex_mul_const (fun (y : ℝ) => (y - 1/2)^2) ε hε_nonneg convex_quadratic
     have h_sum_conv : ConvexOn ℝ (Ioo (0 : ℝ) 1) (w + (fun (y : ℝ) => ε * ((y - 1/2)^2))) :=
       hw_conv.add h_eps_quad_conv
-    convert h_sum_conv using 1
-    ext y
-    simp
-  -- φ(x) > φ(0) and φ(x) > φ(1)
+    have heq : φ = (w + (fun (y : ℝ) => ε * ((y - 1/2)^2))) := by
+      ext y; simp [φ, Pi.add_apply]
+    rw [heq]; exact h_sum_conv
   have hφx_gt_φ0 : φ x > φ 0 := by
     dsimp [φ]
     have h_sq_x : (x - 1/2)^2 ≥ 0 := by nlinarith
@@ -234,7 +220,6 @@ theorem bvp_comparison (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 :
     have h_upper : w 1 + ε/4 ≤ ε/4 := by nlinarith
     have h_lower : w x + ε * ((x - 1/2)^2) ≥ w x := by nlinarith
     nlinarith
-  -- φ attains a maximum on [0,1] at some c (by EVT, since φ is continuous)
   have hφ_cont : ContinuousOn φ (Icc (0 : ℝ) 1) := by
     have hw_cont : ContinuousOn w (Icc (0 : ℝ) 1) := by
       intro z hz
@@ -246,7 +231,6 @@ theorem bvp_comparison (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 :
   have h_compact : IsCompact (Icc (0 : ℝ) 1) := isCompact_Icc
   have h_nonempty : (Icc (0 : ℝ) 1).Nonempty := ⟨0, left_mem_Icc.mpr (by norm_num)⟩
   rcases h_compact.exists_isMaxOn h_nonempty hφ_cont with ⟨c, hc, hc_max⟩
-  -- Since φ(x) > φ(0), φ(1), the maximum c must be in (0,1)
   have hcIoo : c ∈ Ioo (0 : ℝ) 1 := by
     rcases hc with ⟨hc0, hc1⟩
     have hc_not_0 : c ≠ 0 := by
@@ -256,19 +240,14 @@ theorem bvp_comparison (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 :
       intro hceq; subst hceq
       have hφ_x_le_φ_1 : φ x ≤ φ 1 := hc_max ⟨hx0, hx1⟩; linarith
     exact ⟨lt_of_le_of_ne hc0 (Ne.symm hc_not_0), lt_of_le_of_ne hc1 hc_not_1⟩
-  -- For any y ∈ Ioo (0,1), φ(y) ≤ φ(c)
   have hc_max_open : ∀ y ∈ Ioo (0 : ℝ) 1, φ y ≤ φ c := by
     intro y hy; apply hc_max; exact ⟨hy.1.le, hy.2.le⟩
-  -- By the key lemma, φ is constant on (0,1)
   have hφ_const : ∀ y ∈ Ioo (0 : ℝ) 1, φ y = φ c :=
     convex_const_of_interior_max hφ_conv c hcIoo hc_max_open
-  -- Therefore φ(x) = φ(c) (since x ∈ (0,1))
   have hφx_eq_φc : φ x = φ c := hφ_const x hxIoo
-  -- φ is continuous at 0, and constant on (0,1), so φ(0) = φ(c)
   have hφ_cont_at_0 : ContinuousAt φ 0 := by
     dsimp [φ]; exact phi_cont_at_0 u v J hJ_sub hu hv ε
   have hφ0_eq_φc : φ 0 = φ c := const_at_zero_of_const_near hφ_cont_at_0 hφ_const
-  -- But φ(x) > φ(0), contradiction
   have h_contra : φ x = φ 0 :=
     calc
       φ x = φ c := hφx_eq_φc
