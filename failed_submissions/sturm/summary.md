@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260702T232424Z
+**Last updated:** 20260703T041937Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -85,7 +85,6 @@ All frontier lemmas verified — main theorem assembly remains.
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
-|---|-----------|-------|----------|--------|
 | 1 | 20260628T022441Z | `(unknown)` | agent-provided report | saved |
 | 3 | 20260628T022640Z | `(unknown)` | agent-provided report | saved |
 | 5 | 20260628T024341Z | `(unknown)` | agent-provided report | blocked |
@@ -103,6 +102,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 22 | 20260702T231846Z | `(unknown)` | agent-provided report | saved |
 | 22 | 20260702T232229Z | `(unknown)` | agent-provided report | saved |
 | 22 | 20260702T232424Z | `(unknown)` | agent-provided report | saved |
+| 22 | 20260703T041937Z | `(unknown)` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
