@@ -1,6 +1,4 @@
 import Mathlib
-import Submission.Helpers
-
 open Set Filter Topology
 
 namespace Submission
@@ -216,7 +214,9 @@ theorem bvp_comparison (J : Set ℝ) (hJ_open : IsOpen J) (hJ_sub : Set.Icc (0 :
       convex_mul_const (fun (y : ℝ) => (y - 1/2)^2) ε hε_nonneg convex_quadratic
     have h_sum_conv : ConvexOn ℝ (Ioo (0 : ℝ) 1) (w + (fun (y : ℝ) => ε * ((y - 1/2)^2))) :=
       hw_conv.add h_eps_quad_conv
-    simpa using h_sum_conv
+    convert h_sum_conv using 1
+    ext y
+    simp
   -- φ(x) > φ(0) and φ(x) > φ(1)
   have hφx_gt_φ0 : φ x > φ 0 := by
     dsimp [φ]
