@@ -2751,3 +2751,34 @@ Incomplete proof of Sturm's theorem. The key lemmas are proven:
 1. squarefree_deriv_nonzero_at_root - all roots are simple for squarefree polynomials over ℝ
 2. sign_at_simple_root - sign analysis at a simple root (product p(x)*p'(x) changes sign)
 The main theorem is incomplete - requires proving that sigma drops by exactly 1 at each p-root and is constant elsewhere, which requires analyzing the Sturm chain's triple property.
+
+---
+## Attempt 20260703T123545Z
+
+## What was accomplished
+
+1. **Proven `triple_signChanges_one`**: The core combinatorial lemma showing that for any `a ≠ 0` and any `b`, `signChanges([a, b, -a]) = 1`. This is verified by `lean4_exec` with exit code 0.
+
+2. **Key supporting lemmas**: `filter_len_one_case1` and `filter_len_one_case2` which compute the length of filtered lists used in the triple lemma.
+
+3. **Problem understanding**: The structure of the Sturm chain, the `signChanges` function, and the `sigma` function are all well understood.
+
+## Remaining work for a complete proof
+
+1. **Squarefree → Separable → Coprime**: Complete the proof that over ℝ (a perfect field), `Squarefree p` implies `IsCoprime p (derivative p)`, which gives that the Sturm chain terminates at a non-zero constant and that p and p' have no common root.
+
+2. **Sigma drops at roots**: Show that at each simple root r of p, `sigma(p, r-ε) - sigma(p, r+ε) = 1` for sufficiently small ε. This uses the triple lemma and the fact that at a root of p, the chain has the pattern [p(r±ε), p'(r±ε), ...] where p changes sign but p' doesn't.
+
+3. **Sigma is constant elsewhere**: Show that at roots of interior chain entries (f_i for i ≥ 1), sigma is unchanged. This also uses the triple lemma and the recurrence f_{i-1}(r) = -f_{i+1}(r).
+
+4. **Counting argument**: Partition (a,b) at all roots of chain entries, count the drops, and conclude the main theorem.
+
+The triple lemma `triple_signChanges_one` is the key combinatorial insight that makes steps 2 and 3 tractable.
+
+## Scratch Lean 4 Code From This Attempt
+
+This code compiled outside the Lean-Eval workspace shape. Treat it as exploratory context until it is rechecked with `import ChallengeDeps` or `import Submission.*`.
+
+```lean4
+import Mathlib\nopen Polynomial\nopen scoped Classical\n\nnamespace LeanEval.Algebra\n\nnoncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]\n  | a, _, 0       => [a]\n  | a, b, (n + 1) =>\n    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n\n\nnoncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=\n  sturmAux p (derivative p) (p.natDegree + 2)\n\nnoncomputable def signChanges (xs : List ℝ) : ℕ :=\n  let ys := xs.filter (· ≠ 0)\n  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length\n\nnoncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=\n  signChanges ((sturmChain p).map fun q => q.eval x)\n\nlemma filter_len_one_case1 (a b : ℝ) (h_ab : a * b < 0) (h_not : ¬(b * (-a) < 0)) :\n    (List.filter (fun q : ℝ × ℝ => q.1 * q.2 < 0) [(a, b), (b, -a)]).length = 1 := by\n  simp only [List.filter_cons, List.filter_nil]\n  by_cases h1 : a * b < 0\n  · rw [decide_eq_true h1]; simp; nlinarith\n  · exfalso; exact h1 h_ab\n\nlemma filter_len_one_case2 (a b : ℝ) (h_not_ab : ¬(a * b < 0)) (h_kept : (b * (-a) < 0)) :\n    (List.filter (fun q : ℝ × ℝ => q.1 * q.2 < 0) [(a, b), (b, -a)]).length = 1 := by\n  simp only [List.filter_cons, List.filter_nil]\n  by_cases h1 : a * b < 0\n  · exfalso; exact h_not_ab h1\n  · rw [decide_eq_false h1]; simp\n    have h_pos : 0 < b * a := by nlinarith\n    simp [h_pos]\n\nlemma triple_signChanges_one (a b : ℝ) (ha : a ≠ 0) : signChanges [a, b, -a] = 1 := by\n  unfold signChanges\n  dsimp\n  by_cases hb : b = 0\n  · subst hb; simp [ha]\n  · simp [ha, hb]\n    have h_ab_cases : a * b < 0 ∨ 0 < a * b := by\n      have h_ne : a * b ≠ 0 := mul_ne_zero ha hb\n      exact lt_or_gt_of_ne h_ne\n    rcases h_ab_cases with (h_ab | h_ab)\n    · have h_not : ¬(b * (-a) < 0) := by\n        have : b * (-a) = -(a * b) := by ring\n        rw [this]; nlinarith\n      exact filter_len_one_case1 a b h_ab h_not\n    · have h_kept : b * (-a) < 0 := by\n        have : b * (-a) = -(a * b) := by ring\n        rw [this]; nlinarith\n      have h_not_ab : ¬(a * b < 0) := by nlinarith\n      exact filter_len_one_case2 a b h_not_ab h_kept\n\nend LeanEval.Algebra
+```
