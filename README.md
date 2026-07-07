@@ -158,6 +158,8 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 
 ## Current failed submissions
 
+- `sunny_lines`: `failed_submissions/sunny_lines/report.md` (20260707T141438Z)
+
 - `oppenheim_inequality`: `failed_submissions/oppenheim_inequality/report.md` (20260623T143010Z)
 
 - `cubic_decay_asymptotic`: `failed_submissions/cubic_decay_asymptotic/report.md` (20260623T153613Z)
