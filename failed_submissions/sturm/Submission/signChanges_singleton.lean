@@ -1,2 +1,0 @@
-lemma signChanges_singleton (a : ℝ) : signChanges [a] = 0 := by
-  unfold signChanges; simp
