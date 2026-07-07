@@ -30,24 +30,29 @@ def coverageCondition (n : ℕ) (lines : List (Set (ℚ × ℚ))) : Prop :=
 def exactlyKSunny (k : ℕ) (lines : List (Set (ℚ × ℚ))) : Prop :=
   (List.filter isSunny lines).length = k
 
+-- Fix 1: antiDiagonal_coverage uses linarith instead of omega
 lemma antiDiagonal_coverage (s a b : ℕ) (hsum : a + b = s) : liesOn (nq a) (nq b) (antiDiagonal s) := by
   dsimp [antiDiagonal, liesOn, nq]
   have h : (a : ℚ) + (b : ℚ) = (s : ℚ) := by exact_mod_cast hsum
   linarith
 
+-- Fix 2: New lemma factoring out filter simplification
 lemma filter_antiDiagonals_length (n : ℕ) : (List.filter isSunny (List.map (fun i : ℕ => antiDiagonal (i+5)) (List.range (n-3)))).length = 0 := by
   simp [isSunny, antiDiagonal]
 
+-- Fix 3: Use Nat.le_antisymm instead of omega (omega clears n param)
 lemma eq_of_not_lt_and_le {b n : ℕ} (h_not_lt : ¬ b < n) (h_le : b ≤ n) : b = n :=
   Nat.le_antisymm h_le (Nat.le_of_not_lt h_not_lt)
 
 lemma eq_of_not_lt_and_le' {b n : ℕ} (h_not_lt : ¬ b < n) (h_le : b ≤ n) : b = n := by
   linarith
 
+-- Fix 4: k3_lines_sunny_count uses filter_antiDiagonals_length lemma
 theorem k3_lines_sunny_count (n : ℕ) (hn : n ≥ 6) : 
     (List.filter isSunny (List.map (fun i : ℕ => antiDiagonal (i+5)) (List.range (n-3)))).length = 0 := by
   exact filter_antiDiagonals_length n
 
+-- Example: omega fix in context of a+b ≤ n+1, a ≥ 1, ¬(b < n)
 lemma example_omega_fix_context (a b n : ℕ) (hsum : a + b ≤ n + 1) (ha : a ≥ 1) (h_not_lt : ¬ b < n) : b = n := by
   have hb_le_n : b ≤ n := by omega
   exact eq_of_not_lt_and_le h_not_lt hb_le_n
