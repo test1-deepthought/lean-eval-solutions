@@ -1,7 +1,7 @@
 # sturm — Current State
 
-**Last updated:** 20260707T085800Z
-**Total attempts:** 3
+**Last updated:** 20260711T101631Z
+**Total attempts:** 5
 **Status:** PARTIALLY VERIFIED
 
 ## Target Theorem
@@ -25,8 +25,10 @@ All frontier lemmas verified — main theorem assembly remains.
 | # | Timestamp | Lemma | Approach | Result |
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
+|---|-----------|-------|----------|--------|
 | 1 | 20260707T022127Z | `(unknown)` | agent-provided report | saved |
 | 3 | 20260707T085800Z | `(unknown)` | agent-provided report | saved |
+| 5 | 20260711T101631Z | `(unknown)` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
