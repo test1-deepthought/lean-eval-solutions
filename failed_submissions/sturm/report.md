@@ -34,3 +34,23 @@ Sturm's theorem is a major result in real algebraic geometry. The full formal pr
 The main obstacle to formalization is the noncomputable `signChanges` function. For ℝ, `filter (· ≠ 0)` uses `Classical.decEq` making `dec_trivial` and `simp` ineffective for free variables. A potential approach is to define a computable recursive version of signChanges that's proven equivalent, but this requires modifying the problem's ChallengeDeps which isn't allowed.
 
 The mathematical proof (Phase 1) was completed. The formalization (Phase 2) requires a different approach to handling signChanges - perhaps by converting the problem to rational approximations or using Sturm's theorem in a specialized form.
+
+---
+## Attempt 20260711T122249Z | mode: new
+
+## Verified Lemmas
+(record in PROVE frontier state / attached candidate files)
+
+## Unproven Components
+(no frontier state available)
+**Current lemma:** `sigma_drop_at_simple_root: Prove that at a simple root x of p (where p(x)=0, p'(x)≠0), sigma(p,x-ε) - sigma(p,x+ε) = 1 for sufficiently small ε. This requires analyzing the sign of p and p' near x using continuity and the derivative.`
+**Error:** Unable to complete the full formal proof of Sturm's theorem within the session budget. The proof requires extensive real analysis (continuity of sign function, intermediate value theorem, local constancy arguments) combined with polynomial theory (Euclidean algorithm for Sturm chain, sign analysis a
+
+## Exact Failed Lean Error
+Unable to complete the full formal proof of Sturm's theorem within the session budget. The proof requires extensive real analysis (continuity of sign function, intermediate value theorem, local constancy arguments) combined with polynomial theory (Euclidean algorithm for Sturm chain, sign analysis at roots, properties of squarefree polynomials). Key mathlib lemmas were found: PerfectField.separable_iff_squarefree (Squarefree ↔ Separable over ℝ), Polynomial.rootMultiplicity_le_one_of_separable (all roots simple), Polynomial.Separable.aeval_derivative_ne_zero (derivative nonzero at roots), Polynomial.continuousAt (evaluation continuous). The signChanges function definition and Sturm chain definitions from ChallengeDeps.lean were verified. The complete formalization requires proving: (1) the Sturm chain terminates at a nonzero constant, (2) sigma drops by exactly 1 at each simple root of p, (3) sigma is locally constant between roots, (4) sigma is unchanged at interior chain entry roots, (5) assembling these into Sturm's theorem.
+
+## Next Lemma To Prove
+sigma_drop_at_simple_root: Prove that at a simple root x of p (where p(x)=0, p'(x)≠0), sigma(p,x-ε) - sigma(p,x+ε) = 1 for sufficiently small ε. This requires analyzing the sign of p and p' near x using continuity and the derivative.
+
+## Strategy Note
+(no frontier state — strategy unknown)
