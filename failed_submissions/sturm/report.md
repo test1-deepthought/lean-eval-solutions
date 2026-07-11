@@ -15,3 +15,22 @@ The sturm problem requires proving Sturm's theorem for real polynomials. I made 
 ## Evidence Warning
 
 The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
+
+---
+## Attempt 20260711T101631Z
+
+## Evidence Warning
+
+The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
+
+
+## Agent Response Context
+
+Sturm's theorem is a major result in real algebraic geometry. The full formal proof in Lean 4 requires:
+1. Properties of the Sturm chain (gcd-like sequence)
+2. Sign analysis of polynomial evaluations at roots
+3. The intermediate value property for polynomials
+
+The main obstacle to formalization is the noncomputable `signChanges` function. For ℝ, `filter (· ≠ 0)` uses `Classical.decEq` making `dec_trivial` and `simp` ineffective for free variables. A potential approach is to define a computable recursive version of signChanges that's proven equivalent, but this requires modifying the problem's ChallengeDeps which isn't allowed.
+
+The mathematical proof (Phase 1) was completed. The formalization (Phase 2) requires a different approach to handling signChanges - perhaps by converting the problem to rational approximations or using Sturm's theorem in a specialized form.
