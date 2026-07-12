@@ -359,7 +359,7 @@ theorem finite_graph_ramsey_theorem : ∀ (r s : ℕ), 2 ≤ r → 2 ≤ s → �
               intro hG_cf
               rw [SimpleGraph.cliqueFree_compl] at hG_cf
               apply hG_cf; exact h_indep_v
-  
+
   have h_total : P (r + s) := Nat.strong_induction_on (r + s) hP
   exact h_total r s rfl hr hs
 
