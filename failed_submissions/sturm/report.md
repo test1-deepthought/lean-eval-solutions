@@ -95,3 +95,30 @@ lemma no_common_root (p : ℝ[X]) (hp : Squarefree p) (x : ℝ) (hpx : p.eval x 
   intro hderiv; have hzero : (b.eval x) * ((derivative p).eval x) = 0 := by simp [hderiv]
   linarith
 ```
+
+---
+## Attempt 20260712T031132Z | mode: new
+
+## Verified Lemmas
+(record in PROVE frontier state / attached candidate files)
+
+## Unproven Components
+(no frontier state available)
+**Current lemma:** `lemma_sigma_const_between_roots`
+**Error:** The proof of Sturm's theorem requires several deep analytic lemmas that are not yet formalized:
+1. Lemma: sigma is locally constant on intervals where no Sturm chain entry vanishes (needs continuity of polynomials and sign stability)
+2. Lemma: At a simple root r of p (p(r)=0, p'(r)≠0), sigma drops b
+
+## Exact Failed Lean Error
+The proof of Sturm's theorem requires several deep analytic lemmas that are not yet formalized:
+1. Lemma: sigma is locally constant on intervals where no Sturm chain entry vanishes (needs continuity of polynomials and sign stability)
+2. Lemma: At a simple root r of p (p(r)=0, p'(r)≠0), sigma drops by exactly 1 (needs sign analysis of (p,p') pair)
+3. Lemma: Squarefree over ℝ[X] implies gcd(p,p')=1 (needs characterization of squarefreeness for polynomials over fields of characteristic 0)
+4. Lemma: Sorted list property for roots (Finset.exists_sorted_sorted_of_finite needs to be verified)
+The main proof structure (induction on sorted roots) is outlined.
+
+## Next Lemma To Prove
+lemma_sigma_const_between_roots
+
+## Strategy Note
+(no frontier state — strategy unknown)
