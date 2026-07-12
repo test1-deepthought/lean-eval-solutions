@@ -1,7 +1,7 @@
 # sturm — Current State
 
-**Last updated:** 20260712T034133Z
-**Total attempts:** 19
+**Last updated:** 20260712T040726Z
+**Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
 ## Target Theorem
@@ -10,26 +10,31 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 ## Verified Lemmas
 
-**16 lemmas verified across all attempts**
+**21 lemmas verified across all attempts**
 
 | # | Lemma | SHA256 | Attempts |
 |---|-------|--------|----------|
 | 1 | `-------` | `--------` | ---------- |
 | 2 | `Lemma_1036` | `737d483e79ee` | ? |
 | 3 | `Lemma_4689` | `a0a796e0238b` | ? |
-| 4 | `Lemma_7925` | `25828b01ed7a` | ? |
-| 5 | `no_common_root` | `a4f272cc8365` | ? |
-| 6 | `nodup_roots_of_squarefree` | `7f282722dd0b` | ? |
-| 7 | `not_root_of_eval_ne_zero` | `1511660bbbe5` | ? |
-| 8 | `signChanges_append_zeros` | `fe69e68f301a` | ? |
-| 9 | `signChanges_cons_zero` | `cf7d7250e257` | ? |
-| 10 | `signChanges_nil` | `ec4ac8f09f0e` | ? |
-| 11 | `signChanges_pair` | `00e22926e6c1` | ? |
-| 12 | `signChanges_singleton` | `0f086c54885b` | ? |
-| 13 | `signChanges_zeros_irrelevant` | `744d4a053843` | ? |
-| 14 | `squarefree_imp_no_common_root` | `b9313dcd4032` | ? |
-| 15 | `squarefree_imp_separable` | `49ab5685abfc` | ? |
-| 16 | `sturm` | `d83e4dc18e50` | ? |
+| 4 | `Lemma_4888` | `99218334fa8a` | ? |
+| 5 | `Lemma_7925` | `25828b01ed7a` | ? |
+| 6 | `lt_of_le_and_ne` | `38f3f4e06664` | ? |
+| 7 | `no_common_root` | `a4f272cc8365` | ? |
+| 8 | `nodup_roots_of_squarefree` | `7f282722dd0b` | ? |
+| 9 | `not_root_of_eval_ne_zero` | `1511660bbbe5` | ? |
+| 10 | `signChanges_append_zeros` | `fe69e68f301a` | ? |
+| 11 | `signChanges_cons_zero` | `cf7d7250e257` | ? |
+| 12 | `signChanges_nil` | `ec4ac8f09f0e` | ? |
+| 13 | `signChanges_pair` | `00e22926e6c1` | ? |
+| 14 | `signChanges_singleton` | `0f086c54885b` | ? |
+| 15 | `signChanges_zeros_irrelevant` | `744d4a053843` | ? |
+| 16 | `sign_constant_on_closed_interval` | `3ae4ace4be1b` | ? |
+| 17 | `squarefree_imp_no_common_root` | `b9313dcd4032` | ? |
+| 18 | `squarefree_imp_separable` | `49ab5685abfc` | ? |
+| 19 | `sturm` | `d83e4dc18e50` | ? |
+| 20 | `zero_between_neg_and_pos` | `ac650f5c8161` | ? |
+| 21 | `zero_between_pos_and_neg` | `86afac525c77` | ? |
 
 ## Unproven Components
 
@@ -60,6 +65,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 15 | 20260712T032717Z | `(unknown)` | agent-provided report | saved |
 | 17 | 20260712T033903Z | `signChanges_filter_lemmas` | agent-provided report | saved |
 | 19 | 20260712T034133Z | `sigma_drop_at_simple_root` | agent-provided report | saved |
+| 21 | 20260712T040726Z | `(unknown)` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
