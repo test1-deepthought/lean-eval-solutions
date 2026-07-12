@@ -262,3 +262,8 @@ theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
 
 end Submission
 ```
+
+---
+## Attempt 20260712T034133Z
+
+The Lean 4 formalization of Sturm's theorem requires: (1) Proof of the sign-drop property at simple roots using the Sturm chain's structure (p and p' coprime → no common root → the pair (p,p') has exactly one sign variation at each simple root); (2) Proof that sigma is locally constant between roots using continuity and IVT; (3) Induction on the number of roots. The mathematical argument is well-understood but the formalization requires several non-trivial analytic lemmas (continuity of polynomial evaluation, Intermediate Value Theorem, codomain of sigma as ℕ with truncated subtraction). The signChanges function's use of List.filter (· ≠ 0) on ℝ creates decidable equality obligations that simp cannot solve in standalone testing, though they compile within the workspace via lake build.
