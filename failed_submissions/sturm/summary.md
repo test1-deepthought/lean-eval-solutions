@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260712T042508Z
+**Last updated:** 20260712T070915Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -42,10 +42,11 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
+**Last error:** The main theorem sturm requires proof of the full Sturm's theorem. The lemmas signChanges_empty, signChanges_singleton, signChanges_two_opposite, signChanges_cons_zero, sturmChain_ne_nil, and squarefree_imp_separable have been verified. The remaining proof requires: (1) proving sigma is locally cons
+
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
-|---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
@@ -66,6 +67,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 19 | 20260712T034133Z | `sigma_drop_at_simple_root` | agent-provided report | saved |
 | 21 | 20260712T040726Z | `(unknown)` | agent-provided report | saved |
 | 22 | 20260712T042508Z | `(unknown)` | agent-provided report | saved |
+| 22 | 20260712T070915Z | `sigma_locally_constant: show sigma is constant on intervals where no chain entry vanishes` | agent-provided report | blocked |
 
 ## Recommended Next Steps
 
