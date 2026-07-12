@@ -189,3 +189,36 @@ The proof requires establishing three properties:
 Then by an induction on the sorted list of distinct roots in (a,b), the theorem follows.
 
 I completed the signChanges helper lemmas (6 lemmas verified) and set up the proof workspace. The remaining proof requires substantial real analysis and polynomial theory to be built from scratch, which is comparable in difficulty to Manuel Eberl's Isabelle/HOL formalization (AFP entry Sturm_Sequences, thousands of lines).
+
+---
+## Attempt 20260712T032717Z
+
+## Scratch Lean 4 Code From This Attempt
+
+This code compiled outside the Lean-Eval workspace shape. Treat it as exploratory context until it is rechecked with `import ChallengeDeps` or `import Submission.*`.
+
+```lean4
+import Mathlib
+open Polynomial
+
+lemma squarefree_imp_separable (p : ℝ[X]) (hp : Squarefree p) : p.Separable :=
+  (PerfectField.separable_iff_squarefree (g := p)).mpr hp
+
+lemma nodup_roots_of_squarefree (p : ℝ[X]) (hp : Squarefree p) : p.roots.Nodup :=
+  Polynomial.nodup_roots (squarefree_imp_separable p hp)
+
+lemma not_root_of_eval_ne_zero (p : ℝ[X]) (a : ℝ) (h : p.eval a ≠ 0) : a ∉ p.roots := by
+  rw [Polynomial.mem_roots (by intro hzero; apply h; simp [hzero])]
+  exact h
+
+lemma squarefree_imp_no_common_root (p : ℝ[X]) (hp : Squarefree p) (r : ℝ) (hp_r : p.eval r = 0) :
+    p.derivative.eval r ≠ 0 := by
+  have hsep : p.Separable := squarefree_imp_separable p hp
+  rcases (Polynomial.separable_def' p).mp hsep with ⟨a, b, h⟩
+  intro hderiv
+  have hzero : (a * p + b * derivative p).eval r = 0 := by
+    simp [hp_r, hderiv]
+  have hone : (a * p + b * derivative p).eval r = 1 := by
+    simpa [h, Polynomial.eval_one] using congrArg (fun q => q.eval r) h
+  linarith
+```
