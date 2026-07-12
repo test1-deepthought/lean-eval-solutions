@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260712T040726Z
+**Last updated:** 20260712T042508Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -54,7 +54,6 @@ All frontier lemmas verified — main theorem assembly remains.
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
-|---|-----------|-------|----------|--------|
 | 1 | 20260707T022127Z | `(unknown)` | agent-provided report | saved |
 | 3 | 20260707T085800Z | `(unknown)` | agent-provided report | saved |
 | 5 | 20260711T101631Z | `(unknown)` | agent-provided report | saved |
@@ -66,6 +65,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 17 | 20260712T033903Z | `signChanges_filter_lemmas` | agent-provided report | saved |
 | 19 | 20260712T034133Z | `sigma_drop_at_simple_root` | agent-provided report | saved |
 | 21 | 20260712T040726Z | `(unknown)` | agent-provided report | saved |
+| 22 | 20260712T042508Z | `(unknown)` | agent-provided report | saved |
 
 ## Recommended Next Steps
 
