@@ -2,59 +2,67 @@ import Mathlib
 open Set
 open Filter
 
+set_option maxHeartbeats 800000
+
 lemma exists_bound_on_abs (p : ℝ → ℝ) (a' b' : ℝ) (hle : a' ≤ b') (hp : ContinuousOn p (Set.Icc a' b')) :
     ∃ (K : NNReal), ∀ t ∈ Set.Icc a' b', |p t| ≤ (K : ℝ) := by
   have h_nonempty : (Set.Icc a' b').Nonempty := Set.nonempty_Icc.mpr hle
   have h_cont_abs : ContinuousOn (fun x : ℝ => |p x|) (Set.Icc a' b') := hp.abs
   rcases IsCompact.exists_isMaxOn isCompact_Icc h_nonempty h_cont_abs with ⟨t0, ht0, h_max⟩
-  refine ⟨⟨|p t0|, abs_nonneg _⟩, ?_⟩
+  let K : NNReal := ⟨|p t0|, abs_nonneg _⟩
+  refine ⟨K, ?_⟩
   intro t ht
-  simpa using h_max ht
+  have h := h_max ht
+  have : (K : ℝ) = |p t0| := rfl
+  rw [this]
+  exact h
 
-lemma LipschitzOnWith.mono_const {α β : Type _} [PseudoEMetricSpace α] [PseudoEMetricSpace β]
-    {K₁ K₂ : NNReal} {f : α → β} {s : Set α} (hf : LipschitzOnWith K₁ f s) (h : K₁ ≤ K₂) :
-    LipschitzOnWith K₂ f s := by
-  intro x hx y hy
-  have h_edist := hf hx hy
-  have hK : (K₁ : ENNReal) ≤ (K₂ : ENNReal) := by exact_mod_cast h
-  calc
-    edist (f x) (f y) ≤ (K₁ : ENNReal) * edist x y := h_edist
-    _ ≤ (K₂ : ENNReal) * edist x y := mul_le_mul_of_nonneg_right hK (by positivity)
-
-lemma linear_ode_zero_at_point (a f : ℝ → ℝ) (c d : ℝ) (hcd : c < d) (t₁ t₂ : ℝ) (ht₁ : t₁ ∈ Set.Ioo c d) (ht₂ : t₂ ∈ Set.Ioo c d)
-    (ha_cont : ContinuousOn a (Set.Icc c d))
-    (hf : ∀ t ∈ Set.Ioo c d, HasDerivAt f (a t * f t) t)
+lemma linear_ode_uniqueness (a f : ℝ → ℝ) (c d : ℝ) (hcd : c < d) (t₁ t₂ : ℝ) 
+    (ht₁ : t₁ ∈ Ioo c d) (ht₂ : t₂ ∈ Ioo c d)
+    (ha_cont : ContinuousOn a (Icc c d))
+    (hf : ∀ t ∈ Ioo c d, HasDerivAt f (a t * f t) t)
     (hf_t₂ : f t₂ = 0) : f t₁ = 0 := by
   rcases exists_bound_on_abs a c d (by linarith) ha_cont with ⟨K, hK⟩
   set v : ℝ → ℝ → ℝ := fun t' y => a t' * y with hv_def
   set s : ℝ → Set ℝ := fun _ => Set.univ with hs_def
-  have hv_lip : ∀ t' ∈ Set.Ioo c d, LipschitzOnWith K (v t') (s t') := by
+  have hv_lip : ∀ t' ∈ Ioo c d, LipschitzOnWith K (v t') (s t') := by
     intro t' ht'
-    have ht'_icc : t' ∈ Set.Icc c d := Set.mem_Icc.mpr ⟨by
+    have ht'_icc : t' ∈ Icc c d := Set.mem_Icc.mpr ⟨by
       have := ht'.1; linarith, by
       have := ht'.2; linarith⟩
     have h_bound : |a t'| ≤ (K : ℝ) := hK t' ht'_icc
-    have h_smul : LipschitzWith (‖a t'‖₊) (fun (y : ℝ) => (a t') • y) := lipschitzWith_smul (a t')
-    have h_smul' : LipschitzWith (⟨|a t'|, abs_nonneg _⟩ : NNReal) (fun (y : ℝ) => a t' * y) := by
-      simpa using h_smul
-    have h_lip : LipschitzOnWith (⟨|a t'|, abs_nonneg _⟩ : NNReal) (fun (y : ℝ) => a t' * y) Set.univ :=
-      h_smul'.lipschitzOnWith
-    have hK_le : (⟨|a t'|, abs_nonneg _⟩ : NNReal) ≤ K := by exact_mod_cast h_bound
-    have h_lip' : LipschitzOnWith K (fun (y : ℝ) => a t' * y) Set.univ := h_lip.mono_const hK_le
+    have h_lip0 : LipschitzWith ‖a t'‖₊ (fun (y : ℝ) => a t' * y) := by
+      have h0 : LipschitzWith ‖a t'‖₊ (fun (y : ℝ) => a t' • y) := 
+        lipschitzWith_smul (s := a t') (β := ℝ)
+      simpa [smul_eq_mul] using h0
+    have h_norm_le : ‖a t'‖₊ ≤ K := by
+      have : (‖a t'‖₊ : ℝ) = |a t'| := by simp
+      have hK' : |a t'| ≤ (K : ℝ) := h_bound
+      have : (‖a t'‖₊ : ℝ) ≤ (K : ℝ) := by
+        rw [this]; exact hK'
+      exact_mod_cast this
+    have h_lip : LipschitzWith K (fun (y : ℝ) => a t' * y) := by
+      intro x y
+      have h_edist := h_lip0 x y
+      have hK' : (‖a t'‖₊ : ENNReal) ≤ (K : ENNReal) := by exact_mod_cast h_norm_le
+      calc
+        edist (a t' * x) (a t' * y) ≤ (‖a t'‖₊ : ENNReal) * edist x y := h_edist
+        _ ≤ (K : ENNReal) * edist x y := mul_le_mul_of_nonneg_right hK' (by positivity)
     dsimp [v, s]
-    exact h_lip'
-  have hf' : ∀ t ∈ Set.Ioo c d, HasDerivAt f (v t (f t)) t ∧ f t ∈ s t := by
+    exact h_lip.lipschitzOnWith
+  have hf' : ∀ t ∈ Ioo c d, HasDerivAt f (v t (f t)) t ∧ f t ∈ s t := by
     intro t ht; refine ⟨hf t ht, trivial⟩
-  have hzero : ∀ t ∈ Set.Ioo c d, HasDerivAt (fun _ : ℝ => (0 : ℝ)) (v t ((fun _ : ℝ => (0 : ℝ)) t)) t ∧ (fun _ : ℝ => (0 : ℝ)) t ∈ s t := by
+  have hzero : ∀ t ∈ Ioo c d, HasDerivAt (fun _ : ℝ => (0 : ℝ)) (v t ((fun _ : ℝ => (0 : ℝ)) t)) t ∧ (fun _ : ℝ => (0 : ℝ)) t ∈ s t := by
     intro t ht
     refine ⟨by
       have h_deriv : HasDerivAt (fun (_ : ℝ) => (0 : ℝ)) (0 : ℝ) t := hasDerivAt_const _ _
       simpa [hv_def, hs_def] using h_deriv, trivial⟩
-  have h_unique : EqOn f (fun _ : ℝ => (0 : ℝ)) (Set.Ioo c d) :=
+  have h_unique : EqOn f (fun _ : ℝ => (0 : ℝ)) (Ioo c d) :=
     ODE_solution_unique_of_mem_Ioo hv_lip ht₂ hf' hzero hf_t₂
   exact h_unique ht₁
 
-lemma exists_open_interval_containing_two_points (J : Set ℝ) (hJ_open : IsOpen J) (hJ_conn : IsPreconnected J) (x y : ℝ) (hx : x ∈ J) (hy : y ∈ J) (hxy : x ≠ y) :
+lemma exists_open_interval_containing_two_points (J : Set ℝ) (hJ_open : IsOpen J) (hJ_conn : IsPreconnected J) 
+    (x y : ℝ) (hx : x ∈ J) (hy : y ∈ J) (hxy : x ≠ y) :
     ∃ (c d : ℝ), c < d ∧ Set.Icc c d ⊆ J ∧ x ∈ Set.Ioo c d ∧ y ∈ Set.Ioo c d := by
   have hx_nh : ∃ ε > 0, Set.Ioo (x - ε) (x + ε) ⊆ J := by
     have h := hJ_open.mem_nhds hx
@@ -69,17 +77,26 @@ lemma exists_open_interval_containing_two_points (J : Set ℝ) (hJ_open : IsOpen
     intro z hz; rcases hz with ⟨hz1, hz2⟩; apply hball
     rw [Metric.mem_ball, Real.dist_eq]; rw [abs_lt]; constructor <;> linarith
   rcases hx_nh with ⟨ε₀, hε₀, hx_ball⟩; rcases hy_nh with ⟨ε₁, hε₁, hy_ball⟩
-  let δ := min ε₀ ε₁; have hδ_pos : δ > 0 := lt_min_iff.mpr ⟨hε₀, hε₁⟩
-  have hδ_le_ε₀ : δ ≤ ε₀ := min_le_left _ _; have hδ_le_ε₁ : δ ≤ ε₁ := min_le_right _ _
+  set δ := min ε₀ ε₁ with hδ_def
+  have hδ_pos : δ > 0 := lt_min_iff.mpr ⟨hε₀, hε₁⟩
+  have hδ_le_ε₀ : δ ≤ ε₀ := min_le_left _ _
+  have hδ_le_ε₁ : δ ≤ ε₁ := min_le_right _ _
   have hJ_ord : J.OrdConnected := isPreconnected_iff_ordConnected.mp hJ_conn
-  let c' := min x y - δ; let d' := max x y + δ; let c := min x y - δ / 2; let d := max x y + δ / 2
+  set c' := min x y - δ with hc'_def
+  set d' := max x y + δ with hd'_def
+  set c := min x y - δ / 2 with hc_def
+  set d := max x y + δ / 2 with hd_def
   have h_min_lt_max : min x y < max x y := by
     by_cases hx_le_y : x ≤ y
     · rw [min_eq_left hx_le_y, max_eq_right hx_le_y]; by_contra! hle; exact hxy (by linarith)
     · rw [min_eq_right (by linarith), max_eq_left (by linarith)]; by_contra! hle; exact hxy (by linarith)
-  have hcd : c < d := by dsimp [c, d]; nlinarith
+  have hcd : c < d := by
+    dsimp [c, d]; nlinarith
   have hIoo_c'd'_sub_J : Set.Ioo c' d' ⊆ J := by
-    intro z hz; rcases hz with ⟨hcz, hzd⟩; dsimp [c', d'] at hcz hzd
+    intro z hz
+    rcases hz with ⟨hcz, hzd⟩
+    have hcz' : min x y - δ < z := hcz
+    have hzd' : z < max x y + δ := hzd
     by_cases hz_ge_min : min x y ≤ z
     · by_cases hz_le_max : z ≤ max x y
       · have hz_icc : z ∈ Set.Icc (min x y) (max x y) := Set.mem_Icc.mpr ⟨hz_ge_min, hz_le_max⟩
@@ -89,36 +106,67 @@ lemma exists_open_interval_containing_two_points (J : Set ℝ) (hJ_open : IsOpen
           · rw [min_eq_right (by linarith), max_eq_left (by linarith)]; exact hJ_ord.out hy hx
         exact hIcc_sub_J' hz_icc
       · by_cases hx_max : x ≤ y
-        · rw [max_eq_right hx_max] at hzd hz_le_max
-          have hz_gt_y : y < z := by
-            by_contra! hle; exact hz_le_max hle
-          exact hy_ball ⟨by nlinarith, by nlinarith⟩
-        · rw [max_eq_left (by linarith)] at hzd hz_le_max
-          have hz_gt_x : x < z := by
-            by_contra! hle; exact hz_le_max hle
-          exact hx_ball ⟨by nlinarith, by nlinarith⟩
+        · have hz_pos : y < z := by
+            have : max x y = y := max_eq_right hx_max
+            rw [this] at hz_le_max
+            exact not_le.mp hz_le_max
+          have hz_lt_y_plus_ε₁ : z < y + ε₁ := by
+            have : z < max x y + δ := hzd'
+            have h1 : max x y + δ = y + δ := by simp [hx_max]
+            rw [h1] at this
+            nlinarith
+          exact hy_ball ⟨by nlinarith, hz_lt_y_plus_ε₁⟩
+        · have hyx : y ≤ x := by linarith
+          have hz_pos : x < z := by
+            have : max x y = x := max_eq_left hyx
+            rw [this] at hz_le_max
+            exact not_le.mp hz_le_max
+          have hz_lt_x_plus_ε₀ : z < x + ε₀ := by
+            have : z < max x y + δ := hzd'
+            have h1 : max x y + δ = x + δ := by simp [hyx]
+            rw [h1] at this
+            nlinarith
+          exact hx_ball ⟨by nlinarith, hz_lt_x_plus_ε₀⟩
     · by_cases hx_min : x ≤ y
-      · rw [min_eq_left hx_min] at hcz hz_ge_min
-        have hz_lt_x : z < x := by
-          by_contra! hge; exact hz_ge_min hge
-        exact hx_ball ⟨by nlinarith, by nlinarith⟩
-      · rw [min_eq_right (by linarith)] at hcz hz_ge_min
+      · have hz_lt_x : z < x := by
+          have : min x y = x := min_eq_left hx_min
+          rw [this] at hz_ge_min
+          exact not_le.mp hz_ge_min
+        have hz_gt_x_minus_ε₀ : x - ε₀ < z := by
+          have h1 : min x y - δ = x - δ := by simp [hx_min]
+          rw [h1] at hcz'
+          nlinarith
+        exact hx_ball ⟨hz_gt_x_minus_ε₀, by nlinarith⟩
+      · have hyx : y ≤ x := by linarith
         have hz_lt_y : z < y := by
-          by_contra! hge; exact hz_ge_min hge
-        exact hy_ball ⟨by nlinarith, by nlinarith⟩
+          have : min x y = y := min_eq_right hyx
+          rw [this] at hz_ge_min
+          exact not_le.mp hz_ge_min
+        have hz_gt_y_minus_ε₁ : y - ε₁ < z := by
+          have h1 : min x y - δ = y - δ := by simp [hyx]
+          rw [h1] at hcz'
+          nlinarith
+        exact hy_ball ⟨hz_gt_y_minus_ε₁, by nlinarith⟩
   have hIcc_sub_J : Set.Icc c d ⊆ J := by
-    intro z hz; rcases hz with ⟨hcz, hzd⟩; dsimp [c, d] at hcz hzd
-    have hcz' : c' < z := by dsimp [c']; nlinarith
-    have hzd' : z < d' := by dsimp [d']; nlinarith
+    intro z hz
+    rcases hz with ⟨hcz, hzd⟩
+    have hcz' : c' < z := by
+      dsimp [c', c] at *
+      nlinarith
+    have hzd' : z < d' := by
+      dsimp [d', d] at *
+      nlinarith
     exact hIoo_c'd'_sub_J ⟨hcz', hzd'⟩
   have hx_mem : x ∈ Set.Ioo c d := by
-    dsimp [c, d]; have hx_low : min x y - δ / 2 < x := by
+    dsimp [c, d]
+    have hx_low : min x y - δ / 2 < x := by
       have : min x y ≤ x := min_le_left _ _; nlinarith
     have hx_high : x < max x y + δ / 2 := by
       have : x ≤ max x y := le_max_left _ _; nlinarith
     exact ⟨hx_low, hx_high⟩
   have hy_mem : y ∈ Set.Ioo c d := by
-    dsimp [c, d]; have hy_low : min x y - δ / 2 < y := by
+    dsimp [c, d]
+    have hy_low : min x y - δ / 2 < y := by
       have : min x y ≤ y := min_le_right _ _; nlinarith
     have hy_high : y < max x y + δ / 2 := by
       have : y ≤ max x y := le_max_right _ _; nlinarith
@@ -200,8 +248,7 @@ lemma const_sign_on_Ioo (f : ℝ → ℝ) (a b : ℝ) (hab : a < b) (hf : ∀ x 
       have : f x = 0 := by nlinarith
       exact hf_nonzero x hx this
     by_cases hxx₀ : x ≤ x₀
-    · -- x ≤ x₀; apply IVT on [x, x₀]
-      have h_cont : ContinuousOn f (Icc x x₀) := by
+    · have h_cont : ContinuousOn f (Icc x x₀) := by
         intro z hz
         have hz_Ioo : z ∈ Ioo a b := by
           have hz1 : x ≤ z := hz.1
@@ -220,8 +267,7 @@ lemma const_sign_on_Ioo (f : ℝ → ℝ) (a b : ℝ) (hab : a < b) (hf : ∀ x 
       rcases hz_and with ⟨hz1, hz2⟩
       have hz_Ioo : z ∈ Ioo a b := ⟨hx.1.trans hz1, hz2.trans hx₀.2⟩
       exact absurd hz_eq (hf_nonzero z hz_Ioo)
-    · -- x₀ ≤ x; apply IVT on [x₀, x]
-      have hx₀_le_x : x₀ ≤ x := by linarith
+    · have hx₀_le_x : x₀ ≤ x := by linarith
       have h_cont : ContinuousOn f (Icc x₀ x) := by
         intro z hz
         have hz_Ioo : z ∈ Ioo a b := by
@@ -314,8 +360,6 @@ lemma neg_at_endpoint_of_neg_on_Ioo_right (y : ℝ → ℝ) (a b : ℝ) (hab : a
   have : -(y b) > 0 := by simpa using hpos
   linarith
 
-set_option maxHeartbeats 600000
-
 namespace Submission
 
 theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
@@ -362,7 +406,7 @@ theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a 
       have hW_deriv_on : ∀ t ∈ Ioo c d, HasDerivAt W (-(p t) * W t) t := by
         intro t ht; have htJ : t ∈ J := hIcc_sub (Set.Ioo_subset_Icc_self ht); exact hW_deriv t htJ
       have hWx₀ : W x₀ = 0 :=
-        linear_ode_zero_at_point (-p) W c d hcd x₀ x hx₀_mem hx_mem hp_cont hW_deriv_on hWx
+        linear_ode_uniqueness (-p) W c d hcd x₀ x hx₀_mem hx_mem hp_cont hW_deriv_on hWx
       exact hW₀ hWx₀
   have hWa_nonzero : W a ≠ 0 := hW_nonzero a haJ
   have hWb_nonzero : W b ≠ 0 := hW_nonzero b hbJ
@@ -436,8 +480,7 @@ theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a 
     have hy₂_const_sign : (∀ x ∈ Ioo a b, y₂ x > 0) ∨ (∀ x ∈ Ioo a b, y₂ x < 0) :=
       const_sign_on_Ioo y₂ a b hab hy₂_cont h_no_zero
     rcases hy₂_const_sign with (hy₂_pos | hy₂_neg)
-    · -- y₂ > 0 on (a,b)
-      have hWa_eq : W a = -(y₂ a) * deriv y₁ a := by
+    · have hWa_eq : W a = -(y₂ a) * deriv y₁ a := by
         dsimp [W]; rw [hza]; ring
       have hWb_eq : W b = -(y₂ b) * deriv y₁ b := by
         dsimp [W]; rw [hzb]; ring
@@ -466,8 +509,7 @@ theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a 
       rcases hIVT with ⟨x, hx, hx_eq⟩
       have hxJ : x ∈ J := hJ_sub (Set.mem_Icc.mpr ⟨hx.1.le, hx.2.le⟩)
       exact hW_nonzero x hxJ hx_eq
-    · -- y₂ < 0 on (a,b)
-      have hWa_eq : W a = -(y₂ a) * deriv y₁ a := by
+    · have hWa_eq : W a = -(y₂ a) * deriv y₁ a := by
         dsimp [W]; rw [hza]; ring
       have hWb_eq : W b = -(y₂ b) * deriv y₁ b := by
         dsimp [W]; rw [hzb]; ring
@@ -501,8 +543,7 @@ theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a 
     by_contra! hcd
     have hlt_or : c < d ∨ d < c := Ne.lt_or_gt hcd
     rcases hlt_or with (hlt | hlt)
-    · -- c < d
-      have h_deriv_ratio : ∀ x ∈ Ioo a b, HasDerivAt (fun x => y₂ x / y₁ x) (W x / (y₁ x)^2) x := by
+    · have h_deriv_ratio : ∀ x ∈ Ioo a b, HasDerivAt (fun x => y₂ x / y₁ x) (W x / (y₁ x)^2) x := by
         intro x hx
         have hy1x : HasDerivAt y₁ (deriv y₁ x) x := hy₁ x (hJ_sub (Set.Ioo_subset_Icc_self hx))
         have hy2x : HasDerivAt y₂ (deriv y₂ x) x := hy₂ x (hJ_sub (Set.Ioo_subset_Icc_self hx))
@@ -516,8 +557,7 @@ theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a 
       have hW_const_sign : (∀ x ∈ Ioo a b, W x > 0) ∨ (∀ x ∈ Ioo a b, W x < 0) :=
         const_sign_on_Ioo W a b hab (fun x hx => (hW_deriv x (hJ_sub (Set.Ioo_subset_Icc_self hx))).continuousAt) hW_nonzero_on_Ioo
       rcases hW_const_sign with (hW_pos | hW_neg)
-      · -- W > 0
-        have h_ratio_deriv_pos : ∀ x ∈ Ioo a b, 0 < W x / (y₁ x)^2 := by
+      · have h_ratio_deriv_pos : ∀ x ∈ Ioo a b, 0 < W x / (y₁ x)^2 := by
           intro x hx; have hy1_sq_pos : 0 < (y₁ x)^2 := pow_pos (hy₁_pos x hx) 2
           exact div_pos (hW_pos x hx) hy1_sq_pos
         have h_strict_mono : StrictMonoOn (fun x => y₂ x / y₁ x) (Ioo a b) :=
@@ -525,8 +565,7 @@ theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a 
         have h_eq : (fun x => y₂ x / y₁ x) c = (fun x => y₂ x / y₁ x) d := by simp [hc0, hd0]
         have hc_eq_d : c = d := (h_strict_mono.eq_iff_eq hc hd).mp h_eq
         exact hcd hc_eq_d
-      · -- W < 0
-        have h_ratio_deriv_neg : ∀ x ∈ Ioo a b, W x / (y₁ x)^2 < 0 := by
+      · have h_ratio_deriv_neg : ∀ x ∈ Ioo a b, W x / (y₁ x)^2 < 0 := by
           intro x hx
           have hy1_sq_pos : 0 < (y₁ x)^2 := pow_pos (hy₁_pos x hx) 2
           have hW_neg_x : W x < 0 := hW_neg x hx
@@ -536,8 +575,7 @@ theorem sturm_separation_pos (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a 
         have h_eq : (fun x => y₂ x / y₁ x) c = (fun x => y₂ x / y₁ x) d := by simp [hc0, hd0]
         have h_d_eq_c : d = c := (h_strict_anti.eq_iff_eq hc hd).mp h_eq
         exact hcd h_d_eq_c.symm
-    · -- d < c, symmetric
-      have h_deriv_ratio : ∀ x ∈ Ioo a b, HasDerivAt (fun x => y₂ x / y₁ x) (W x / (y₁ x)^2) x := by
+    · have h_deriv_ratio : ∀ x ∈ Ioo a b, HasDerivAt (fun x => y₂ x / y₁ x) (W x / (y₁ x)^2) x := by
         intro x hx
         have hy1x : HasDerivAt y₁ (deriv y₁ x) x := hy₁ x (hJ_sub (Set.Ioo_subset_Icc_self hx))
         have hy2x : HasDerivAt y₂ (deriv y₂ x) x := hy₂ x (hJ_sub (Set.Ioo_subset_Icc_self hx))
@@ -594,11 +632,9 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
   have hy₁_sign : (∀ x ∈ Ioo a b, y₁ x > 0) ∨ (∀ x ∈ Ioo a b, y₁ x < 0) :=
     const_sign_on_Ioo y₁ a b hab hy₁_cont hne
   rcases hy₁_sign with (hy₁_pos | hy₁_neg)
-  · -- y₁ > 0 on (a,b)
-    exact sturm_separation_pos p q y₁ y₂ a b hab J hJ_open hJ_conn hJ_sub hp hq hy₁ hy₁' hy₂ hy₂'
+  · exact sturm_separation_pos p q y₁ y₂ a b hab J hJ_open hJ_conn hJ_sub hp hq hy₁ hy₁' hy₂ hy₂'
       ⟨x₀, hx₀J, hW₀⟩ hza hzb hne hy₁_pos
-  · -- y₁ < 0 on (a,b) — apply sturm_separation_pos to (-y₁, -y₂)
-    have h_neg_y₁_pos : ∀ x ∈ Ioo a b, (-y₁) x > 0 := by
+  · have h_neg_y₁_pos : ∀ x ∈ Ioo a b, (-y₁) x > 0 := by
       intro x hx; simpa using hy₁_neg x hx
     have h_neg_y₁_ne : ∀ x ∈ Ioo a b, (-y₁) x ≠ 0 := by
       intro x hx; simpa using hne x hx
@@ -615,12 +651,24 @@ theorem sturm_separation (p q y₁ y₂ : ℝ → ℝ) (a b : ℝ) (hab : a < b)
       intro x hxJ; simpa using (hy₁ x hxJ).neg
     have h_neg_hy₁' : ∀ x ∈ J, HasDerivAt (deriv (-y₁)) (-(p x * deriv (-y₁) x + q x * (-y₁) x)) x := by
       intro x hxJ
-      simpa [deriv.neg, mul_neg, neg_mul, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using (hy₁' x hxJ).neg
+      have hderiv_eq : deriv (-y₁) = -deriv y₁ := by
+        ext x; simp
+      rw [hderiv_eq]
+      dsimp
+      have h_simplified : -(p x * (-(deriv y₁ x)) + q x * (-(y₁ x))) = p x * deriv y₁ x + q x * y₁ x := by ring
+      rw [h_simplified]
+      simpa using (hy₁' x hxJ).neg
     have h_neg_hy₂ : ∀ x ∈ J, HasDerivAt (-y₂) (deriv (-y₂) x) x := by
       intro x hxJ; simpa using (hy₂ x hxJ).neg
     have h_neg_hy₂' : ∀ x ∈ J, HasDerivAt (deriv (-y₂)) (-(p x * deriv (-y₂) x + q x * (-y₂) x)) x := by
       intro x hxJ
-      simpa [deriv.neg, mul_neg, neg_mul, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using (hy₂' x hxJ).neg
+      have hderiv_eq : deriv (-y₂) = -deriv y₂ := by
+        ext x; simp
+      rw [hderiv_eq]
+      dsimp
+      have h_simplified : -(p x * (-(deriv y₂ x)) + q x * (-(y₂ x))) = p x * deriv y₂ x + q x * y₂ x := by ring
+      rw [h_simplified]
+      simpa using (hy₂' x hxJ).neg
     have h_result : ∃! c, c ∈ Set.Ioo a b ∧ (-y₂) c = 0 :=
       sturm_separation_pos p q (-y₁) (-y₂) a b hab J hJ_open hJ_conn hJ_sub hp hq
         h_neg_hy₁ h_neg_hy₁' h_neg_hy₂ h_neg_hy₂' hW_neg h_neg_za h_neg_zb h_neg_y₁_ne h_neg_y₁_pos
