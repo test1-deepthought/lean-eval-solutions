@@ -339,3 +339,10 @@ Sturm's theorem formalization in Lean 4.
 The mathematical proof of Sturm's theorem is complete: for a squarefree polynomial p and interval (a,b) with p(a)≠0, p(b)≠0, the number of distinct roots of p in (a,b) equals sigma(p,a) - sigma(p,b), where sigma is the Sturm sign-variation function.
 
 The analytic lemmas (IVT, sign constancy on intervals where no chain entry vanishes) have been fully formalized and verified. The remaining combinatorial part involves proving properties of the signChanges function, which is noncomputable due to its use of filter (·≠0) on ℝ with undecidable equality.
+
+---
+## Attempt 20260712T042508Z
+
+## Evidence Warning
+
+The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
