@@ -346,3 +346,42 @@ The analytic lemmas (IVT, sign constancy on intervals where no chain entry vanis
 ## Evidence Warning
 
 The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
+
+---
+## Attempt 20260712T070915Z
+
+## Problem
+Prove Sturm's theorem: For a squarefree real polynomial p and interval (a,b) with p(a)≠0, p(b)≠0, the number of distinct real roots of p in (a,b) equals σ(a) - σ(b), where σ is the sign-variation function of the Sturm chain.
+
+## What Was Verified
+The following lemmas were successfully verified with lean4_exec:
+
+1. **signChanges_empty**: signChanges [] = 0 ✓
+2. **signChanges_singleton**: signChanges [x] = 0 for x ≠ 0 ✓
+3. **signChanges_two_opposite**: signChanges [x,y] = 1 when x*y < 0 ✓
+4. **signChanges_cons_zero**: signChanges (0 :: xs) = signChanges xs ✓
+5. **sturmAux_ne_nil**: sturmAux a b n ≠ [] ✓
+6. **sturmChain_ne_nil**: sturmChain p ≠ [] ✓
+7. **squarefree_imp_separable**: Squarefree p → Separable p over ℝ ✓
+
+## What Remains
+The main theorem requires proving:
+
+1. **sigma_locally_constant**: On an interval where no polynomial in the Sturm chain vanishes, sigma is constant (follows from continuity of polynomial evaluation and intermediate value theorem)
+
+2. **sigma_drop_at_root**: At a simple root r of p (where p'(r) ≠ 0 by squarefreeness), sigma drops by exactly 1. Key observation: p changes sign while p' does not, so the sign pattern (p(r-ε), p'(r-ε)) vs (p(r+ε), p'(r+ε)) loses one sign variation.
+
+3. **sigma_no_change_at_interior_root**: At a root of an interior chain entry p_k (k≥2), sigma is unchanged because the Sturm recurrence forces neighboring entries to have opposite signs.
+
+4. **count_roots_eq_sigma_diff**: By ordering roots r_1 < r_2 < ... < r_m in (a,b), applying the lemmas above, and summing, we get the result.
+
+## Strategy for Resumption
+1. Prove sigma_locally_constant using `IntermediateValueTheorem` on each chain entry
+2. Prove sign analysis lemmas about polynomial sign change at simple roots
+3. Prove the Sturm chain recurrence lemma: if p_k(r)=0 then p_{k-1}(r)·p_{k+1}(r) < 0
+4. Use induction on the number of roots
+5. Submit the final proof via solve_lean_eval_problem stage=write_verified
+
+## Evidence Warning
+
+The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
