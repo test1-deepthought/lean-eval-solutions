@@ -1,7 +1,7 @@
 # one_plus_one — Current State
 
-**Last updated:** 20260716T005829Z
-**Total attempts:** 1
+**Last updated:** 20260717T065847Z
+**Total attempts:** 3
 **Status:** PARTIALLY VERIFIED
 
 ## Target Theorem
@@ -20,13 +20,15 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
-**Last error:** Lean-Eval CI: No valid workspace found for problem 'one_plus_one' - not a registered Lean-Eval benchmark problem. The proof itself compiles (lean4_exec exit_code 0, 5/5 successes).
+**Last error:** CI: No valid workspace matches found. 'one_plus_one' is not a registered Lean-Eval benchmark problem. The evaluator requires a matching problem ID in the upstream lean-eval/generated directory.
 
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
 |---|-----------|-------|----------|--------|
+|---|-----------|-------|----------|--------|
 | 1 | 20260716T005829Z | `(unknown)` | failed: Lean-Eval CI: No valid workspace found for problem 'one_plus_one' - not a regist | blocked |
+| 3 | 20260717T065847Z | `N/A - infrastructure limitation` | agent-provided report | blocked |
 
 ## Recommended Next Steps
 
