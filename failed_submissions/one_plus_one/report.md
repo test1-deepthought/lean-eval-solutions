@@ -19,3 +19,10 @@ Lean-Eval CI: No valid workspace found for problem 'one_plus_one' - not a regist
 
 ## Strategy Note
 (no frontier state — strategy unknown)
+
+---
+## Attempt 20260717T065847Z
+
+## Evidence Warning
+
+The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
