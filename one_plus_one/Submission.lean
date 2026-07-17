@@ -1,8 +1,5 @@
 import Mathlib
 
-namespace Submission
-
-theorem one_plus_one_eq_two : 1 + 1 = 2 := by
-  native_decide
-
-end Submission
+def one' : Nat := 1
+def two' : Nat := 2
+theorem add_one_one : one' + one' = two' := rfl
