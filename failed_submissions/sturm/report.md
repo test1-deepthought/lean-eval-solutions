@@ -385,3 +385,82 @@ The main theorem requires proving:
 ## Evidence Warning
 
 The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
+
+---
+## Attempt 20260720T084850Z
+
+## Scratch Lean 4 Code From This Attempt
+
+This code compiled outside the Lean-Eval workspace shape. Treat it as exploratory context until it is rechecked with `import ChallengeDeps` or `import Submission.*`.
+
+```lean4
+import Mathlib
+
+open Polynomial
+open scoped Classical
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+  | a, _, 0       => [a]
+  | a, b, (n + 1) =>
+    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def signChanges (xs : List ℝ) : ℕ :=
+  let ys := xs.filter (· ≠ 0)
+  ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
+
+lemma sturmAux_succ_ne_zero (a b : ℝ[X]) (n : ℕ) (hb : b ≠ 0) :
+    sturmAux a b (n + 1) = a :: sturmAux b (-(a % b)) n := by
+  rw [sturmAux]; simp [hb]
+
+lemma sturmAux_zero_end (a b : ℝ[X]) : sturmAux a b 0 = [a] := by
+  rw [sturmAux]
+
+lemma signChanges_nil : signChanges ([] : List ℝ) = 0 := by
+  rw [signChanges]; simp
+
+lemma signChanges_singleton (x : ℝ) : signChanges [x] = 0 := by
+  rw [signChanges]
+  by_cases hx : x = 0
+  · subst hx; simp
+  · simp [hx]
+
+lemma signChanges_opposite_ends (a b c : ℝ) (hac : a * c < 0) :
+    signChanges [a, b, c] = 1 := by
+  have ha : a ≠ 0 := by
+    intro h; rw [h] at hac; simp at hac
+  have hc : c ≠ 0 := by
+    intro h; rw [h] at hac; simp at hac
+  rw [signChanges]
+  by_cases hb : b = 0
+  · subst b
+    simp [ha, hc, hac]
+  · have h_all : (List.filter (· ≠ (0 : ℝ)) [a, b, c]) = [a, b, c] := by
+      simp [ha, hb, hc]
+    rw [h_all]
+    have hzip : (([a, b, c] : List ℝ).zip ([a, b, c] : List ℝ).tail) = [(a,b), (b,c)] := by
+      simp
+    rw [hzip]
+    by_cases hab : a * b < 0
+    · have hbc_nonneg : 0 ≤ b * c := by
+        by_contra! hneg
+        have hbc_neg : b * c < 0 := hneg
+        have hsq : 0 < b * b := mul_self_pos.mpr hb
+        have : a * c * (b * b) > 0 := by
+          calc
+            a * c * (b * b) = (a * b) * (b * c) := by ring
+            _ > 0 := mul_pos_of_neg_of_neg hab hbc_neg
+        nlinarith
+      simp [hab, hbc_nonneg]
+    · have hab_nonneg : 0 ≤ a * b := by linarith
+      have hbc_neg : b * c < 0 := by
+        by_contra! hnonneg
+        have hbc_nonneg : 0 ≤ b * c := hnonneg
+        have hsq : 0 ≤ b * b := mul_self_nonneg b
+        have : a * c * (b * b) ≥ 0 := by
+          nlinarith
+        by_cases hbz : b = 0
+        · exact hb hbz
+        · have hsq_pos : 0 < b * b := mul_self_pos.mpr hbz
+          nlinarith
+      simp [hab, hbc_neg]
+```
