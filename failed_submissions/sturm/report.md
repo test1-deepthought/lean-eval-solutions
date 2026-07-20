@@ -464,3 +464,34 @@ lemma signChanges_opposite_ends (a b c : ℝ) (hac : a * c < 0) :
           nlinarith
       simp [hab, hbc_neg]
 ```
+
+---
+## Attempt 20260720T091205Z | mode: fix
+
+## Verified Lemmas
+| # | Lemma | File |
+|---|-------|------|
+| 1 | `VerifiedLemmas` | `Submission/VerifiedLemmas.lean` |
+
+## Unproven Components
+(no frontier state available)
+**Current lemma:** `sign_constant_on_interval (IVT-based lemma for sign constancy)`
+**Error:** Sturm's theorem requires a substantial proof (~4000 lines in Isabelle AFP). The following lemmas have been verified in the sandbox: sturmAux recurrence, signChanges_nil, signChanges_singleton, signChanges_triple_opposite_ends, squarefree_isCoprime_derivative. The remaining work is: (1) formalize the
+
+## Exact Failed Lean Error
+Sturm's theorem requires a substantial proof (~4000 lines in Isabelle AFP). The following lemmas have been verified in the sandbox: sturmAux recurrence, signChanges_nil, signChanges_singleton, signChanges_triple_opposite_ends, squarefree_isCoprime_derivative. The remaining work is: (1) formalize the Euclidean algorithm termination to get sturmChain_last_nonzero, (2) prove sign constancy on intervals via IVT, (3) formalize the root analysis (sigma drops by 1 at simple roots), (4) assemble the counting argument using finite root set partition.
+
+## Next Lemma To Prove
+sign_constant_on_interval (IVT-based lemma for sign constancy)
+
+## Strategy Note
+(no frontier state — strategy unknown)
+
+
+## Scratch Lean 4 Code From This Attempt
+
+This code compiled outside the Lean-Eval workspace shape. Treat it as exploratory context until it is rechecked with `import ChallengeDeps` or `import Submission.*`.
+
+```lean4
+lemma signChanges_triple_opposite_ends (a b c : ℝ) (hac : a * c < 0) : signChanges [a, b, c] = 1
+```
