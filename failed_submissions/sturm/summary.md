@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260723T220725Z
+**Last updated:** 20260723T221632Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -49,12 +49,11 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
-**Last error:** signChanges_flip_first: remaining goal `1 + S = S + 1` - trivial add_comm fix needed
+**Last error:** Two remaining sorrys: sturm_opposition_at_root (chain recurrence evaluation) and the main sturm theorem itself. The signChanges and analysis lemmas are all verified.
 
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
-|---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 | 1 | 20260707T022127Z | `(unknown)` | agent-provided report | saved |
@@ -75,6 +74,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 22 | 20260723T114407Z | `sigma_constant_if_no_chain_root: prove sigma(a)=sigma(b) when no chain entry has a root in [a,b]` | agent-provided report | blocked |
 | 22 | 20260723T132326Z | `(unknown)` | agent-provided report | saved |
 | 22 | 20260723T220725Z | `signChanges_flip_first - just need `rw [add_comm]` or `omega` to finish` | failed: signChanges_flip_first: remaining goal `1 + S = S + 1` - trivial add_comm fix ne | blocked |
+| 22 | 20260723T221632Z | `Complete sturm_opposition_at_root using the Euclidean algorithm property, then assemble the main theorem via Finset induction over the finite root set` | failed: Two remaining sorrys: sturm_opposition_at_root (chain recurrence evaluation) and | blocked |
 
 ## Recommended Next Steps
 
