@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260723T221828Z
+**Last updated:** 20260723T222007Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -49,13 +49,12 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
-**Last error:** mod_opposition: eval_neg rewrite issue (trivial). Main theorem: proof assembly incomplete.
+**Last error:** Main theorem assembly incomplete. All 8 helper lemmas verified.
 
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
 |---|-----------|-------|----------|--------|
-| 1 | 20260707T022127Z | `(unknown)` | agent-provided report | saved |
 | 3 | 20260707T085800Z | `(unknown)` | agent-provided report | saved |
 | 5 | 20260711T101631Z | `(unknown)` | agent-provided report | saved |
 | 7 | 20260711T122249Z | `sigma_drop_at_simple_root: Prove that at a simple root x of p (where p(x)=0, p'(x)≠0), sigma(p,x-ε) - sigma(p,x+ε) = 1 for sufficiently small ε. This requires analyzing the sign of p and p' near x using continuity and the derivative.` | failed: Unable to complete the full formal proof of Sturm's theorem within the session b | blocked |
@@ -75,6 +74,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 22 | 20260723T220725Z | `signChanges_flip_first - just need `rw [add_comm]` or `omega` to finish` | failed: signChanges_flip_first: remaining goal `1 + S = S + 1` - trivial add_comm fix ne | blocked |
 | 22 | 20260723T221632Z | `Complete sturm_opposition_at_root using the Euclidean algorithm property, then assemble the main theorem via Finset induction over the finite root set` | failed: Two remaining sorrys: sturm_opposition_at_root (chain recurrence evaluation) and | blocked |
 | 22 | 20260723T221828Z | `Complete mod_opposition with eval_neg, prove interior_root_opposition lemma, then assemble main theorem via Finset induction.` | agent-provided report | blocked |
+| 22 | 20260723T222007Z | `Prove sturm_opposition_at_interior_root using EuclideanDomain.mod_add_div, then sigma_drop_at_simple_root, then main theorem.` | agent-provided report | blocked |
 
 ## Recommended Next Steps
 
