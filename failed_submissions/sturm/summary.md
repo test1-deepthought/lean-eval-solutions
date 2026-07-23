@@ -1,6 +1,6 @@
 # sturm — Current State
 
-**Last updated:** 20260720T091205Z
+**Last updated:** 20260723T114407Z
 **Total attempts:** 20
 **Status:** PARTIALLY VERIFIED
 
@@ -47,12 +47,11 @@ See `Submission.lean` in the repository root or the latest attempt below.
 
 All frontier lemmas verified — main theorem assembly remains.
 
-**Last error:** Sturm's theorem requires a substantial proof (~4000 lines in Isabelle AFP). The following lemmas have been verified in the sandbox: sturmAux recurrence, signChanges_nil, signChanges_singleton, signChanges_triple_opposite_ends, squarefree_isCoprime_derivative. The remaining work is: (1) formalize the
+**Last error:** The main theorem proof is incomplete. Verified lemmas: squarefree_derivative_ne_zero_at_root (squarefree p implies p'(r)≠0 at roots), sign_constant_on_Icc and sign_constant_on_Icc_neg (sign constancy via IVT). Remaining: sigma_constant_if_no_chain_root, sigma_drop_at_simple_root, main assembly via F
 
 ## Strategy History
 
 | # | Timestamp | Lemma | Approach | Result |
-|---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
 |---|-----------|-------|----------|--------|
@@ -73,6 +72,7 @@ All frontier lemmas verified — main theorem assembly remains.
 | 22 | 20260712T070915Z | `sigma_locally_constant: show sigma is constant on intervals where no chain entry vanishes` | agent-provided report | blocked |
 | 22 | 20260720T084850Z | `sign_near_simple_root: For squarefree p with simple root r, sigma drops by exactly 1 across r. Then use induction on Finset of roots in (a,b) to complete the main theorem.` | agent-provided report | blocked |
 | 22 | 20260720T091205Z | `sign_constant_on_interval (IVT-based lemma for sign constancy)` | failed: Sturm's theorem requires a substantial proof (~4000 lines in Isabelle AFP). The  | blocked |
+| 22 | 20260723T114407Z | `sigma_constant_if_no_chain_root: prove sigma(a)=sigma(b) when no chain entry has a root in [a,b]` | agent-provided report | blocked |
 
 ## Recommended Next Steps
 
