@@ -559,3 +559,23 @@ signChanges_flip_first - just need `rw [add_comm]` or `omega` to finish
 
 ## Strategy Note
 (no frontier state — strategy unknown)
+
+---
+## Attempt 20260723T221632Z | mode: new
+
+## Verified Lemmas
+(record in PROVE frontier state / attached candidate files)
+
+## Unproven Components
+(no frontier state available)
+**Current lemma:** `Complete sturm_opposition_at_root using the Euclidean algorithm property, then assemble the main theorem via Finset induction over the finite root set`
+**Error:** Two remaining sorrys: sturm_opposition_at_root (chain recurrence evaluation) and the main sturm theorem itself. The signChanges and analysis lemmas are all verified.
+
+## Exact Failed Lean Error
+Two remaining sorrys: sturm_opposition_at_root (chain recurrence evaluation) and the main sturm theorem itself. The signChanges and analysis lemmas are all verified.
+
+## Next Lemma To Prove
+Complete sturm_opposition_at_root using the Euclidean algorithm property, then assemble the main theorem via Finset induction over the finite root set
+
+## Strategy Note
+(no frontier state — strategy unknown)
