@@ -495,3 +495,10 @@ This code compiled outside the Lean-Eval workspace shape. Treat it as explorator
 ```lean4
 lemma signChanges_triple_opposite_ends (a b c : ℝ) (hac : a * c < 0) : signChanges [a, b, c] = 1
 ```
+
+---
+## Attempt 20260723T114407Z
+
+## Evidence Warning
+
+The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
