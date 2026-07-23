@@ -2,7 +2,7 @@
 
 ## Current failed submissions
 
-- `sturm`: `failed_submissions/sturm/report.md` (20260723T132326Z)
+- `sturm`: `failed_submissions/sturm/report.md` (20260723T220725Z)
 
 - `one_plus_one`: `failed_submissions/one_plus_one/report.md` (20260717T065847Z)
 
