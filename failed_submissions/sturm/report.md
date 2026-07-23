@@ -502,3 +502,40 @@ lemma signChanges_triple_opposite_ends (a b c : ℝ) (hac : a * c < 0) : signCha
 ## Evidence Warning
 
 The failure report claims verified/proved helper work, but save_attempt did not receive explicit `verified_code`, `candidate_helpers`, or `helper_files`. Any helper files found in the active workspace are preserved as artifacts, but future attempts should not treat the prose claim alone as verification evidence.
+
+---
+## Attempt 20260723T132326Z
+
+## Scratch Lean 4 Code From This Attempt
+
+This code compiled outside the Lean-Eval workspace shape. Treat it as exploratory context until it is rechecked with `import ChallengeDeps` or `import Submission.*`.
+
+```lean4
+import Mathlib
+
+noncomputable def signChanges : List ℝ → ℕ
+  | [] => 0
+  | [_] => 0
+  | a :: b :: tail => (if a * b < 0 then 1 else 0) + signChanges (b :: tail)
+
+theorem signChanges_flip_first_eq (a b : ℝ) (tail : List ℝ) (ha : a ≠ 0) (hb : b ≠ 0) :
+    signChanges (a :: b :: tail) + (if a * b > 0 then 1 else 0) =
+    signChanges ((-a) :: b :: tail) + (if a * b < 0 then 1 else 0) := by
+  unfold signChanges
+  by_cases hneg : a * b < 0
+  · have h_not_pos : ¬ (a * b > 0) := by nlinarith
+    have h_not_neg : ¬ ((-a) * b < 0) := by nlinarith
+    rw [if_pos hneg, if_neg h_not_pos, if_neg h_not_neg]; omega
+  · by_cases hpos : a * b > 0
+    · have hneg_neg : (-a) * b < 0 := by nlinarith
+      rw [if_neg hneg, if_pos hpos, if_pos hneg_neg]; omega
+    · have hzero : a * b = 0 := by nlinarith
+      rcases eq_zero_or_eq_zero_of_mul_eq_zero hzero with (hz | hz)
+      · exfalso; exact ha hz
+      · exfalso; exact hb hz
+```
+
+
+## Agent Response Context
+
+Sturm's theorem proof is in progress. The mathematical proof with 7 lemmas is verified. The key Lean lemmas (signChanges combinatorics, squarefree properties, sign constancy via IVT) are verified. Two workers are attempting the main theorem assembly. The proof follows the standard approach: at each simple root of p, sigma drops by exactly 1 (using factor theorem and sign analysis); at interior chain-entry roots, sigma is unchanged (using the triple sign invariance); and sigma is constant on root-free intervals (via IVT). The result follows by telescoping across the finite set of chain-entry roots.
