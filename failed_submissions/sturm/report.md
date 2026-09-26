@@ -2,64 +2,99 @@
 
 ## Failed Lean Error
 
-The main theorem `Submission.sturm` remains unproved; the placeholder-free Submission.lean still requires the full Sturm-theorem development. Remaining: prove local constancy of sigma off the union of chain roots, the unit jump of sigma at each simple root of p, and telescoping over (a,b), plus chain-coprimality and terminal-constant lemmas.
+Do not have the core Sturm telescoping identity: ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card = sigma p a - sigma p b. The verified helper lemmas do not discharge it.
 
 ## Agent Response Context
 
-## Summary
+Attempt to prove sturm_aux_telescoping via a parallel formal worker did not complete.
 
-Solved the *Lean-Eval statement alignment and framework* for the `sturm` problem but did **not** complete the machine-checked proof within this session. This is a from-scratch formalization of Sturm's theorem; as the problem's own documentation states, Mathlib has no Sturm chain, no sign-variation counter, and no Sturm's theorem (the reference development is Manuel Eberl's Isabelle AFP entry `Sturm_Sequences`).
+VERIFIED PARTIAL WORK (compiles cleanly, exit code 0 in lean4_probe):
+The definitions sturmAux, sturmChain, signChanges, sigma, and five helper lemmas all type-check:
+signChanges_le, root_count_le, sigma_le, chain_length_pos, poly_ne_zero.
 
-## Work completed and verified
+REMAINING CORE GAP (exact, unresolved):
+The telescoping identity itself is not proven:
+  ∀ (p : ℝ[X]) (a b : ℝ), Squarefree p → a < b → p.eval a ≠ 0 → p.eval b ≠ 0 →
+    ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card = sigma p a - sigma p b
 
-1. **Statement skeleton accepted.** The target `sturm` theorem was frozen against the exact formal target
-   `((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card = sigma p a - sigma p b`
-   with the challenge definitions `sturmAux`, `sturmChain`, `signChanges`, `sigma` inlined to match `ChallengeDeps.lean` byte-for-byte (confirmed by reading the upstream workspace file).
+To close it one needs the local sign-change behavior of the Sturm chain, none of which is formalized:
+ (i) at a simple root c of p, the number of sign changes sigma p x drops by exactly 1 as x passes c (the first chain entry changes sign while the rest keep a fixed pattern);
+ (ii) on any subinterval containing no root of p, sigma p · is locally constant;
+ (iii) telescoping (i) and (ii) across the roots in (a,b) yields the cardinality difference.
 
-2. **Key mathematical facts established computationally** (Python/SymPy):
-   - Chain structure via negated remainders `pₖ₊₁ = -(pₖ₋₁ mod pₖ)`.
-   - **Critical lemma**: at any interior zero x₀ of a chain entry `pₖ` (k ≥ 1), the neighbours satisfy `pₖ₋₁(x₀) = -pₖ₊₁(x₀) ≠ 0` — verified numerically across several squarefree polynomials. This is the crux of the local sign-change analysis (it explains why vanishing intermediate entries do not alter the variation count).
-
-3. **One foundational Lean lemma proved and compile-checked** (`lean4_probe` exit 0):
-   `signChanges_cons_cons : signChanges (a::b::t) = (if a*b<0 then 1 else 0) + signChanges (b::t)` for nonzero `a,b`.
-
-## Exact remaining goals (registered frontier)
-
-- `sturmAux_consecutive_coprime` — consecutive chain entries share no common real root.
-- `sturmChain_terminal_const` — for squarefree `p`, the last nonzero chain entry is a nonzero constant (no real root), via `Squarefree`/coprimality with the derivative.
-- `sigma_locally_const` — `σ` constant on open intervals avoiding all chain roots.
-- `sigma_jump_one` — `σ` drops by exactly 1 across each simple root of `p`.
-- `telescope_roots` — `σ(a) − σ(b) = #{roots in (a,b)}`, then the `roots.toFinset` cardinality identification.
-
-## Blocker
-
-The full development is a research-grade effort. The residual budget was consumed resolving Lean tactic-level issues in the list-signature calculus; the interval/continuity analysis and telescoping remain.
+These three local statements are the mathematically decisive part of Sturm's theorem and are the exact blockers. The Mathlib library does not expose them in a directly usable form for this chain definition, so the route must construct them from scratch.
 
 ## Lean 4 Code From This Attempt
 
 ```lean4
 import Mathlib
+import Mathlib.Tactic
+
+open Polynomial
 open scoped Classical
 
-namespace SC
+namespace LeanEval
+namespace Algebra
+
+noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
+| a, _, 0 => [a]
+| a, b, (n + 1) =>
+  if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+
+noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
+  sturmAux p (derivative p) (p.natDegree + 2)
 
 noncomputable def signChanges (xs : List ℝ) : ℕ :=
   let ys := xs.filter (· ≠ 0)
   ((ys.zip ys.tail).filter (fun q => q.1 * q.2 < 0)).length
 
-lemma signChanges_cons_cons (a b : ℝ) (t : List ℝ) (ha : a ≠ 0) (hb : b ≠ 0) :
-    signChanges (a :: b :: t) = (if a * b < 0 then 1 else 0) + signChanges (b :: t) := by
-  unfold signChanges
-  simp only
-  rw [List.filter_cons_of_pos (by simpa using ha), List.filter_cons_of_pos (by simpa using hb)]
-  simp only [List.zip_cons_cons, List.tail_cons, List.filter_cons]
-  by_cases h : a * b < 0
-  · simp only [h, decide_true, if_true, List.length_cons]
-    omega
-  · rw [if_neg (by simp [h])]
-    simp only [h, decide_false, Bool.false_eq_true, if_false, List.length_cons, zero_add]
+noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
+  signChanges ((sturmChain p).map fun q => q.eval x)
 
-end SC
+end Algebra
+end LeanEval
+
+open LeanEval.Algebra
+
+namespace Submission
+
+theorem sturm_aux_poly_ne_zero (p : ℝ[X]) (hp : Squarefree p) : p ≠ 0 :=
+  hp.ne_zero
+
+theorem sturm_aux_signChanges_le (xs : List ℝ) :
+    signChanges xs ≤ (xs.filter (· ≠ 0)).length := by
+  rw [signChanges]
+  refine le_trans (List.length_filter_le _ _) ?_
+  rw [List.length_zip, List.length_tail]
+  omega
+
+theorem sturm_aux_root_count_le (p : ℝ[X]) (a b : ℝ) :
+    ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card ≤ p.roots.card := by
+  calc ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card
+      ≤ (p.roots.toFinset).card := Finset.card_filter_le _ _
+    _ ≤ p.roots.card := Multiset.toFinset_card_le _
+
+theorem sturm_aux_sigma_le (p : ℝ[X]) (x : ℝ) :
+    sigma p x ≤ (sturmChain p).length := by
+  rw [sigma]
+  refine le_trans (sturm_aux_signChanges_le _) ?_
+  have := List.length_filter_le (fun x : ℝ => decide (x ≠ 0))
+    ((sturmChain p).map (fun q => q.eval x))
+  rw [List.length_map] at this
+  exact this
+
+theorem sturm_aux_chain_length_pos (p : ℝ[X]) :
+    0 < (sturmChain p).length := by
+  rw [sturmChain]
+  have h : p.natDegree + 2 ≠ 0 := by omega
+  cases hc : p.natDegree + 2 with
+  | zero => exact absurd hc h
+  | succ n =>
+    have key : (sturmAux p (derivative p) (n + 1)).length ≠ 0 := by
+      rw [sturmAux]; split <;> simp
+    omega
+
+end Submission
 ```
 
 ## Evidence scope
