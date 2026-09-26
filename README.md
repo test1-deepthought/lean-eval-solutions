@@ -158,6 +158,8 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 
 ## Current failed submissions
 
+- `parallel_postulate_independent`: `failed_submissions/parallel_postulate_independent/report.md` (2026-09-26T13:13:56.752Z)
+
 - `sunny_lines`: `failed_submissions/sunny_lines/report.md` (20260707T141438Z)
 
 - `oppenheim_inequality`: `failed_submissions/oppenheim_inequality/report.md` (20260623T143010Z)
