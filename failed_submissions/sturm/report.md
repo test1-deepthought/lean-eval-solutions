@@ -2,19 +2,37 @@
 
 ## Failed Lean Error
 
-Unsolved goal: the complete proof of the frozen theorem `sturm` requires the full Sturm-sequence theory over the opaque noncomputable definitions sturmAux/sturmChain/signChanges/sigma: (1) sign alternation of consecutive Euclidean-chain entries at their common zeros, (2) local constancy of sigma on intervals free of roots, (3) unit drop of sigma at each simple root. None of these has any Mathlib API; Sigma/SignChanges are List filter/zip operations with no simplification lemmas. Mathlib lacks Sturm, sign-variation, and chain-sign-alternation theory entirely. The helper linchpin `mod_eval_at_root` is now proven, but the top-level `sturm` body remains unproved.
+The frozen final theorem `sturm` remains unproved. Verified this session (Lean exit 0, no sorry): sturmAux_zero, sturmAux_succ, sturmAux_stop, signChanges_nil, mod_eval_at_root (the linchpin Euclidean identity (a % b).eval β = a.eval β given b.eval β = 0), rem_degree_lt. The three load-bearing pillars are unproved and lack any Mathlib API: (1) chain sign alternation of consecutive entries at their common zeros, (2) local constancy of the evaluation-based `sigma` on root-free intervals, (3) unit drop of `sigma` at each simple root. Even the degenerate constant case (card = sigma(C c) a - sigma(C c) b) fails: it reduces to signChanges of a singleton evaluation list, which requires manual List.filter/zip/decide reasoning absent from the API.
 
 ## Agent Response Context
 
-Request: remove Lean placeholders and verify the complete replacement.
+## Direct Answer
 
-This cannot be satisfied as stated. "Remove the placeholder and verify the complete replacement" presupposes that a placeholder-free proof of the frozen theorem `sturm` exists and merely needs submitting. It does not. The remaining top-level `sorry` in the frozen theorem marks a genuinely unproved mathematical obligation, not a formatting artifact: a `sorry` can only be replaced by an actual proof term, and constructing that term is the unsolved problem.
+Continuing from the prior turn, I re-derived the Phase-1 mathematical certificate for Sturm's theorem (accepted, certificate 2806a733...), froze the formal target via an accepted statement skeleton, and then genuinely attempted the Lean formalization rather than declaring infeasibility from an assessment.
 
-What was accomplished: the one helper placeholder (`mod_eval_at_root`) has been discharged. It now compiles with no sorry, proven via EuclideanDomain.mod_add_div + Polynomial.eval_mul. So the count of placeholders in the working file went from 1 helper + 1 frozen target to 1 frozen target.
+Genuine machine-checked progress this session (Lean exit 0, no sorry): `mod_eval_at_root` — the linchpin Euclidean evaluation identity (a % b).eval β = a.eval β when b.eval β = 0 — plus the structural bricks `sturmAux_zero`, `sturmAux_succ`, `sturmAux_stop`, `signChanges_nil`, and `rem_degree_lt`.
 
-What remains: a complete placeholder-free proof body for `sturm`. This requires the full Sturm-sequence theory developed from scratch over the opaque noncomputable definitions (sturmAux/sturmChain/signChanges/sigma): chain sign alternation at common zeros, local constancy of sigma off roots, unit drop at each simple root, telescoped over the distinct roots. Mathlib supplies none of this. Submitting any source with the target's sorry still present would not be a "complete replacement", and I will not emit a false `by simp` or unverified `exact` and claim it verifies.
+**Correction to my prior turn.** I previously wrote that "mathlib has no Sturm chain, no sign-variation counter, and no Sturm's theorem." That was imprecise and I retract the blanket form. The Mathlib search index surfaces `Polynomial.sturmSeq` and `Polynomial.signVariations`; exact lookup (`mathlib_check`) shows `Polynomial.signVariations` is present but is **lead-coefficient based** (not the challenge's evaluation-based `signChanges`), while `Polynomial.sturmSeq` is `local_missing` in this environment, as are all its lemmas. `Polynomial.signVariations` has no theorem linking it to root counts (`signVariations_roots`: no results). The challenge's own comment ("no Sturm chain, no sign-variation counter") is therefore accurate for the *counting* infrastructure the theorem needs, but my earlier wording overstated it.
 
-Honest status: INCOMPLETE. The mathematical proof is established and verified at proof rigor; the Lean formalization is not, and the specific request to verify a complete replacement is not achievable with the available Mathlib and budget.
+The frozen theorem `sturm` remains unproved. A complete proof requires constructing, from scratch over the opaque `noncomputable` definitions, the full Sturm-sequence theory: (1) sign alternation of consecutive Euclidean-chain entries at their common zeros, (2) local constancy of the evaluation-based `sigma` on root-free intervals, and (3) the unit drop at each simple root — none of which has a Mathlib API, and the definitions are `List.filter/zip/decide` operations with no simplification lemmas.
+
+## Status
+
+INCOMPLETE
+
+## Problem Specification
+
+Lean-Eval `sturm`: for $p \in \mathbb{R}[X]$ squarefree and reals $a < b$ with $p(a),\,p(b) \neq 0$,
+$$\bigl|\{x \in (a,b) : p(x) = 0\}\bigr| = \sigma_p(a) - \sigma_p(b),$$
+using the challenge's own `sturmAux`/`sturmChain`/`signChanges`/`sigma`. Formal target frozen at `ca0544f0...`.
+
+## Verification
+
+**Phase-1 mathematics: accepted** (structural review, certificate `2806a73364949ed8f7e78ce4965b07a24eeff3e9ddfbce8bf09cfe5dcf29311f`): chain termination with adequate fuel, sign alternation, local constancy of `sigma`, unit drop at each simple root, telescoping over the simple roots.
+
+**Phase-2 Lean: not completed.** No placeholder-free proof of the frozen theorem exists, so no `lean4_exec` certificate is claimed. Verified compiling bricks (this session): `sturmAux_zero`, `sturmAux_succ`, `sturmAux_stop`, `signChanges_nil`, `rem_degree_lt`, and the linchpin `mod_eval_at_root`.
+
+**Exact remaining goal:** the `sturm` proof body. Concretely, the immediate blocker is that even the base 
 
 ## Lean 4 Code From This Attempt
 
@@ -23,7 +41,8 @@ import Mathlib
 open Polynomial
 open scoped Classical
 
-namespace Submission
+namespace LeanEval
+namespace Algebra
 
 noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
   | a, _, 0       => [a]
@@ -40,7 +59,6 @@ noncomputable def signChanges (xs : List ℝ) : ℕ :=
 noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
   signChanges ((sturmChain p).map fun q => q.eval x)
 
--- Verified structural facts:
 theorem sturmAux_zero (a b : ℝ[X]) : sturmAux a b 0 = [a] := rfl
 
 theorem sturmAux_succ (a b : ℝ[X]) (n : ℕ) (hb : b ≠ 0) :
@@ -53,7 +71,6 @@ theorem sturmAux_stop (a : ℝ[X]) (n : ℕ) : sturmAux a 0 (n + 1) = [a] := by
 theorem signChanges_nil : signChanges ([] : List ℝ) = 0 := by
   simp [signChanges]
 
--- Linchpin sign-alternation identity, now FULLY PROVEN (no sorry):
 theorem mod_eval_at_root (a b : ℝ[X]) (β : ℝ) (hβ : b.eval β = 0) :
     (a % b).eval β = a.eval β := by
   have h := EuclideanDomain.mod_add_div a b
@@ -62,14 +79,11 @@ theorem mod_eval_at_root (a b : ℝ[X]) (β : ℝ) (hβ : b.eval β = 0) :
   rw [Polynomial.eval_mul, hβ, zero_mul, add_zero] at h2
   exact h2
 
--- Frozen final theorem: proof body still absent.
-theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
-    (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
-    ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
-      sigma p a - sigma p b := by
-  sorry
+theorem rem_degree_lt (a b : ℝ[X]) (hb : b ≠ 0) : (a % b).degree < b.degree :=
+  Polynomial.degree_mod_lt a hb
 
-end Submission
+end Algebra
+end LeanEval
 ```
 
 ## Evidence scope
