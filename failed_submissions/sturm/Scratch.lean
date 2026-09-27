@@ -19,6 +19,7 @@ noncomputable def signChanges (xs : List ℝ) : ℕ :=
 noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
   signChanges ((sturmChain p).map fun q => q.eval x)
 
+-- Verified structural facts:
 theorem sturmAux_zero (a b : ℝ[X]) : sturmAux a b 0 = [a] := rfl
 
 theorem sturmAux_succ (a b : ℝ[X]) (n : ℕ) (hb : b ≠ 0) :
@@ -31,8 +32,20 @@ theorem sturmAux_stop (a : ℝ[X]) (n : ℕ) : sturmAux a 0 (n + 1) = [a] := by
 theorem signChanges_nil : signChanges ([] : List ℝ) = 0 := by
   simp [signChanges]
 
-theorem mod_eval_at_root (a b : ℝ[X]) (hb : b ≠ 0) (β : ℝ) (hβ : b.eval β = 0) :
+-- Linchpin sign-alternation identity, now FULLY PROVEN (no sorry):
+theorem mod_eval_at_root (a b : ℝ[X]) (β : ℝ) (hβ : b.eval β = 0) :
     (a % b).eval β = a.eval β := by
+  have h := EuclideanDomain.mod_add_div a b
+  have h2 : (a % b).eval β + (b * (a / b)).eval β = a.eval β := by
+    rw [← Polynomial.eval_add, h]
+  rw [Polynomial.eval_mul, hβ, zero_mul, add_zero] at h2
+  exact h2
+
+-- Frozen final theorem: proof body still absent.
+theorem sturm (p : ℝ[X]) (hp : Squarefree p) {a b : ℝ} (hab : a < b)
+    (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
+    ((p.roots.toFinset).filter (fun x => a < x ∧ x < b)).card =
+      sigma p a - sigma p b := by
   sorry
 
 end Submission
