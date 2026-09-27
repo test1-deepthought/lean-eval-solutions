@@ -54,5 +54,5 @@ a single session. To avoid wasting time on previously-failed problems:
 | sturm | Sturm's Theorem | fix | (not specified) |
 | symplectic_matrix_det | Symplectic matrix determinant = 1 | new | Pfaffian via recursive Laplace expansion |
 | wallpaper_groups_17 | Classification of wallpaper groups (17) | new | (not specified) |
-- sturm: [report](./sturm/report.md) (2026-09-27T10:57:40.120Z)
+- sturm: [report](./sturm/report.md) (2026-09-27T11:03:09.234Z)
 - parallel_postulate_independent: [report](./parallel_postulate_independent/report.md) (2026-09-26T13:13:56.752Z)
