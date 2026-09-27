@@ -1,5 +1,5 @@
 # sturm — incomplete Lean-Eval attempt
 
-- Saved: 2026-09-27T10:57:36.745Z
-- Last error: The frozen final theorem `sturm` remains unproved. Verified this session (Lean exit 0, no sorry): sturmAux_zero, sturmAux_succ, sturmAux_stop, signChanges_nil, mod_eval_at_root (the linchpin Euclidean identity (a % b).eval β = a.eval β given b.eval β = 0), rem_degree_lt. The three load-bearing pillars are unproved and lack any Mathlib API: (1) chain sign alternation of consecutive entries at their common zeros, (2) local constancy of the evaluation-based `sigma` on root-free intervals, (3) unit drop of `sigma` at each simple root. Even the degenerate constant case (card = sigma(C c) a - sigma(C c) b) fails: it reduces to signChanges of a singleton evaluation list, which requires manual List.filter/zip/decide reasoning absent from the API.
+- Saved: 2026-09-27T11:03:04.941Z
+- Last error: The frozen theorem `sturm` (Challenge.lean line 11) still carries its top-level `sorry`. The proof body requires the full Sturm-sequence theory (chain sign alternation, local constancy of the evaluation-based `sigma`, unit drop at simple roots) which has no Mathlib API: `Polynomial.sturmSeq` and `List.signVariations` are unknown constants in this environment (confirmed via direct #check), and the challenge's `signChanges`/`sturmChain` list definitions offer no simplification API.
 - Submission ref: (not written)
