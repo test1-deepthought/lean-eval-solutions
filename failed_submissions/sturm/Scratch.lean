@@ -1,14 +1,13 @@
 import Mathlib
+
 open Polynomial
 open scoped Classical
 
-namespace LeanEval
-namespace Algebra
+namespace SturmBricks
 
 noncomputable def sturmAux : ℝ[X] → ℝ[X] → ℕ → List ℝ[X]
   | a, _, 0       => [a]
-  | a, b, (n + 1) =>
-    if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
+  | a, b, (n + 1) => if b = 0 then [a] else a :: sturmAux b (-(a % b)) n
 
 noncomputable def sturmChain (p : ℝ[X]) : List ℝ[X] :=
   sturmAux p (derivative p) (p.natDegree + 2)
@@ -20,28 +19,47 @@ noncomputable def signChanges (xs : List ℝ) : ℕ :=
 noncomputable def sigma (p : ℝ[X]) (x : ℝ) : ℕ :=
   signChanges ((sturmChain p).map fun q => q.eval x)
 
-theorem sturmAux_zero (a b : ℝ[X]) : sturmAux a b 0 = [a] := rfl
+theorem signChanges_nil : signChanges [] = 0 := by
+  unfold signChanges; simp
 
-theorem sturmAux_succ (a b : ℝ[X]) (n : ℕ) (hb : b ≠ 0) :
-    sturmAux a b (n + 1) = a :: sturmAux b (-(a % b)) n := by
-  simp [sturmAux, hb]
+theorem signChanges_singleton (y : ℝ) : signChanges [y] = 0 := by
+  unfold signChanges
+  simp only [List.filter_cons]
+  split
+  · simp
+  · simp
 
-theorem sturmAux_stop (a : ℝ[X]) (n : ℕ) : sturmAux a 0 (n + 1) = [a] := by
-  simp [sturmAux]
-
-theorem signChanges_nil : signChanges ([] : List ℝ) = 0 := by
-  simp [signChanges]
-
-theorem mod_eval_at_root (a b : ℝ[X]) (β : ℝ) (hβ : b.eval β = 0) :
+-- linchpin Euclidean identity: evaluation of the remainder at a root of the divisor
+theorem mod_eval_at_root (a b : ℝ[X]) (hb : b ≠ 0) (β : ℝ) (hβ : b.eval β = 0) :
     (a % b).eval β = a.eval β := by
   have h := EuclideanDomain.mod_add_div a b
-  have h2 : (a % b).eval β + (b * (a / b)).eval β = a.eval β := by
-    rw [← Polynomial.eval_add, h]
-  rw [Polynomial.eval_mul, hβ, zero_mul, add_zero] at h2
-  exact h2
+  have hev : ((a % b) + b * (a / b)).eval β = a.eval β := by rw [h]
+  rw [Polynomial.eval_add, Polynomial.eval_mul, hβ, zero_mul, add_zero] at hev
+  exact hev
 
-theorem rem_degree_lt (a b : ℝ[X]) (hb : b ≠ 0) : (a % b).degree < b.degree :=
-  Polynomial.degree_mod_lt a hb
+-- sign alternation step at a common zero
+theorem neg_mod_eval_at_root (a b : ℝ[X]) (hb : b ≠ 0) (β : ℝ) (hβ : b.eval β = 0) :
+    (-(a % b)).eval β = - a.eval β := by
+  rw [Polynomial.eval_neg, mod_eval_at_root a b hb β hβ]
 
-end Algebra
-end LeanEval
+theorem sturmChain_C (c : ℝ) : sturmChain (C c) = [C c] := by
+  unfold sturmChain
+  rw [Polynomial.derivative_C]
+  cases h : (C c : ℝ[X]).natDegree + 2 with
+  | zero => omega
+  | succ n => simp [sturmAux]
+
+theorem sigma_C (c : ℝ) (x : ℝ) : sigma (C c) x = 0 := by
+  unfold sigma
+  rw [sturmChain_C]
+  simp only [List.map_cons, List.map_nil, Polynomial.eval_C]
+  exact signChanges_singleton c
+
+-- full constant base case of the theorem
+theorem sturm_const (c : ℝ) {a b : ℝ} (hab : a < b) :
+    ((C c : ℝ[X]).roots.toFinset.filter (fun x => a < x ∧ x < b)).card =
+      sigma (C c) a - sigma (C c) b := by
+  rw [Polynomial.roots_C, sigma_C, sigma_C]
+  simp
+
+end SturmBricks
