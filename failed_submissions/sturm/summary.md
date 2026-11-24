@@ -1,5 +1,5 @@
 # sturm — incomplete Lean-Eval attempt
 
-- Saved: 2026-09-27T11:07:41.580Z
-- Last error: The frozen theorem `sturm` remains unproved. Its proof body requires the full Sturm-sequence theory over the challenge's custom noncomputable definitions: (1) chain sign alternation at common zeros, (2) local constancy of the evaluation-based `sigma` off roots, (3) unit drop at simple roots at a root of p, then telescoping. `Polynomial.sturmSeq` and `List.signVariations` are local_missing in this compile environment (confirmed via mathlib_check and direct #check in the Lean sandbox). The custom `signChanges` filter/zip/decide layer has no simplification API. Verified this turn: signChanges_nil, signChanges_singleton, sturmAux_zero/succ_ne/succ_eq, mod_eval_at_root, neg_mod_eval_at_root, sturmChain_C, sigma_C, sturm_const (constant base case).
+- Saved: 2026-11-24T11:32:34.590Z
+- Last error: Hole LeanEval.Algebra.sturm unresolved: candidate contains `sorry`. stage=check reported "Submission.lean still use sorry / Holes: LeanEval.Algebra.sturm: missing". No placeholder-free proof of Sturm's theorem for the challenge's own `sturmChain`/`signChanges`/`sigma` definitions was produced this turn.
 - Submission ref: (not written)
