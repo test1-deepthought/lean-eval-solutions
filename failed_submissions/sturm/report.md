@@ -2,11 +2,11 @@
 
 ## Failed Lean Error
 
-Hole LeanEval.Algebra.sturm unresolved. stage=check (candidate sha 0699502a…, pin bcc142463a0530038f12e8f1c1e9cce78e129f0a): "Compiled ChallengeDeps, Challenge, Submission.Helpers, Submission, Solution in the sturm workspace, but Submission.lean still use sorry. Holes: LeanEval.Algebra.sturm: missing". This turn produced verified auxiliary facts only (Aux.scAux_cons_cons, falseEq); no placeholder-free proof exists, so write_verified and ci_verify are unreachable.
+Hole LeanEval.Algebra.sturm unresolved after 8 attempt rounds. Latest stage=check (candidate sha ec5c5ae8…, pin bcc142463a0530038f12e8f1c1e9cce78e129f0a): "Submission.lean still use sorry. Holes: LeanEval.Algebra.sturm: missing". Last probe error: `rfl` failed, `0 + if x = y then 0 else 1` not definitionally equal to `if x = y then 0 else 1`. Latest verified auxiliary facts: Aux.scAux_cons_cons, Aux.falseEq. Nothing about the polynomial chain has been formalized, so write_verified/ci_verify remain unreachable.
 
 ## Agent Response Context
 
-Not solved. The sturm hole remains open; `stage=check` still reports `LeanEval.Algebra.sturm: missing`, so `stage=write_verified` and `stage=ci_verify` were unreachable and no preflight CI run exists. Verified progress this turn is limited to two definitional auxiliary facts about a Bool sign-change accumulator. Remaining obligations are listed exactly in the report: sturm-chain invariants, signChanges append/recursion lemmas, local constancy of sigma, the one-step drop across a simple root, and the telescoping/count bridge.
+Not solved. Attempt 3 ended with the `sturm` hole still open: stage=check reports `LeanEval.Algebra.sturm: missing`, so stage=write_verified and stage=ci_verify were unreachable and no CI run is bound to any commit. Verified work this session is limited to two definitional Bool-list accumulator facts (scAux_cons_cons, falseEq). The residual obligations — sturm-chain invariants, signChanges calculus, sigma invariance between roots, the one-step drop at a simple root, and the telescoping/cardinality bridge — are enumerated exactly in the saved report.
 
 ## Lean 4 Code From This Attempt
 
