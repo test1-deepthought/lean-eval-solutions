@@ -28,14 +28,17 @@ four failure modes the generator used to have:
 
 
 
+
 namespace Submission
 
-open _root_.Helpers.WithCompanions
 open _root_.Helpers
+open _root_.Helpers.WithCompanions
 namespace Helpers
-def first : Nat := 1
-theorem second_eq : first + rootHelper + preHole = first + 141 := rfl
-theorem third_eq : postHole + ({ value := 0 } : WithCompanions).value = 1000 := rfl
+def first : Nat := 0
+theorem second_eq : first + rootHelper + preHole = first + 141 := by
+  simp [first, rootHelper, preHole]
+theorem third_eq : postHole + ({ value := 0 } : WithCompanions).value = 1000 := by
+  simp [postHole]
 
 end Helpers
 
