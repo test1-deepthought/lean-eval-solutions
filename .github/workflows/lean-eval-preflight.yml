@@ -76,16 +76,6 @@ jobs:
         with:
           lake-package-directory: lean-eval
           use-mathlib-cache: true
-          use-github-cache: false
-          # Built by the next step, after dependency caches are configured.
-          build: false
-          test: false
-          lint: false
-
-      - name: Build the benchmark root with downloaded dependency caches
-        # Trusted phase, before any submission Lean runs (mirrors the pinned
-        # evaluator's own replay workflow).
-        run: python lean-eval-submissions/scripts/build_benchmark_root.py lean-eval
 
       - name: Install Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
