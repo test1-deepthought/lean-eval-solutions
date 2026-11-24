@@ -190,6 +190,6 @@ See [`failed_submissions/`](./failed_submissions) for a directory of problems th
 
 - `symplectic_matrix_det`: `failed_submissions/symplectic_matrix_det/report.md` (20260623T152000Z)
 
-- `sturm`: `failed_submissions/sturm/report.md` (2026-09-27T11:07:45.101Z)
+- `sturm`: `failed_submissions/sturm/report.md` (2026-11-24T11:32:39.206Z)
 
 - `contractibleSpace_houseWithTwoRooms`: `failed_submissions/contractibleSpace_houseWithTwoRooms/report.md` (20260614T221600Z)
